@@ -8,7 +8,7 @@
 --  Contact author for permission if you want to use this
 --  software, or work derived from it, under other terms.
 
-with Ada.Containers.Vectors;
+with Ada.Containers.Doubly_Linked_Lists;
 
 with SDL.Video.Rectangles;
 with SDL.Video.Surfaces;
@@ -233,9 +233,8 @@ package Engines is
 
    --  Engine
 
-   package Object_Vectors is
-      new Ada.Containers.Vectors (Index_Type   => Positive,
-                                  Element_Type => PIG_Object_Access);
+   package Object_Lists is
+      new Ada.Containers.Doubly_Linked_Lists (Element_Type => PIG_Object_Access);
 
    type Bef_Aft_Access      is access procedure (Pe : in out PIG_Engine);
    type Sprite_Array        is array (Natural range <>) of PIG_Sprite_Access;
@@ -268,7 +267,7 @@ package Engines is
       Map : PIG_Map_Access;
 
       --  Sprites and stuff
-      Objects : Object_Vectors.Vector;
+      Objects : Object_Lists.List;
 --          PIG_object      *objects;
 --          PIG_object      *object_pool;
       Object_Id_Counter : Integer;

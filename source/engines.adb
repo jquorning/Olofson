@@ -28,7 +28,7 @@ package body Engines is
       SDL.Video.Surfaces.Null_Surface,
       SDL.Video.Surfaces.Null_Surface,
       0, SDL.Video.Rectangles.Null_Rectangle, 0, (null, null),
-      False, False, False, 0.0, 0, null, Object_Vectors.Empty_Vector, 0, 0, null, null, null, 0);
+      False, False, False, 0.0, 0, null, Object_Lists.Empty_List, 0, 0, null, null, null, 0);
 
    Clean_Object : constant PIG_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
@@ -640,16 +640,26 @@ package body Engines is
    end Pig_Test_Map_Vector;
 
 
---  static void test_sprite_map(PIG_engine *pe, PIG_object *po, PIG_sprite *s)
---  {
---      PIG_event ev;
---      if(pig_test_map_vector(pe, po->ip.ox, po->ip.oy, po->x, po->y,
---                      po->tilemask, &ev.cinfo))
---      {
---              ev.type = PIG_HIT_TILE;
---              po->handler(po, &ev);
---      }
---  }
+   procedure Test_Sprite_Map (Engine : in out PIG_Engine;
+                              Object : in out PIG_Object;
+                              Sprite : in     PIG_Sprite_Access);
+
+   procedure Test_Sprite_Map (Engine : in out PIG_Engine;
+                              Object : in out PIG_Object;
+                              Sprite : in     PIG_Sprite_Access)
+   is
+      Cinfo : aliased PIG_Cinfo;
+      Event : PIG_Event;
+   begin
+      if PIG_None /= Pig_Test_Map_Vector (Engine, Integer (Object.Ip.Ox), Integer (Object.Ip.Oy),
+                                          Integer (Object.X), Integer (Object.Y),
+                                          Object.Tilemask, Cinfo'Unchecked_Access)
+      then
+         Event.Cinfo  := Cinfo;
+         Event.Type_C := PIG_HIT_TILE;
+         Object.Handler (Object, Event);
+      end if;
+   end Test_Sprite_Map;
 
 
    procedure Run_Logic (Engine : in out PIG_Engine);
@@ -684,14 +694,14 @@ package body Engines is
 
       for Object of Engine.Objects loop
          declare
-            S : PIG_Sprite_Access;
+            Sprite : PIG_Sprite_Access;
          begin
             --  next = po->next;
             Image := Object.Ibase + Object.Image;
             if (Image >= 0) and (Image < Engine.Nsprites) then
-               S := Engine.Sprites (Image);
+               Sprite := Engine.Sprites (Image);
             else
-               S := null;
+               Sprite := null;
             end if;
 
             --  Move!
@@ -705,16 +715,16 @@ package body Engines is
                Run_Timers (Engine, Object.all);
 
                if Object.Id /= 0 then
-                  Test_Offscreen (Engine, Object.all, S);
+                  Test_Offscreen (Engine, Object.all, Sprite);
                end if;
 
 --                 if Object.Id /= 0 and (Object.Hitmask or Object.Hitgroup) then
---                    Test_Sprite_Sprite (Engine, Object, s);
+--                    Test_Sprite_Sprite (Engine, Object, sprite);
 --                 end if;
 
---                 if Object.Id /= 0 and Object.Tilemask then
---                    Test_Sprite_Map (Engine, Object, s);
---                 end if;
+               if Object.Id /= 0 and Object.Tilemask /= PIG_None then
+                  Test_Sprite_Map (Engine, Object.all, Sprite);
+               end if;
             end if;
          end;
       end loop;

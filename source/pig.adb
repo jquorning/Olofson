@@ -68,7 +68,8 @@ procedure Pig is
       Map_Tiles_Result : Integer;
    begin
       Game := new Game_State'(Clean_Game); --  Game_State;
---      Game.Pe := new Engine.PIG_Engine;
+      Game.Nice := True; --  JQ
+      --      Game.Pe := new Engine.PIG_Engine;
 --      Game.Engine.Nsprites := 0;
       --  if(!gs)
       --         return NULL;
