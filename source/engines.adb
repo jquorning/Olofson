@@ -1059,8 +1059,8 @@ package body Engines is
             declare
                Rect_Copy : Rectangle := Table.Rects (I);
             begin
-               SDL.Video.Surfaces.Blit (Engine.Buffer, Table.Rects (I),
-                                        Engine.Screen, Rect_Copy);
+               SDL.Video.Surfaces.Blit (Engine.Screen, Table.Rects (I),
+                                        Engine.Buffer, Rect_Copy);
             end;
          end loop;
       end if;
@@ -1377,10 +1377,14 @@ package body Engines is
    function Pig_Object_Find (Start : in out PIG_Object;
                              Id    :        Integer) return PIG_Object_Access
    is
-      pragma Unreferenced (Start, Id);
 --  PIG_object *pig_object_find(PIG_object *start, int id)
 --      Pob, Pof : PIG_Object_Access;
    begin
+      for Object of Start.Owner.Objects loop
+         if Object.Id = Id then
+            return Object;
+         end if;
+      end loop;
 --        if Start /= null then
 --           Pob := Start;
 --           Pof := Start;
