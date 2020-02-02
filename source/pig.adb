@@ -111,16 +111,16 @@ procedure Pig is
 --              return;
       end; -- if;
 
-      for I in Game.Icons .. Game.Icons + 3 * 8  loop
+      for I in Game.Icons .. Game.Icons + 3 * 8 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 45);
       end loop;
-      for I in Game.Pigframes .. Game.Pigframes + 12 loop
+      for I in Game.Pigframes .. Game.Pigframes + 12 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 43);
       end loop;
-      for I in Game.Evil .. Game.Evil + 16 loop
+      for I in Game.Evil .. Game.Evil + 16 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
       end loop;
-      for I in Game.Slime .. Game.Slime + 16 loop
+      for I in Game.Slime .. Game.Slime + 16 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
       end loop;
 
