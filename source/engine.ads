@@ -164,8 +164,8 @@ package Engine is
    --  Logic object
    type Timer_Array is array (0 .. PIG_TIMERS - 1) of Integer;
    type Handler_Access is access
-     procedure (Op : in out PIG_Object;
-                Ev : in PIG_Event);
+     procedure (Object : in out PIG_Object;
+                Event  : in     PIG_Event);
    type PIG_Object is record
       Owner : PIG_Engine_Access;
 --        PIG_object      *next, *prev;

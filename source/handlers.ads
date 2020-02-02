@@ -31,10 +31,10 @@ package Handlers is
    type Key_Array is array (Key_Used) of Boolean;
    type Game_State is record
       --  I/O
-      Pe :           Engine.PIG_Engine_Access;
+      Pe         : Engine.PIG_Engine_Access;
 --        Uint8           *keys;
       Keys           : Key_Array;
-      Nice           : Boolean; -- Integer;
+      Nice           : Boolean;
       Refresh_Screen : Integer;
       Jump           : Integer;
 
