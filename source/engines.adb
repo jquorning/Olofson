@@ -40,7 +40,7 @@ package body Engines is
       State    => Object_States'First,
       Handler  => null, others => 0.0);
 
---   procedure Close_Object (Po : in out PIG_Object);
+   procedure Close_Object (Object : in out PIG_Object);
    --  Actually remove an objects. Used internally,
    --  to remove objects that have been marked for
    --  destruction.
@@ -420,7 +420,7 @@ package body Engines is
 
             elsif Event.Cinfo.Sides.Right then
                Event.Cinfo.X := Integer (Pe.View.Width - 1);
-               if Dx /= 0.0 then
+               if Dx not in -0.01 .. 0.01 then
                   Event.Cinfo.Y := Integer (Po.Ip.Oy + Dy *
                                               (Float (Event.Cinfo.X) - Po.Ip.Ox) / Dx);
                end if;
@@ -648,6 +648,7 @@ package body Engines is
                               Object : in out PIG_Object;
                               Sprite : in     PIG_Sprite_Access)
    is
+      pragma Unreferenced (Sprite);
       Cinfo : aliased PIG_Cinfo;
       Event : PIG_Event;
    begin
@@ -665,8 +666,9 @@ package body Engines is
    procedure Run_Logic (Engine : in out PIG_Engine);
    procedure Run_Logic (Engine : in out PIG_Engine)
    is
---      PIG_object *po, *next;
-      Image : Integer;
+      use Object_Lists;
+      Object_Cursor, Next_Cursor : Cursor;
+      Image  : Integer;
    begin
       --  Shift logic coordinates
       for Object of Engine.Objects loop
@@ -678,18 +680,22 @@ package body Engines is
          Engine.Before_Objects (Engine);
       end if;
 
-      for Object of Engine.Objects loop
+--      for Object of Engine.Objects loop
+      Object_Cursor := Engine.Objects.First;
+      while Object_Cursor /= No_Element loop
          declare
             Event : PIG_Event;
          begin
             --  We must grab the next pointer before
             --  we call any event handlers, as they
             --  may cause objects to remove themselves!
+            Next_Cursor := Next (Object_Cursor);
 
-            --  next = po->next;
             Event.Type_C := PIG_PREFRAME;
-            Object.Handler (Object.all, Event);
+--            Object.Handler (Object.all, Event);
+            Element (Object_Cursor).Handler (Element (Object_Cursor).all, Event);
          end;
+         Object_Cursor := Next_Cursor;
       end loop;
 
       for Object of Engine.Objects loop
@@ -1282,13 +1288,16 @@ package body Engines is
    end Get_Object;
 
 
---  static void free_object(PIG_object *po)
---  {
+   procedure Free_Object (Object : in out PIG_Object);
+
+   procedure Free_Object (Object : in out PIG_Object) is
+   begin
+--      Object.Owner.Objects.Delete (Object);
 --      po->prev = NULL;
 --      po->next = po->owner->object_pool;
 --      po->owner->object_pool = po;
---      po->id = 0;
---  }
+      Object.Id := 0;
+   end Free_Object;
 
 
    function Pig_Object_Open (Engine : in PIG_Engine_Access;
@@ -1333,17 +1342,17 @@ package body Engines is
    end Pig_Object_Open;
 
 
---   procedure Pig_Map_Close (Map : in out PIG_Map) is  XXX ???
---   begin
+   procedure Close_Object (Object : in out PIG_Object)
+   is
+   begin
 --      if(po == po->owner->objects)
 --              po->owner->objects = po->next;
 --      else if(po->prev)
 --              po->prev->next = po->next;
 --      if(po->next)
 --              po->next->prev = po->prev;
---      free_object(po);
---      null;
---   end Pig_Map_Close;
+      Free_Object (Object);
+   end Close_Object;
 
 
    procedure Pig_Object_Close (Object : in out PIG_Object) is
@@ -1359,10 +1368,10 @@ package body Engines is
 
    procedure Pig_Object_Close_All (Engine : in out PIG_Engine) is
    begin
-      for Object of Engine.Objects loop
-         null;
-         --  Close_Object (pe->objects);
-      end loop;
+--        while not Engine.Objects.Is_Empty loop
+--           Close_Object (Engine.Objects);
+--        end loop;
+      null;
    end Pig_Object_Close_All;
 
 
