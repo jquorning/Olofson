@@ -150,16 +150,16 @@ package body Engine is
 --      free(pe);
    end Pig_Close;
 
-   procedure Pig_Viewport (Pe   : in out PIG_Engine;
-                           X, Y : in     Integer;
-                           W, H : in     Integer)
+   procedure Pig_Viewport (Engine : in out PIG_Engine;
+                           X, Y   : in     Integer;
+                           W, H   : in     Integer)
    is
       use SDL;
    begin
-      Pe.View.X      := C.int (X);
-      Pe.View.Y      := C.int (Y);
-      Pe.View.Width  := C.int (W);
-      Pe.View.Height := C.int (H);
+      Engine.View.X      := C.int (X);
+      Engine.View.Y      := C.int (Y);
+      Engine.View.Width  := C.int (W);
+      Engine.View.Height := C.int (H);
    end Pig_Viewport;
 
 
@@ -576,20 +576,20 @@ package body Engine is
    end Check_Tile;
 
 
-   function Pig_Test_Map (Pe   : in PIG_Engine;
-                          X, Y :    Integer) return Pig_Sides
+   function Pig_Test_Map (Engine : in PIG_Engine;
+                          X, Y   :    Integer) return Pig_Sides
    is -- Boolean is
       Mx, My : Integer;
    begin
       if X < 0 or Y < 0 then
          return PIG_None;
       end if;
-      Mx := X / Pe.Map.Tw;
-      My := Y / Pe.Map.Th;
-      if Mx >= Pe.Map.Width or My >= Pe.Map.Height then
+      Mx := X / Engine.Map.Tw;
+      My := Y / Engine.Map.Th;
+      if Mx >= Engine.Map.Width or My >= Engine.Map.Height then
          return PIG_None;
       end if;
-      return Pe.Map.Hit (Mx, My);
+      return Engine.Map.Hit (Mx, My);
    end Pig_Test_Map;
 
 
@@ -739,18 +739,18 @@ package body Engine is
    end Run_Logic;
 
 
-   procedure Pig_Animate (Pe     : in out PIG_Engine;
+   procedure Pig_Animate (Engine : in out PIG_Engine;
                           Frames : in     Float)
    is
       --  Advance logic time
-      I : constant Integer := Integer (Long_Float'Floor (Pe.Time + Long_Float (Frames))
-                                         - Long_Float'Floor (Pe.Time));
+      I : constant Integer := Integer (Long_Float'Floor (Engine.Time + Long_Float (Frames))
+                                         - Long_Float'Floor (Engine.Time));
    begin
       for Count in reverse 0 .. I loop
-         Run_Logic (Pe);
-         Pe.Frame := Pe.Frame + 1;
+         Run_Logic (Engine);
+         Engine.Frame := Engine.Frame + 1;
       end loop;
-      Pe.Time := Pe.Time + Long_Float (Frames);
+      Engine.Time := Engine.Time + Long_Float (Frames);
    end Pig_Animate;
 
 
@@ -1020,12 +1020,12 @@ package body Engine is
    end Show_Rects;
 
 
-   procedure Pig_Flip (Engine : in out PIG_Engine) is
+   procedure Pig_Flip (Engine : in out PIG_Engine)
+   is
       use SDL.Video.Surfaces;
-   begin
-      null;
 --      PIG_dirtytable *pdt = pe->workdirty;
 --      int i;
+   begin
 --      SDL_SetClipRect(pe->surface, NULL);
 
 --      if(pe->show_dirtyrects)
@@ -1064,22 +1064,21 @@ package body Engine is
    end Pig_Flip;
 
 
-   procedure Pig_Draw_Sprite (Pe    : in out PIG_Engine;
-                              Frame : in     Integer;
-                              X, Y  : in     Integer)
+   procedure Pig_Draw_Sprite (Engine : in out PIG_Engine;
+                              Frame  : in     Integer;
+                              X, Y   : in     Integer)
    is
       use SDL.C;
       DR : SDL.Video.Rectangles.Rectangle;
       SA : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
    begin
-      null;
       --      if(frame >= pe->nsprites)
 --              return;
-      DR.X := int (X - Pe.Sprites (Frame).Hotx + Integer (Pe.View.X));
-      DR.Y := int (Y - Pe.Sprites (Frame).Hoty + Integer (Pe.View.Y));
-      SDL.Video.Surfaces.Blit (Source      => Pe.Sprites (Frame).Surface,
+      DR.X := int (X - Engine.Sprites (Frame).Hotx + Integer (Engine.View.X));
+      DR.Y := int (Y - Engine.Sprites (Frame).Hoty + Integer (Engine.View.Y));
+      SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Frame).Surface,
                                Source_Area => SA,
-                               Self        => Pe.Surface,
+                               Self        => Engine.Surface,
                                Self_Area   => DR);
    exception
       when SDL.Video.Surfaces.Surface_Error =>
@@ -1172,10 +1171,10 @@ package body Engine is
    end Pig_Map_Tiles;
 
 
-   procedure Pig_Map_Collisions (Pm    : in out PIG_Map;
-                                 First :        Natural;
-                                 Count :        Natural;
-                                 Sides :        Pig_Sides)
+   procedure Pig_Map_Collisions (Map   : in out PIG_Map;
+                                 First : in     Natural;
+                                 Count : in     Natural;
+                                 Sides : in     Pig_Sides)
    is
 --  void pig_map_collisions(PIG_map *pm, unsigned first, unsigned count, PIG_sides sides)
 --  {
@@ -1337,20 +1336,20 @@ package body Engine is
 --   end Pig_Map_Close;
 
 
-   procedure Pig_Object_Close (Po : in out PIG_Object) is
+   procedure Pig_Object_Close (Object : in out PIG_Object) is
    begin
-      if Po.Id = 0 then
+      if Object.Id = 0 then
          null;
 --         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
 --                               "Object %p closed more than once!"); -- , po);
       end if;
-      Po.Id := 0;     --  Mark for eventual removal and destruction
+      Object.Id := 0;     --  Mark for eventual removal and destruction
    end Pig_Object_Close;
 
 
-   procedure Pig_Object_Close_All (Pe : in out PIG_Engine) is
+   procedure Pig_Object_Close_All (Engine : in out PIG_Engine) is
    begin
-      for Object of Pe.Objects loop
+      for Object of Engine.Objects loop
          null;
          --  Close_Object (pe->objects);
       end loop;

@@ -289,11 +289,12 @@ package Engine is
    --  Engine
    --
    procedure Pig_Open (Engine :    out PIG_Engine_Access;
---                       Screen : in     SDL.Video.Windows.Window);
                        Screen : in     SDL.Video.Surfaces.Surface);
    procedure Pig_Close (Pe : in out PIG_Engine);
 
-   procedure Pig_Viewport (Pe : in out PIG_Engine; X, Y : in Integer; W, H : in Integer);
+   procedure Pig_Viewport (Engine : in out PIG_Engine;
+                           X, Y   : in     Integer;
+                           W, H   : in     Integer);
    --  Set viewport size and position
 
    procedure Pig_Start (Engine : in out PIG_Engine;
@@ -324,7 +325,8 @@ package Engine is
    --  int pig_radius(PIG_engine *pe, int frame, int radius);
    --  /* Set sprite/sprite collision zone radius of 'frame' */
 
-   procedure Pig_Animate (Pe : in out PIG_Engine; Frames : in Float);
+   procedure Pig_Animate (Engine : in out PIG_Engine;
+                          Frames : in     Float);
    --  Advance logic time by 'frames' logic frames
 
    procedure Pig_Dirty (Engine : in out PIG_Engine;
@@ -345,12 +347,13 @@ package Engine is
    procedure Pig_Refresh_All (Engine : in out PIG_Engine);
    --  Refresh the whole viewport, including sprites.
 
-   procedure Pig_Draw_Sprite (Pe    : in out PIG_Engine;
-                              Frame : in     Integer;
-                              X, Y  : in     Integer);
+   procedure Pig_Draw_Sprite (Engine : in out PIG_Engine;
+                              Frame  : in     Integer;
+                              X, Y   : in     Integer);
    --  Render a sprite "manually", bypassing the engine
 
-   function Pig_Test_Map (Pe : in PIG_Engine; X, Y : Integer) return Pig_Sides; --  Boolean;
+   function Pig_Test_Map (Engine : in PIG_Engine;
+                          X, Y   :    Integer) return Pig_Sides; --  Boolean;
    --  Get the collision flags for the tile at (x, y),
    --  where the unit of x and y is pixels. The return
    --  is the PIG_sides flags for the tile, or PIG_NONE
@@ -385,10 +388,10 @@ package Engine is
                             Result   :    out Integer);
    --  Load a tile palette image
 
-   procedure Pig_Map_Collisions (Pm    : in out PIG_Map;
-                                 First :        Natural;
-                                 Count :        Natural;
-                                 Sides :        Pig_Sides);
+   procedure Pig_Map_Collisions (Map   : in out PIG_Map;
+                                 First : in     Natural;
+                                 Count : in     Natural;
+                                 Sides : in     Pig_Sides);
    --  Set tile collision info for 'count' tiles, starting at
    --  'first'. Each tile in the tile palette has a set of
    --  PIG_sides flags that determine which sides the tile are
@@ -420,7 +423,7 @@ package Engine is
    --  objects get an extra frame of reaction time, which is
    --  annoying if it's not what you intend.
 
-   procedure Pig_Object_Close (Po : in out PIG_Object);
+   procedure Pig_Object_Close (Object : in out PIG_Object);
    --  Delete an object.
    --
    --  Note that objects are never actually deleted. Instead,
@@ -431,7 +434,7 @@ package Engine is
    --  but rather kept around until the next rendered frame,
    --  so they can be removed from the screen correctly.
 
-   procedure Pig_Object_Close_All (Pe : in out PIG_Engine);
+   procedure Pig_Object_Close_All (Engine : in out PIG_Engine);
    --  Close all objects.
 
    function Pig_Object_Find (Start : in out PIG_Object;
