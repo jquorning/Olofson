@@ -692,23 +692,23 @@ package body Handlers is
          when PIG_POSTFRAME =>
             if Dead /= Po.State then
                --  Don't bother looking if we're close to a floor.
-               if not Pig_Test_Map_Vector (Po.Owner.all,
-                                           Integer (Po.X),
-                                           Integer (Po.Y),
-                                           Integer (Po.X),
-                                           Integer (Po.Y + 48.0),
-                                           PIG_Top, null)
+               if PIG_None = Pig_Test_Map_Vector (Po.Owner.all,
+                                                  Integer (Po.X),
+                                                  Integer (Po.Y),
+                                                  Integer (Po.X),
+                                                  Integer (Po.Y + 48.0),
+                                                  PIG_Top, null)
                then
                   --  Turn around if there's no floor!
                   Look_X := 10 + Integer (abs (Po.Vx * 4.0));
                   if Po.Target < 0 then
                      Look_X := -Look_X;
                   end if;
-                  if not Pig_Test_Map_Vector (Po.Owner.all,
-                                              Integer (Po.X) + Look_X,
-                                              Integer (Po.Y),
-                                              Integer (Po.X) + Look_X, SCREEN_H,
-                                              PIG_Top, null)
+                  if PIG_None = Pig_Test_Map_Vector (Po.Owner.all,
+                                                     Integer (Po.X) + Look_X,
+                                                     Integer (Po.Y),
+                                                     Integer (Po.X) + Look_X, SCREEN_H,
+                                                     PIG_Top, null)
                   then
                      Po.Target := -Po.Target;
                   end if;

@@ -10,6 +10,7 @@
 
 with Ada.Text_IO;
 with Ada.Strings.Fixed;
+with Ada.Numerics.Elementary_Functions;
 
 with Interfaces;
 
@@ -344,6 +345,7 @@ package body Engine is
    procedure Run_Timers (Engine : in out PIG_Engine;
                          Object : in out PIG_Object)
    is
+      pragma Unreferenced (Engine);
    begin
       for I in 0 .. PIG_TIMERS - 1 loop
          if Object.Timer (I) /= 0 then
@@ -365,57 +367,70 @@ package body Engine is
    end Run_Timers;
 
 
---  static void test_offscreen(PIG_engine *pe, PIG_object *po, PIG_sprite *s)
---  {
---      PIG_event ev;
---      int hx, hy, w, h;
---      if(s)
---      {
---              hx = s->hotx;
---              hy = s->hoty;
---              w = s->w;
---              h = s->h;
---      }
---      else
---              hx = hy = w = h = 0;
---      ev.cinfo.sides = (po->y - hy < -h) << PIG_TOP_B;
---      ev.cinfo.sides |= (po->y - hy >= pe->view.h) << PIG_BOTTOM_B;
---      ev.cinfo.sides |= (po->x - hx < -w) << PIG_LEFT_B;
---      ev.cinfo.sides |= (po->x - hx >= pe->view.w) << PIG_RIGHT_B;
---      if(ev.cinfo.sides)
---      {
---              float dx = po->x - po->ip.ox;
---              float dy = po->y - po->ip.oy;
---              if(ev.cinfo.sides & PIG_TOP)
---              {
---                      ev.cinfo.y = 0;
---                      if(dy)
---                              ev.cinfo.x = po->ip.ox - dx * po->ip.oy / dy;
---              }
---              else if(ev.cinfo.sides & PIG_BOTTOM)
---              {
---                      ev.cinfo.y = pe->view.h - 1;
---                      if(dy)
---                              ev.cinfo.x = po->ip.ox + dx *
---                                              (ev.cinfo.y - po->ip.oy) / dy;
---              }
---              if(ev.cinfo.sides & PIG_LEFT)
---              {
---                      ev.cinfo.x = 0;
---                      if(dx)
---                              ev.cinfo.y = po->ip.oy - dy * po->ip.ox / dx;
---              }
---              else if(ev.cinfo.sides & PIG_RIGHT)
---              {
---                      ev.cinfo.x = pe->view.w - 1;
---                      if(dx)
---                              ev.cinfo.y = po->ip.oy + dy *
---                                              (ev.cinfo.x - po->ip.ox) / dx;
---              }
---              ev.type = PIG_OFFSCREEN;
---              po->handler(po, &ev);
---      }
---  }
+   procedure Test_Offscreen (Pe : in out PIG_Engine;
+                             Po : in out PIG_Object;
+                             S  : in     PIG_Sprite_Access);
+   procedure Test_Offscreen (Pe : in out PIG_Engine;
+                             Po : in out PIG_Object;
+                             S  : in     PIG_Sprite_Access)
+   is
+      use SDL.C;
+      Event : PIG_Event;
+      Hx, Hy, W, H : Integer;
+   begin
+      if S /= null then
+         Hx := S.Hotx;
+         Hy := S.Hoty;
+         W  := S.Width;
+         H  := S.Height;
+      else
+         Hx := 0; Hy := 0; W := 0; H := 0;
+      end if;
+
+      Event.Cinfo.Sides.Top    := Integer (Po.Y) - Hy < -H;
+      Event.Cinfo.Sides.Botton := Integer (Po.Y) - Hy >= Integer (Pe.View.Height);
+      Event.Cinfo.Sides.Left   := Integer (Po.X) - Hx < -W;
+      Event.Cinfo.Sides.Right  := Integer (Po.X) - Hx >= Integer (Pe.View.Width);
+
+      if Event.Cinfo.Sides /= PIG_None then
+         declare
+            Dx : constant Float := Po.X - Po.Ip.Ox;
+            Dy : constant Float := Po.Y - Po.Ip.Oy;
+         begin
+
+            if Event.Cinfo.Sides.Top then
+               Event.Cinfo.Y := 0;
+               if Dy /= 0.0 then
+                  Event.Cinfo.X := Integer (Po.Ip.Ox - Dx * Po.Ip.Oy / Dy);
+               end if;
+
+            elsif Event.Cinfo.Sides.Botton then
+               Event.Cinfo.Y := Integer (Pe.View.Height - 1);
+               if Dy /= 0.0 then
+                  Event.Cinfo.X := Integer (Po.Ip.Ox + Dx *
+                                              (Float (Event.Cinfo.Y) - Po.Ip.Oy) / Dy);
+               end if;
+            end if;
+
+            if Event.Cinfo.Sides.Left then
+               Event.Cinfo.X := 0;
+               if Dx /= 0.0 then
+                  Event.Cinfo.Y := Integer (Po.Ip.Oy - Dy * Po.Ip.Ox / Dx);
+               end if;
+
+            elsif Event.Cinfo.Sides.Right then
+               Event.Cinfo.X := Integer (Pe.View.Width - 1);
+               if Dx /= 0.0 then
+                  Event.Cinfo.Y := Integer (Po.Ip.Oy + Dy *
+                                              (Float (Event.Cinfo.X) - Po.Ip.Ox) / Dx);
+               end if;
+            end if;
+
+            Event.Type_C := PIG_OFFSCREEN;
+            Po.Handler (Po, Event);
+         end;
+      end if;
+   end Test_Offscreen;
 
 
 --  /* Test for stationary sprite/sprite collision */
@@ -530,14 +545,21 @@ package body Engine is
 --  }
 
 
---  /*
---   * Returns a non-zero value if the tile at (x, y) is marked for
---   * collisions on the side indicated by 'mask'.
---   */
---  static __inline__ int check_tile(PIG_map *m, int x, int y, int mask)
+   --  Returns a non-zero value if the tile at (x, y) is marked for
+   --  collisions on the side indicated by 'mask'.
+   function Check_Tile (M    : in PIG_Map_Access;
+                        X, Y : in Integer;
+                        Mask : in Pig_Sides) return Boolean;
+   function Check_Tile (M    : in PIG_Map_Access;
+                        X, Y : in Integer;
+                        Mask : in Pig_Sides) return Boolean
+   is
+      pragma Unreferenced (M, X, Y, Mask);
+   --  static __inline__ int check_tile(PIG_map *m, int x, int y, int mask)
 --  {
 --      int mx, my;
---      /*
+   begin
+      --      /*
 --       * Must check < 0 first! (Division rounds
 --       * towards zero - not downwards.)
 --       */
@@ -550,7 +572,8 @@ package body Engine is
 --              return PIG_NONE;
 
 --      return m->hit[my * m->w + mx] & mask;
---  }
+      return False;
+   end Check_Tile;
 
 
    function Pig_Test_Map (Pe   : in PIG_Engine;
@@ -575,43 +598,45 @@ package body Engine is
    --  corners and rows of tiles is a lot more complicated, so I'll
    --  leave that out for now, rather than hacking something simple
    --  but incorrect.)
-   function Pig_Test_Map_Vector (Pe             : in out PIG_Engine;
-                                 x1, y1, x2, Y2 : in     Integer;
+   Lci : aliased PIG_Cinfo;
+   function Pig_Test_Map_Vector (Engine         : in out PIG_Engine;
+                                 X1, Y1, X2, Y2 : in     Integer;
                                  Mask           : in     Pig_Sides;
                                  Ci             : in     PIG_Cinfo_Access)
-                                return Boolean is
---  int pig_test_map_vector(PIG_engine *pe, int x1, int y1, int x2, int y2,
---              int mask, PIG_cinfo *ci)
---  {
---      PIG_cinfo lci;
---      PIG_map *m = pe->map;
---      int x, y;
---      int dist = 2000000000L;
+                                return Pig_Sides
+   is
+      use Ada.Numerics.Elementary_Functions;
+      Ci2  : PIG_Cinfo_Access := Ci;
+      M    : constant PIG_Map_Access := Engine.Map;
+      X, Y : Integer;
+      Dist : Integer := 2_000_000_000;
    begin
-      --      if(!ci)
---              ci = &lci;
---      ci->sides = 0;
---      if((mask & PIG_TOP) && (y1 < y2))
---      {
---              /* Test for tiles that can be hit from the top */
---              for(y = y1 + m->th - y1 % m->th; y <= y2; y += m->th)
---              {
---                      x = x1 + (x2 - x1) * (y - y1) / (y2 - y1);
---                      if(check_tile(m, x, y + 1, PIG_TOP))
---                      {
---                              dist = (x-x1) * (x-x1) + (y-y1) * (y-y1);
---                              ci->x = x;
---                              ci->y = y - 1;
---                              ci->sides |= PIG_TOP;
---                              break;
---                      }
---              }
---      }
---      if(ci->sides)
---              ci->ff = sqrt((x2 - x1) * (x2 - x1) +
---                              (y2 - y1) * (y2 - y1) / dist);
---      return ci->sides;
-      return False;
+      if Ci2 = null then
+         Ci2 := Lci'Access;
+      end if;
+      Ci2.Sides := PIG_None;
+      if Mask.Top and Y1 < Y2 then
+
+         --  Test for tiles that can be hit from the top
+         Y := Y1 + M.Th - Y1 mod M.Th;
+         while Y <= Y2 loop
+            X := X1 + (X2 - X1) * (Y - Y1) / (Y2 - Y1);
+            if Check_Tile (M, X, Y + 1, PIG_Top) then
+               Dist := (X - X1) * (X - X1) + (Y - Y1) * (Y - Y1);
+               Ci2.X := X;
+               Ci2.Y := Y - 1;
+               Ci2.Sides.Top := True;
+               exit;
+            end if;
+            Y := Y + M.Th;
+         end loop;
+      end if;
+
+      if Ci.Sides /= PIG_None then
+         Ci.Ff := Sqrt (Float ((X2 - X1) * (X2 - X1) +
+                                 (Y2 - Y1) * (Y2 - Y1) / Dist));
+      end if;
+      return Ci.Sides;
    end Pig_Test_Map_Vector;
 
 
@@ -679,9 +704,9 @@ package body Engine is
             if Object.Handler /= null then
                Run_Timers (Engine, Object.all);
 
---                 if Object.Id /= 0 then
---                    Test_Offscreen (Engine, Object, s);
---                 end if;
+               if Object.Id /= 0 then
+                  Test_Offscreen (Engine, Object.all, S);
+               end if;
 
 --                 if Object.Id /= 0 and (Object.Hitmask or Object.Hitgroup) then
 --                    Test_Sprite_Sprite (Engine, Object, s);
@@ -732,6 +757,7 @@ package body Engine is
    procedure Pig_Dirty (Engine : in out PIG_Engine;
                         Rect   : in SDL.Video.Rectangles.Rectangle)
    is
+      pragma Unreferenced (Rect);
       use type SDL.C.int;
       R : SDL.Video.Rectangles.Rectangle;
    begin
@@ -757,7 +783,7 @@ package body Engine is
    is
       use type SDL.C.int;
       Cr : SDL.Video.Rectangles.Rectangle;
-      X, Y, Startx, Starty, Maxx, Maxy, Tilesperrow : Integer;
+      Startx, Starty, Maxx, Maxy, Tilesperrow : Integer;
    begin
       Cr := R;
       Cr.X := Cr.X + Engine.View.X;
@@ -776,8 +802,8 @@ package body Engine is
          for X in Startx .. Maxx loop
             declare
                use SDL.C;
-               From, To    : SDL.Video.Rectangles.Rectangle;
-               C2 : Integer := Integer (Engine.Map.Map (X, Y));
+               From, To : SDL.Video.Rectangles.Rectangle;
+               C2 : constant Integer := Integer (Engine.Map.Map (X, Y));
             begin
                From.X      := int (C2 mod Tilesperrow * Engine.Map.Tw);
                From.Y      := int (C2 / Tilesperrow   * Engine.Map.Th);
@@ -845,8 +871,8 @@ package body Engine is
    is
 --      PIG_dirtytable *pdt;
       S      : PIG_Sprite_Access;
-      Object : PIG_Object_Access;
-      Fframe : Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
+--      Object : PIG_Object_Access;
+      Fframe : constant Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
    begin
       Engine.Surface.Set_Clip_Rectangle (Engine.View);
       --  SDL_SetClipRect(pe->surface, &pe->view);
@@ -1112,6 +1138,7 @@ package body Engine is
                             Tw, Th   : in     Integer;
                             Result   :    out Integer)
    is
+      pragma Unreferenced (Result);
 --  int pig_map_tiles(PIG_map *pm, const char *filename, int tw, int th)
 --  {
       Tmp : SDL.Video.Surfaces.Surface;
@@ -1174,7 +1201,7 @@ package body Engine is
             declare
                C        : constant Character := Data (Z + 1);
                Position : Natural;
-               F        : Character;
+--               F        : Character;
             begin
                Position := Index (Trans, "" & C);
 --                      f = strchr(trans, c);
@@ -1246,10 +1273,11 @@ package body Engine is
 --  }
 
 
-   function Pig_Object_Open (Engine : in out PIG_Engine_Access;
-                             X, Y   : in     Integer;
-                             Last   : in     Integer) return PIG_Object_Access
+   function Pig_Object_Open (Engine : in PIG_Engine_Access;
+                             X, Y   : in Integer;
+                             Last   : in Integer) return PIG_Object_Access
    is
+      pragma Unreferenced (Last);
       Object : constant PIG_Object_Access := Get_Object (Engine.all);
    begin
 --      if(!po)
@@ -1323,8 +1351,9 @@ package body Engine is
    function Pig_Object_Find (Start : in out PIG_Object;
                              Id    :        Integer) return PIG_Object_Access
    is
+      pragma Unreferenced (Start, Id);
 --  PIG_object *pig_object_find(PIG_object *start, int id)
-      Pob, Pof : PIG_Object_Access;
+--      Pob, Pof : PIG_Object_Access;
    begin
 --        if Start /= null then
 --           Pob := Start;

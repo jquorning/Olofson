@@ -357,11 +357,11 @@ package Engine is
    --  if (x, y) is outside the map.
 
    type PIG_Cinfo_Access is access all PIG_Cinfo;
-   function Pig_Test_Map_Vector (Pe             : in out PIG_Engine;
-                                 x1, y1, x2, Y2 : in     Integer;
+   function Pig_Test_Map_Vector (Engine         : in out PIG_Engine;
+                                 X1, Y1, X2, Y2 : in     Integer;
                                  Mask           : in     Pig_Sides;
                                  Ci             : in     PIG_Cinfo_Access)
-                                return Boolean;
+                                return Pig_Sides;
    --  Find the first "collidable" tile side when going from
    --  (x1, y1) to (x2, y2). 'mask' determines which tile sides
    --  are considered for collisions.
@@ -407,9 +407,9 @@ package Engine is
    --  Object
    --
 
-   function Pig_Object_Open (Engine : in out PIG_Engine_Access;
-                             X, Y   : in     Integer;
-                             Last   : in     Integer) return PIG_Object_Access;
+   function Pig_Object_Open (Engine : in PIG_Engine_Access;
+                             X, Y   : in Integer;
+                             Last   : in Integer) return PIG_Object_Access;
    --  Create an object with the initial position (x, y). If
    --  'last' is 1, the object will end up last in the
    --  processing and rendering order, otherwise, first.
