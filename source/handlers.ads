@@ -75,53 +75,56 @@ package Handlers is
 
 
    procedure Inc_Score (Game : in out Game_State; V : Integer);
+
    procedure Inc_Score_Nobonus (Game : in out Game_State; V : Integer);
+
    procedure Message (Game : in out Game_State; Text : in String);
+
    procedure Add_Life (Game : in out Game_State);
+
    procedure Remove_Life (Game : in out Game_State);
---   procedure Inc_Score (Gs : in out Game_State; V : Integer);
---   procedure Inc_Score_Nobonus (Gs : in out Game_State; V : Integer);
-   --  static PIG_object *new_player(Game_State *gs);
+
    procedure New_Player (Game : in out Game_State);
+
    procedure New_Player (Game   : in out Game_State;
                          Object :    out Engines.PIG_Object_Access);
 
-   --  static PIG_object *new_powerup(Game_State *gs,
-   --                  int x, int y, int speed, POWERUPS type);
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
                           Type_C : in     Engines.Power_Ups;
                           Object :    out Engines.PIG_Object_Access);
+
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
                           Type_C : in     Engines.Power_Ups);
-   --  static PIG_object *new_star(Game_State *gs, int x, int y, int vx, int vy);
+
    procedure New_Star (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Vx, Vy : in     Integer);
+
    procedure New_Star (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Vx, Vy : in     Integer;
                        Object :    out Engines.PIG_Object_Access);
+
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Speed  : in     Integer;
                        Object :    out Engines.PIG_Object_Access);
-   --  static PIG_object *new_evil(Game_State *gs,
-   --                  int x, int y, int speed);
+
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Integer;
                         Speed  : in     Integer;
                         Object :    out Engines.PIG_Object_Access);
-   --  static PIG_object *new_slime(Game_State *gs,
-   --                  int x, int y, int speed);
+
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     : in     Integer;
                              Image    : in     Integer;
                              Target_X : in     Integer;
                              Object   :    out Engines.PIG_Object_Access);
+
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   : in     Integer;
                              Image  : in     Integer;

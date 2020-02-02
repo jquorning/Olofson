@@ -91,35 +91,28 @@ procedure Pig is
       Game.Engine.Userdata := Handlers.From_Game_State (Game);
 
       Engines.Pig_Viewport (Game.Engine.all, 0, 0, SCREEN_W, MAP_H * TILE_H);
-      begin
-         Engines.Pig_Sprites (Game.Engine.all, "lifepig.png",    0,  0, Game.Lifepig);
-         Engines.Pig_Sprites (Game.Engine.all, "font.png",      44, 56, Game.Scorefont);
-         Engines.Pig_Sprites (Game.Engine.all, "glassfont.png", 60, 60, Game.Glassfont);
-         Engines.Pig_Sprites (Game.Engine.all, "icons.png",     48, 48, Game.Icons);
-         Engines.Pig_Sprites (Game.Engine.all, "stars.png",     32, 32, Game.Stars);
-         Engines.Pig_Sprites (Game.Engine.all, "pigframes.png", 64, 48, Game.Pigframes);
-         Engines.Pig_Sprites (Game.Engine.all, "evil.png",      48, 48, Game.Evil);
-         Engines.Pig_Sprites (Game.Engine.all, "slime.png",     48, 48, Game.Slime);
---        exception
---           when others => -- if i < 0 then
---              Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
---                                    "Could not load graphics!");
---  --            Engine.Pig_Close (Gs.Pe.all);
---              raise;
---              --  Free (Gs);
---              --  return NULL;
---              return;
-      end; -- if;
+
+      Engines.Pig_Sprites (Game.Engine.all, "lifepig.png",    0,  0, Game.Lifepig);
+      Engines.Pig_Sprites (Game.Engine.all, "font.png",      44, 56, Game.Scorefont);
+      Engines.Pig_Sprites (Game.Engine.all, "glassfont.png", 60, 60, Game.Glassfont);
+      Engines.Pig_Sprites (Game.Engine.all, "icons.png",     48, 48, Game.Icons);
+      Engines.Pig_Sprites (Game.Engine.all, "stars.png",     32, 32, Game.Stars);
+      Engines.Pig_Sprites (Game.Engine.all, "pigframes.png", 64, 48, Game.Pigframes);
+      Engines.Pig_Sprites (Game.Engine.all, "evil.png",      48, 48, Game.Evil);
+      Engines.Pig_Sprites (Game.Engine.all, "slime.png",     48, 48, Game.Slime);
 
       for I in Game.Icons .. Game.Icons + 3 * 8 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 45);
       end loop;
+
       for I in Game.Pigframes .. Game.Pigframes + 12 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 43);
       end loop;
+
       for I in Game.Evil .. Game.Evil + 16 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
       end loop;
+
       for I in Game.Slime .. Game.Slime + 16 - 1 loop
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
       end loop;

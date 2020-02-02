@@ -281,8 +281,8 @@ package body Handlers is
    is
       use Engines;
       use type SDL.C.int;
-      Game : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Gs   : Game_State renames Game.all;
+      GP   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      Game : Game_State renames GP.all;
    begin
       case Event.Type_C is
 
@@ -292,29 +292,27 @@ package body Handlers is
 
                when Waiting =>
                   if 1 = Object.Age then
-                     Message (Gs, "Get ready!");
+                     Message (Game, "Get ready!");
                   elsif Object.Age > 50 then
                      Object.State := Falling;
                   end if;
 
                when Walking =>
-                  --  if Gs.Keys (SDL.Events.Keyboards.Code_Left) then
-                  if Gs.Keys (Left) then
+                  if Game.Keys (Left) then
                      Object.Ax     := -(20.0 + Object.Vx) * 0.4;
                      Object.Target := 3 + Object.Age mod 4 - 1;
                      if 5 = Object.Target then
                         Object.Target := 3;
                      end if;
-                  --  elsif Gs.Keys (SDL.Events.Keyboards.Code_Right) then
-                  elsif Gs.Keys (Right) then
 
+                  elsif Game.Keys (Right) then
                      Object.Ax     := (20.0 - Object.Vx) * 0.4;
                      Object.Target := 9 + Object.Age mod 4 - 1;
                      if 11 = Object.Target then
                         Object.Target := 9;
                      end if;
-                  else
 
+                  else
                      Object.Ax := -Object.Vx * 0.8;
                      if Object.Target >= 6 then
                         Object.Target := (Object.Target + 1) mod
@@ -325,11 +323,9 @@ package body Handlers is
                   end if;
 
                when Falling =>
-                  --  if Gs.Keys (SDL.Events.Keyboards.Code_Left) then
-                  if Gs.Keys (Left) then
+                  if Game.Keys (Left) then
                      Object.Ax := -(20.0 + Object.Vx) * 0.2;
-                  --  elsif Gs.Keys (SDL.Events.Keyboards.Code_Right) then
-                  elsif Gs.Keys (Right) then
+                  elsif Game.Keys (Right) then
                      Object.Ax := (20.0 - Object.Vx) * 0.2;
                   else
                      Object.Ax := -Object.Vx * 0.2;
@@ -354,19 +350,19 @@ package body Handlers is
                      Object.Power := Object.Power - 1;
                   end if;
                   Object.Image := Object.Target mod PIG_FRAMES;
-                  if PIG_None = Pig_Test_Map (Gs.Engine.all,
+                  if PIG_None = Pig_Test_Map (Game.Engine.all,
                                               Integer (Object.X),
                                               Integer (Object.Y + 1.0))
                   then
                      Object.State := Falling;
                      Object.Ay    := Float (GRAV_ACC);
                   end if;
-                  --  if Gs.Jump or Gs.Keys (SDL.Events.Keyboards.Key_Up) then
-                  if Gs.Jump /= 0 or Gs.Keys (Up) then
+
+                  if Game.Jump /= 0 or Game.Keys (Up) then
                      Object.Ay    := 0.0;
                      Object.Vy    := -JUMP_SPEED;
                      Object.State := Falling;
-                     Gs.Jump  := 0;
+                     Game.Jump    := 0;
                   end if;
 
                when Falling =>
@@ -395,13 +391,13 @@ package body Handlers is
                   Object.Vy := 0.0;
 
             end case;
-            if Gs.Jump /= 0 then
-               Gs.Jump := Gs.Jump - 1;
+            if Game.Jump /= 0 then
+               Game.Jump := Game.Jump - 1;
             end if;
 
             if Next_Level /= Object.State then
-               if Gs.Enemycount <= 0 then
-                  Message (Gs, "Well Done!");
+               if Game.Enemycount <= 0 then
+                  Message (Game, "Well Done!");
                   Object.State := Next_Level;
                   Object.Vy :=  0.0;
                   Object.Ay := -1.0;
@@ -419,17 +415,17 @@ package body Handlers is
             case Object.State is
 
                when Next_Level =>
-                  Add_Life (Gs);
+                  Add_Life (Game);
                   Pig_Object_Close (Object);
-                  Load_Level (Gs, Map_Type (Gs.Level + 1));
-                  New_Player (Gs);
+                  Load_Level (Game, Map_Type (Game.Level + 1));
+                  New_Player (Game);
 
                when others =>
                   Pig_Object_Close (Object);
                   declare
                      Object : PIG_Object_Access;
                   begin
-                     New_Player (Gs, Object);
+                     New_Player (Game, Object);
                  --    if Obj = null then
                  --       Load_Level (gs, 0);
                  --    end if;
@@ -458,7 +454,7 @@ package body Handlers is
                        (Object.Vy - Event.Obj.Vy) >= 15.0
                      then
                         --  Win: Stomp!
-                        Inc_Score (Gs, Event.Obj.Score);
+                        Inc_Score (Game, Event.Obj.Score);
                         Event.Obj.Y := Float (Event.Cinfo.Y + 10);
                         if Object.Vy > 0.0 then
                            Event.Obj.Vy := Object.Vy;
@@ -466,13 +462,13 @@ package body Handlers is
                            Event.Obj.Vy := 10.0;
                         end if;
                         Event.Obj.Ay       := GRAV_ACC;
-                        Event.Obj.Tilemask := PIG_None; -- 0;
+                        Event.Obj.Tilemask := PIG_None;
                         Event.Obj.Hitgroup := 0;
-                        --  if Gs.jump or Gs.Keys (SDL.Events.Keyboards.Code_Up) then
-                        if Gs.Jump /= 0 or Gs.Keys (Up) then
+
+                        if Game.Jump /= 0 or Game.Keys (Up) then
                            --  Mega jump!
                            Object.Vy   := -JUMP_SPEED + 7.0;
-                           Gs.Jump := 0;
+                           Game.Jump := 0;
                         else
                            --  Bounce a little
                            Object.Vy := -15.0;
@@ -486,31 +482,31 @@ package body Handlers is
                         Object.Ay        := GRAV_ACC;
                         Object.State     := Knocked;
                         Object.Timer (1) := 11;
-                        New_Star (Gs, Integer (Object.X), Integer (Object.Y) - 20, -5,  3);
-                        New_Star (Gs, Integer (Object.X), Integer (Object.Y) - 20,  2, -6);
-                        New_Star (Gs, Integer (Object.X), Integer (Object.Y) - 20,  4,  4);
+                        New_Star (Game, Integer (Object.X), Integer (Object.Y) - 20, -5,  3);
+                        New_Star (Game, Integer (Object.X), Integer (Object.Y) - 20,  2, -6);
+                        New_Star (Game, Integer (Object.X), Integer (Object.Y) - 20,  4,  4);
                      end if;
 
                   when GROUP_POWERUP =>
                      case Event.Obj.Score is
 
                         when Power_Ups'Pos (Power_Life) =>
-                           Add_Life (Gs);
-                           Message (Gs, "Extra Life!");
+                           Add_Life (Game);
+                           Message (Game, "Extra Life!");
 
                         when Power_Ups'Pos (Power_Bonus_1) =>
                            --  Double or 100k bonus!
-                           if Gs.Score < 100000 then
-                              Inc_Score_Nobonus (Gs, Gs.Score);
-                              Message (Gs, "Double Score!");
+                           if Game.Score < 100000 then
+                              Inc_Score_Nobonus (Game, Game.Score);
+                              Message (Game, "Double Score!");
                            else
-                              Inc_Score_Nobonus (Gs, 100000);
-                              Message (Gs, "100 000!");
+                              Inc_Score_Nobonus (Game, 100000);
+                              Message (Game, "100 000!");
                            end if;
 
                         when Power_Ups'Pos (Power_Bonus_2) =>
-                           Inc_Score_Nobonus (Gs, 1000);
-                           Message (Gs, "1000!");
+                           Inc_Score_Nobonus (Game, 1000);
+                           Message (Game, "1000!");
 
                         when others => null;
                      end case;
@@ -534,10 +530,10 @@ package body Handlers is
               Object.State /= Dead and
               Object.Y >= 0.0  -- Above the playfield is ok.
             then
-               if Gs.Lives /= 0 then
-                  Message (Gs, "Oiiiiiiink!!!");
+               if Game.Lives /= 0 then
+                  Message (Game, "Oiiiiiiink!!!");
                else
-                  Message (Gs, "Game Over!");
+                  Message (Game, "Game Over!");
                end if;
                Object.State     := Dead;
                Object.Timer (2) := 50;
@@ -553,8 +549,8 @@ package body Handlers is
                               Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Game : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Gs   : Game_State renames Game.all;
+      GP   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      Game : Game_State renames GP.all;
    begin
       case Event.Type_C is
 
@@ -581,7 +577,7 @@ package body Handlers is
          when PIG_OFFSCREEN =>
             if Object.Y > Float (SCREEN_H) or Object.Y < -100.0 then
                Pig_Object_Close (Object);
-               Gs.Enemycount := Gs.Enemycount - 1;
+               Game.Enemycount := Game.Enemycount - 1;
             end if;
          when others => null;
 
@@ -612,8 +608,8 @@ package body Handlers is
                            Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Game   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Gs     : Game_State renames Game.all;
+      GP     : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      Game   : Game_State renames GP.all;
       Look_X : Integer;
    begin
       case Event.Type_C is
@@ -636,7 +632,7 @@ package body Handlers is
          when PIG_OFFSCREEN =>
             if Object.Y > Float (SCREEN_H) then
                Pig_Object_Close (Object);
-               Gs.Enemycount := Gs.Enemycount - 1;
+               Game.Enemycount := Game.Enemycount - 1;
             end if;
 
          when PIG_POSTFRAME =>
@@ -665,8 +661,8 @@ package body Handlers is
                             Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Game   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Gs     : Game_State renames Game.all;
+      GP     : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      Game   : Game_State renames GP.all;
       Look_X : Integer;
    begin
       case Event.Type_C is
@@ -686,7 +682,7 @@ package body Handlers is
          when PIG_OFFSCREEN =>
             if Object.Y > Float (SCREEN_H) then
                Pig_Object_Close (Object);
-               Gs.Enemycount := Gs.Enemycount - 1;
+               Game.Enemycount := Game.Enemycount - 1;
             end if;
 
          when PIG_POSTFRAME =>
