@@ -15,7 +15,7 @@ with SDL.Video.Surfaces;
 
 with Dirty;
 
-package Engine is
+package Engines is
 
    ----------------------------------------------------------
    --        Game Engine
@@ -448,4 +448,4 @@ package Engine is
    --
    --  Returns NULL if the object was not found.
 
-end Engine;
+end Engines;

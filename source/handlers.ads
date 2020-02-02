@@ -5,7 +5,7 @@
 with Ada.Real_Time;
 with Ada.Unchecked_Conversion;
 
-with Engine;
+with Engines;
 
 package Handlers is
 
@@ -31,7 +31,7 @@ package Handlers is
    type Key_Array is array (Key_Used) of Boolean;
    type Game_State is record
       --  I/O
-      Pe         : Engine.PIG_Engine_Access;
+      Pe         : Engines.PIG_Engine_Access;
 --        Uint8           *keys;
       Keys           : Key_Array;
       Nice           : Boolean;
@@ -63,7 +63,7 @@ package Handlers is
       Messages          : Integer;
 
       --  Objects
-      Player            : Engine.PIG_Object_Access;
+      Player            : Engines.PIG_Object_Access;
 
       --  Statistics
       Logic_Frames      : Integer;
@@ -84,19 +84,19 @@ package Handlers is
    --  static PIG_object *new_player(Game_State *gs);
    procedure New_Player (Game : in out Game_State);
    procedure New_Player (Game   : in out Game_State;
-                         Object :    out Engine.PIG_Object_Access);
+                         Object :    out Engines.PIG_Object_Access);
 
    --  static PIG_object *new_powerup(Game_State *gs,
    --                  int x, int y, int speed, POWERUPS type);
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
-                          Type_C : in     Engine.Power_Ups;
-                          Object :    out Engine.PIG_Object_Access);
+                          Type_C : in     Engines.Power_Ups;
+                          Object :    out Engines.PIG_Object_Access);
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
-                          Type_C : in     Engine.Power_Ups);
+                          Type_C : in     Engines.Power_Ups);
    --  static PIG_object *new_star(Game_State *gs, int x, int y, int vx, int vy);
    procedure New_Star (Game   : in out Game_State;
                        X, Y   : in     Integer;
@@ -104,54 +104,54 @@ package Handlers is
    procedure New_Star (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Vx, Vy : in     Integer;
-                       Object :    out Engine.PIG_Object_Access);
+                       Object :    out Engines.PIG_Object_Access);
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Speed  : in     Integer;
-                       Object :    out Engine.PIG_Object_Access);
+                       Object :    out Engines.PIG_Object_Access);
    --  static PIG_object *new_evil(Game_State *gs,
    --                  int x, int y, int speed);
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Integer;
                         Speed  : in     Integer;
-                        Object :    out Engine.PIG_Object_Access);
+                        Object :    out Engines.PIG_Object_Access);
    --  static PIG_object *new_slime(Game_State *gs,
    --                  int x, int y, int speed);
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     : in     Integer;
                              Image    : in     Integer;
                              Target_X : in     Integer;
-                             Object   :    out Engine.PIG_Object_Access);
+                             Object   :    out Engines.PIG_Object_Access);
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   : in     Integer;
                              Image  : in     Integer;
                              Target : in     Integer;
-                             Object :    out Engine.PIG_Object_Access);
+                             Object :    out Engines.PIG_Object_Access);
 
 
    type Map_Type is range 0 .. 4;
    procedure Load_Level (Gs : in out Game_State; Map : in Map_Type);
 
-   procedure Player_Handler (Po : in out Engine.PIG_Object;
-                             Ev : in     Engine.PIG_Event);
+   procedure Player_Handler (Po : in out Engines.PIG_Object;
+                             Ev : in     Engines.PIG_Event);
 
-   procedure Powerup_Handler (Po : in out Engine.PIG_Object;
-                              Ev : in     Engine.PIG_Event);
+   procedure Powerup_Handler (Po : in out Engines.PIG_Object;
+                              Ev : in     Engines.PIG_Event);
 
-   procedure Star_Handler (Po : in out Engine.PIG_Object;
-                           Ev : in     Engine.PIG_Event);
+   procedure Star_Handler (Po : in out Engines.PIG_Object;
+                           Ev : in     Engines.PIG_Event);
 
-   procedure Evil_Handler (Po : in out Engine.PIG_Object;
-                           Ev : in     Engine.PIG_Event);
+   procedure Evil_Handler (Po : in out Engines.PIG_Object;
+                           Ev : in     Engines.PIG_Event);
 
-   procedure Slime_Handler (Po : in out Engine.PIG_Object;
-                            Ev : in     Engine.PIG_Event);
+   procedure Slime_Handler (Po : in out Engines.PIG_Object;
+                            Ev : in     Engines.PIG_Event);
 
-   procedure Chain_Head_Handler (Object : in out Engine.PIG_Object;
-                                 Event  : in     Engine.PIG_Event);
+   procedure Chain_Head_Handler (Object : in out Engines.PIG_Object;
+                                 Event  : in     Engines.PIG_Event);
 
-   procedure Chain_Link_Handler (Po : in out Engine.PIG_Object;
-                                 Ev : in     Engine.PIG_Event);
+   procedure Chain_Link_Handler (Po : in out Engines.PIG_Object;
+                                 Ev : in     Engines.PIG_Event);
 
    function To_Game_State is
       new Ada.Unchecked_Conversion (Long_Integer, Game_State_Access);
@@ -159,6 +159,6 @@ package Handlers is
    function From_Game_State is
       new Ada.Unchecked_Conversion (Game_State_Access, Long_Integer);
 
-   procedure Before_Objects (Pe : in out Engine.PIG_Engine);
+   procedure Before_Objects (Pe : in out Engines.PIG_Engine);
 
 end Handlers;

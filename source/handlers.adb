@@ -38,13 +38,13 @@ package body Handlers is
 
 
    procedure New_Player (Game   : in out Game_State;
-                         Object :    out Engine.PIG_Object_Access)
+                         Object :    out Engines.PIG_Object_Access)
    is
       --        PIG_object *po;
       --        if(!gs->lives)
       --                return NULL;
    begin
-      Object := Engine.Pig_Object_Open (Game.Pe, SCREEN_W / 2, -50, 1);
+      Object := Engines.Pig_Object_Open (Game.Pe, SCREEN_W / 2, -50, 1);
       --        if(!po)
       --                return NULL;
 
@@ -56,7 +56,7 @@ package body Handlers is
 
 
    procedure New_Player (Game : in out Game_State) is
-      Dummy : Engine.PIG_Object_Access;
+      Dummy : Engines.PIG_Object_Access;
    begin
       New_Player (Game, Dummy);
    end New_Player;
@@ -65,20 +65,20 @@ package body Handlers is
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
-                          Type_C : in     Engine.Power_Ups;
-                          Object :    out Engine.PIG_Object_Access)
+                          Type_C : in     Engines.Power_Ups;
+                          Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engine.Pig_Object_Open (Game.Pe, X, Y, 1);
+      Object := Engines.Pig_Object_Open (Game.Pe, X, Y, 1);
       --        if(!po)
       --                return NULL;
 
       Game.Enemycount := Game.Enemycount + 1;
-      Object.Score    := Engine.Power_Ups'Pos (Type_C);
+      Object.Score    := Engines.Power_Ups'Pos (Type_C);
       Object.Ibase    := Game.Icons + 8 * Object.Score;
       Object.Target   := Speed;
       Object.Handler  := Handlers.Powerup_Handler'Access;
-      Object.Tilemask := Engine.PIG_Top;
+      Object.Tilemask := Engines.PIG_Top;
       Object.Hitgroup := GROUP_POWERUP;
       --        return po;
    end New_Powerup;
@@ -87,9 +87,9 @@ package body Handlers is
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
-                          Type_C : in     Engine.Power_Ups)
+                          Type_C : in     Engines.Power_Ups)
    is
-      Dummy : Engine.PIG_Object_Access;
+      Dummy : Engines.PIG_Object_Access;
    begin
       New_Powerup (Game, X, Y, Speed, Type_C, Dummy);
    end New_Powerup;
@@ -98,10 +98,10 @@ package body Handlers is
    procedure New_Star (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Vx, Vy : in     Integer;
-                       Object :    out Engine.PIG_Object_Access)
+                       Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engine.Pig_Object_Open (Game.Pe, X + Vx, Y + Vy, 1);
+      Object := Engines.Pig_Object_Open (Game.Pe, X + Vx, Y + Vy, 1);
       --        if(!po)
       --                return NULL;
 
@@ -118,7 +118,7 @@ package body Handlers is
                        X, Y   : in     Integer;
                        Vx, Vy : in     Integer)
    is
-      Dummy : Engine.PIG_Object_Access;
+      Dummy : Engines.PIG_Object_Access;
    begin
       New_Star (Game, X, Y, Vx, Vy, Dummy);
    end New_Star;
@@ -127,12 +127,12 @@ package body Handlers is
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Speed  : in     Integer;
-                       Object :    out Engine.PIG_Object_Access)
+                       Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engine.Pig_Object_Open (Game.Pe,
-                                        X * TILE_W,
-                                        Y * TILE_H, 1);
+      Object := Engines.Pig_Object_Open (Game.Pe,
+                                         X * TILE_W,
+                                         Y * TILE_H, 1);
       --        if(!po)
       --                return NULL;
 
@@ -141,18 +141,18 @@ package body Handlers is
       Object.Target   := Speed;
       Object.Handler  := Handlers.Evil_Handler'Access;
       Object.Score    := 200;
-      Object.Tilemask := Engine.PIG_Top;
+      Object.Tilemask := Engines.PIG_Top;
       Object.Hitgroup := GROUP_ENEMY;
    end New_Evil;
 
 
    procedure New_Slime (Game   : in out Game_State;
-                        X, Y   :        Integer;
+                        X, Y   : in     Integer;
                         Speed  : in     Integer;
-                        Object :    out Engine.PIG_Object_Access)
+                        Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engine.Pig_Object_Open (Game.Pe,
+      Object := Engines.Pig_Object_Open (Game.Pe,
                                         X * TILE_W, Y * TILE_H, 1);
       --        if(!po)
       --                return NULL;
@@ -162,7 +162,7 @@ package body Handlers is
       Object.Target   := Speed;
       Object.Handler  := Handlers.Slime_Handler'Access;
       Object.Score    := 300;
-      Object.Tilemask := Engine.PIG_Top;
+      Object.Tilemask := Engines.PIG_Top;
       Object.Hitgroup := GROUP_ENEMY;
    end New_Slime;
 
@@ -171,10 +171,10 @@ package body Handlers is
                              X, Y     : in     Integer;
                              Image    : in     Integer;
                              Target_X : in     Integer;
-                             Object   :    out Engine.PIG_Object_Access)
+                             Object   :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engine.Pig_Object_Open (Game.Pe, X, Y, 1);
+      Object := Engines.Pig_Object_Open (Game.Pe, X, Y, 1);
       --        if(!po)
       --                return NULL;
 
@@ -184,14 +184,14 @@ package body Handlers is
    end New_Chain_Head;
 
 
-   procedure New_Chain_Link (Game     : in out Game_State;
+   procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   : in     Integer;
                              Image  : in     Integer;
                              Target : in     Integer;
-                             Object      :    out Engine.PIG_Object_Access)
+                             Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engine.Pig_Object_Open (Game.Pe, X, Y, 1);
+      Object := Engines.Pig_Object_Open (Game.Pe, X, Y, 1);
       --        if(!po)
       --                return NULL;
 
@@ -216,7 +216,7 @@ package body Handlers is
       end if;
       Gs.Score_Wobble_Time := 0.0;
       if Os / 10000 /= Gs.Score / 10000 then
-         New_Powerup (Gs, SCREEN_W / 2, -20, -4, Engine.Power_Life);
+         New_Powerup (Gs, SCREEN_W / 2, -20, -4, Engines.Power_Life);
       end if;
    end Inc_Score_Nobonus;
 
@@ -227,9 +227,9 @@ package body Handlers is
    begin
       Inc_Score_Nobonus (Gs, V);
       if Os / 5000 /= Gs.Score / 5000 then
-         New_Powerup (Gs, SCREEN_W / 2, -20, 8, Engine.Power_Bonus_1);
+         New_Powerup (Gs, SCREEN_W / 2, -20, 8, Engines.Power_Bonus_1);
       elsif Os / 1000 /= Gs.Score / 1000 then
-         New_Powerup (Gs, SCREEN_W / 2, -20, -6, Engine.Power_Bonus_2);
+         New_Powerup (Gs, SCREEN_W / 2, -20, -6, Engines.Power_Bonus_2);
       end if;
    end Inc_Score;
 
@@ -255,7 +255,7 @@ package body Handlers is
       X  : constant Integer := SCREEN_W + FONT_SPACING;
       Y  : constant Integer := MAP_H * TILE_H - 30;
       Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
-      Object : Engine.PIG_Object_Access := null;
+      Object : Engines.PIG_Object_Access := null;
    begin
       Ada.Text_IO.Put_Line ("Message : " & Text);
       for I in Text'Range loop
@@ -276,10 +276,10 @@ package body Handlers is
    end Message;
 
 
-   procedure Player_Handler (Po : in out Engine.PIG_Object;
-                             Ev : in     Engine.PIG_Event)
+   procedure Player_Handler (Po : in out Engines.PIG_Object;
+                             Ev : in     Engines.PIG_Event)
    is
-      use Engine;
+      use Engines;
       use type SDL.C.int;
       Game : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
       Gs   : Game_State renames Game.all;
@@ -549,10 +549,10 @@ package body Handlers is
    end Player_Handler;
 
 
-   procedure Powerup_Handler (Po : in out Engine.PIG_Object;
-                              Ev : in     Engine.PIG_Event)
+   procedure Powerup_Handler (Po : in out Engines.PIG_Object;
+                              Ev : in     Engines.PIG_Event)
    is
-      use Engine;
+      use Engines;
       Game : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
       Gs   : Game_State renames Game.all;
    begin
@@ -589,10 +589,10 @@ package body Handlers is
    end Powerup_Handler;
 
 
-   procedure Star_Handler (Po : in out Engine.PIG_Object;
-                           Ev : in     Engine.PIG_Event)
+   procedure Star_Handler (Po : in out Engines.PIG_Object;
+                           Ev : in     Engines.PIG_Event)
    is
-      use Engine;
+      use Engines;
    begin
       case Ev.Type_C is
 
@@ -608,10 +608,10 @@ package body Handlers is
    end Star_Handler;
 
 
-   procedure Evil_Handler (Po : in out Engine.PIG_Object;
-                           Ev : in     Engine.PIG_Event)
+   procedure Evil_Handler (Po : in out Engines.PIG_Object;
+                           Ev : in     Engines.PIG_Event)
    is
-      use Engine;
+      use Engines;
       Game   : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
       Gs     : Game_State renames Game.all;
       Look_X : Integer;
@@ -661,10 +661,10 @@ package body Handlers is
    end Evil_Handler;
 
 
-   procedure Slime_Handler (Po : in out Engine.PIG_Object;
-                            Ev : in     Engine.PIG_Event)
+   procedure Slime_Handler (Po : in out Engines.PIG_Object;
+                            Ev : in     Engines.PIG_Event)
    is
-      use Engine;
+      use Engines;
       Game   : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
       Gs     : Game_State renames Game.all;
       Look_X : Integer;
@@ -721,11 +721,11 @@ package body Handlers is
    end Slime_Handler;
 
 
-   procedure Chain_Head_Handler (Object : in out Engine.PIG_Object;
-                                 Event  : in     Engine.PIG_Event)
+   procedure Chain_Head_Handler (Object : in out Engines.PIG_Object;
+                                 Event  : in     Engines.PIG_Event)
    is
       use Ada.Numerics.Elementary_Functions;
-      use Engine;
+      use Engines;
       GP   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game : Game_State renames GP.all;
 
@@ -737,12 +737,12 @@ package body Handlers is
 
             when Waiting =>  -- 0 =>
                Object.Timer (1) := 35;
-               Object.State := Engine.Object_States'Succ (Object.State); --  + 1;
+               Object.State := Engines.Object_States'Succ (Object.State); --  + 1;
 
             when Walking => -- 1 =>
                Object.Target    := -SCREEN_W;
                Object.Timer (1) := 50;
-               Object.State := Engine.Object_States'Succ (Object.State); --  + 1;
+               Object.State := Engines.Object_States'Succ (Object.State); --  + 1;
                if Game.Messages > 0 then
                   Game.Messages := Game.Messages - 1;
                end if;
@@ -779,10 +779,10 @@ package body Handlers is
    end Chain_Head_Handler;
 
 
-   procedure Chain_Link_Handler (Po : in out Engine.PIG_Object;
-                                 Ev : in     Engine.PIG_Event)
+   procedure Chain_Link_Handler (Po : in out Engines.PIG_Object;
+                                 Ev : in     Engines.PIG_Event)
    is
-      use Engine;
+      use Engines;
       Target : constant PIG_Object_Access := Pig_Object_Find (Po, Po.Target);
    begin
       case Ev.Type_C is
@@ -805,11 +805,11 @@ package body Handlers is
    is
       use Ada.Strings.Unbounded;
       M, K  : Unbounded_String;
-      Dummy : Engine.PIG_Object_Access;
+      Dummy : Engines.PIG_Object_Access;
    begin
       Ada.Text_IO.Put_Line ("## 3-1");
       Gs.Level := Integer (Map);
-      Engine.Pig_Object_Close_All (Gs.Pe.all);
+      Engines.Pig_Object_Close_All (Gs.Pe.all);
       Gs.Enemycount := 0;
       Gs.Messages   := 0;
       Ada.Text_IO.Put_Line ("## 3-2");
@@ -955,7 +955,7 @@ package body Handlers is
             New_Slime (Gs, 24, 0, -14, Dummy);
       end case;
       Ada.Text_IO.Put_Line ("## 3-3");
-      Engine.Pig_Map_From_String (Gs.Pe.Map.all, To_String (K), To_String (M));
+      Engines.Pig_Map_From_String (Gs.Pe.Map.all, To_String (K), To_String (M));
       Ada.Text_IO.Put_Line ("## 3-4");
       Gs.Refresh_Screen := Gs.Pe.Pages;
       Ada.Text_IO.Put_Line ("## 3-5 done");
@@ -969,9 +969,9 @@ package body Handlers is
    end Load_Level;
 
 
-   procedure Before_Objects (Pe : in out Engine.PIG_Engine)
+   procedure Before_Objects (Pe : in out Engines.PIG_Engine)
    is
-      use Engine;
+      use Engines;
       Game : constant Game_State_Access := Handlers.To_Game_State (Pe.Userdata);
    begin
       if Game.Lives_Wobble > 0.0 then

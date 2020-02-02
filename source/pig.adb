@@ -23,7 +23,7 @@ with SDL.Events.Events;
 with SDL.Events.Mice;
 with SDL.Events.Keyboards;
 
-with Engine;
+with Engines;
 with Handlers;
 
 procedure Pig is
@@ -49,7 +49,7 @@ procedure Pig is
                        Screen : in out SDL.Video.Surfaces.Surface)
 --                            Screen : in out SDL.Video.Windows.Window)
    is
-      use type Engine.PIG_Map;
+      use type Engines.PIG_Map;
       Clean_Game : constant Game_State := (Pe => null,
                                            Keys => (others => False),
                                            Nice => False,
@@ -65,7 +65,7 @@ procedure Pig is
                                            Start_Time => Ada.Real_Time.Time_First,
                                            others => 0);
 
-      Map              : Engine.PIG_Map_Access;
+      Map              : Engines.PIG_Map_Access;
       Map_Tiles_Result : Integer;
    begin
       Game := new Game_State'(Clean_Game); --  Game_State;
@@ -78,7 +78,7 @@ procedure Pig is
       Game.Running    := True;
 
       begin
-         Engine.Pig_Open (Game.Pe, Screen);
+         Engines.Pig_Open (Game.Pe, Screen);
       exception
          when others =>
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
@@ -90,16 +90,16 @@ procedure Pig is
       end;
       Game.Pe.Userdata := Handlers.From_Game_State (Game);
 
-      Engine.Pig_Viewport (Game.Pe.all, 0, 0, SCREEN_W, MAP_H * TILE_H);
+      Engines.Pig_Viewport (Game.Pe.all, 0, 0, SCREEN_W, MAP_H * TILE_H);
       begin
-         Engine.Pig_Sprites (Game.Pe.all, "lifepig.png",    0,  0, Game.Lifepig);
-         Engine.Pig_Sprites (Game.Pe.all, "font.png",      44, 56, Game.Scorefont);
-         Engine.Pig_Sprites (Game.Pe.all, "glassfont.png", 60, 60, Game.Glassfont);
-         Engine.Pig_Sprites (Game.Pe.all, "icons.png",     48, 48, Game.Icons);
-         Engine.Pig_Sprites (Game.Pe.all, "stars.png",     32, 32, Game.Stars);
-         Engine.Pig_Sprites (Game.Pe.all, "pigframes.png", 64, 48, Game.Pigframes);
-         Engine.Pig_Sprites (Game.Pe.all, "evil.png",      48, 48, Game.Evil);
-         Engine.Pig_Sprites (Game.Pe.all, "slime.png",     48, 48, Game.Slime);
+         Engines.Pig_Sprites (Game.Pe.all, "lifepig.png",    0,  0, Game.Lifepig);
+         Engines.Pig_Sprites (Game.Pe.all, "font.png",      44, 56, Game.Scorefont);
+         Engines.Pig_Sprites (Game.Pe.all, "glassfont.png", 60, 60, Game.Glassfont);
+         Engines.Pig_Sprites (Game.Pe.all, "icons.png",     48, 48, Game.Icons);
+         Engines.Pig_Sprites (Game.Pe.all, "stars.png",     32, 32, Game.Stars);
+         Engines.Pig_Sprites (Game.Pe.all, "pigframes.png", 64, 48, Game.Pigframes);
+         Engines.Pig_Sprites (Game.Pe.all, "evil.png",      48, 48, Game.Evil);
+         Engines.Pig_Sprites (Game.Pe.all, "slime.png",     48, 48, Game.Slime);
 --        exception
 --           when others => -- if i < 0 then
 --              Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
@@ -112,43 +112,43 @@ procedure Pig is
       end; -- if;
 
       for I in Game.Icons .. Game.Icons + 3 * 8  loop
-         Engine.Pig_Hotspot (Game.Pe.all, I, Engine.PIG_CENTER, 45);
+         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 45);
       end loop;
       for I in Game.Pigframes .. Game.Pigframes + 12 loop
-         Engine.Pig_Hotspot (Game.Pe.all, I, Engine.PIG_CENTER, 43);
+         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 43);
       end loop;
       for I in Game.Evil .. Game.Evil + 16 loop
-         Engine.Pig_Hotspot (Game.Pe.all, I, Engine.PIG_CENTER, 46);
+         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 46);
       end loop;
       for I in Game.Slime .. Game.Slime + 16 loop
-         Engine.Pig_Hotspot (Game.Pe.all, I, Engine.PIG_CENTER, 46);
+         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 46);
       end loop;
 
       begin
-         Engine.Pig_Map_Open (Map, Game.Pe.all, MAP_W, MAP_H);
+         Engines.Pig_Map_Open (Map, Game.Pe.all, MAP_W, MAP_H);
       exception
          when others => --  if Pm = null then
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                   "Could not create map!");
-            Engine.Pig_Close (Game.Pe.all);
+            Engines.Pig_Close (Game.Pe.all);
             --  Free (gs);
             --  return NULL;
             return;
       end; -- if;
 
-      Engine.Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
+      Engines.Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
       if Map_Tiles_Result < 0 then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                "Could not load background graphics!");
-         Engine.Pig_Close (Game.Pe.all);
+         Engines.Pig_Close (Game.Pe.all);
          --  Free (gs);
          raise Storage_Error with "Could not load background graphics.";
       end if;
 
       --  Mark tiles for collision detection
-      Engine.Pig_Map_Collisions (Map.all,  0, 12, Engine.PIG_All);   --  Red, green, yellov
-      Engine.Pig_Map_Collisions (Map.all, 12, 17, Engine.PIG_None);  --  Sky
-      Engine.Pig_Map_Collisions (Map.all, 29,  3, Engine.PIG_All);   --  Single R, G, Y
+      Engines.Pig_Map_Collisions (Map.all,  0, 12, Engines.PIG_All);   --  Red, green, yellov
+      Engines.Pig_Map_Collisions (Map.all, 12, 17, Engines.PIG_None);  --  Sky
+      Engines.Pig_Map_Collisions (Map.all, 29,  3, Engines.PIG_All);   --  Single R, G, Y
 
       Load_Level (Game.all, 0);
    end Init_All;
@@ -209,7 +209,7 @@ procedure Pig is
       for I in 0 .. Game.Lives - 1 loop
          X := X + 48.0 + Game.Lives_Wobble *
            Sin (Float (Game.Lives_Wobble_Time) * 12.0) * 0.2;
-         Engine.Pig_Draw_Sprite
+         Engines.Pig_Draw_Sprite
            (Game.Pe.all, Game.Lifepig,
             Integer (X) + Integer (Game.Lives_Wobble *
                                      Sin (Float (Game.Lives_Wobble_Time) * 20.0
@@ -226,15 +226,15 @@ procedure Pig is
          begin
             X := X - 39.0 - Game.Score_Wobble *
               Sin (Float (Game.Score_Wobble_Time) * 15.0 + Float (I) * 0.5);
-            Engine.Pig_Draw_Sprite (Game.Pe.all, Game.Scorefont + N,
-                                    Integer (X),
-                                    SCREEN_H - 56 / 2);
+            Engines.Pig_Draw_Sprite (Game.Pe.all, Game.Scorefont + N,
+                                     Integer (X),
+                                     SCREEN_H - 56 / 2);
             V := V / 10;
             exit when V = 0;
          end;
       end loop;
 
-      Engine.Pig_Dirty (Game.Pe.all, R);
+      Engines.Pig_Dirty (Game.Pe.all, R);
    end Dashboard;
 
 
@@ -456,13 +456,13 @@ begin
    Game.Rendered_Frames := 0;
    Game.Pe.Before_Objects := Handlers.Before_Objects'Access;
    declare
-      use Engine;
+      use Engines;
    begin
       if Game.Pe = null then
          Ada.Text_IO.Put_Line ("Game.Pe is null");
       end if;
    end;
-   Engine.Pig_Start (Game.Pe.all, 0);
+   Engines.Pig_Start (Game.Pe.all, 0);
    Game.Refresh_Screen := Game.Pe.Pages;
    Start_Time := Ada.Real_Time.Clock; --  SDL_GetTicks;
    Last_Tick  := Start_Time;
@@ -491,7 +491,7 @@ begin
          Frames := Float (Dt) * logic_fps;
 
          --  Run the game logic
-         Engine.Pig_Animate (Game.Pe.all, Frames);
+         Engines.Pig_Animate (Game.Pe.all, Frames);
 
          --  Limit the dashboard frame rate to 15 fps
          --  when there's no wobbling going on.
@@ -514,13 +514,13 @@ begin
          --  Update sprites
          if Game.Refresh_Screen /= 0 then
             Game.Refresh_Screen := Game.Refresh_Screen - 1;
-            Engine.Pig_Refresh_All (Game.Pe.all);
+            Engines.Pig_Refresh_All (Game.Pe.all);
          else
-            Engine.Pig_Refresh (Game.Pe.all);
+            Engines.Pig_Refresh (Game.Pe.all);
          end if;
 
          --  Make the new frame visible
-         Engine.Pig_Flip (Game.Pe.all);
+         Engines.Pig_Flip (Game.Pe.all);
          Window.Update_Surface; --  JQ
 
          --  Update statistics, timers and stuff
@@ -547,5 +547,5 @@ begin
                            Float (Game.Rendered_Frames * 1000 / I)'Image & " fps");
    Ada.Text_IO.Put_Line ("    Average logic frame rate: " &
                            Float (Game.Logic_Frames * 1000 / I)'Image & " fps");
-   Engine.Pig_Close (Game.Pe.all);
+   Engines.Pig_Close (Game.Pe.all);
 end Pig;

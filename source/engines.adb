@@ -18,7 +18,7 @@ with SDL.Video.Surfaces.Makers;
 with SDL.Video.Pixel_Formats;
 with SDL.Images.IO;
 
-package body Engine is
+package body Engines is
 
    --  Size of sprite frame table
    PIG_MAX_SPRITES      : constant := 1024;
@@ -1400,4 +1400,4 @@ package body Engine is
    end Pig_Object_Find;
 
 
-end Engine;
+end Engines;
