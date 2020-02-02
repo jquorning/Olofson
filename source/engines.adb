@@ -262,7 +262,6 @@ package body Engines is
          end loop;
          Y := Y + Sprite_Height;
       end loop;
-      Ada.Text_IO.Put_Line ("Ending");
       --  Tmp.Free;  --      SDL_FreeSurface(tmp);
       Result := Handle;
 --     exception
@@ -1111,9 +1110,7 @@ package body Engines is
                            Engine        : in out PIG_Engine;
                            Width, Height : in     Integer)
    is
---  PIG_map *pig_map_open(PIG_engine *pe, int w, int h)
    begin
-      Ada.Text_IO.Put_Line ("Pig_Map_Open");
       if Engine.Map /= null then
          Pig_Map_Close (Engine.Map.all);
       end if;
@@ -1217,7 +1214,6 @@ package body Engines is
       use Ada.Strings.Fixed;
       Z : Natural;
    begin
-      Ada.Text_IO.Put_Line ("## 4-1");
       --  Load the map
       Z := 0;
       for Y in 0 .. Map.Height - 1 loop
@@ -1242,7 +1238,6 @@ package body Engines is
             end;
          end loop;
       end loop;
-      Ada.Text_IO.Put_Line ("## 4-2");
 
       --  Generate collision map
       for Y in 0 .. Map.Height - 1 loop
@@ -1251,7 +1246,6 @@ package body Engines is
               Map.Hitinfo (Map.Map (X, Y));
          end loop;
       end loop;
-      Ada.Text_IO.Put_Line ("## 4-3 done");
    exception
       when Constraint_Error =>
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
