@@ -239,8 +239,7 @@ package Engines is
    type Bef_Aft_Access      is access procedure (Pe : in out PIG_Engine);
    type Sprite_Array        is array (Natural range <>) of PIG_Sprite_Access;
    type Sprite_Array_Access is access all Sprite_Array;
-   type Table_Access is access all Dirty.PIG_Dirtytable;
-   type Dirty_Array is array (0 .. 1) of Table_Access;
+   type Dirty_Array         is array (0 .. 1) of Dirty.PIG_Dirtytable_Access;
 
    type PIG_Engine is record
       --  Video stuff
@@ -249,10 +248,10 @@ package Engines is
       Surface : SDL.Video.Surfaces.Surface;  --  Where to render to
       Pages   : Integer;                     --  # of display VRAM buffers
       View    : SDL.Video.Rectangles.Rectangle; --  Viewport pos & size (pixels)
-      Page    : Integer range 0 .. 1;           --  Current page (double buffer)
---          PIG_dirtytable  *pagedirty[2];
-      Pagedirty : Dirty_Array;               --  One table for each page
-      --          PIG_dirtytable  *workdirty;     /* The work dirtytable */
+
+      Page      : Integer range 0 .. 1;        --  Current page (double buffer)
+      Pagedirty : Dirty_Array;                 --  One table for each page
+      Workdirty : Dirty.PIG_Dirtytable_Access; --  The work dirtytable
 
       --  "Live" switches
       Interpolation   : Boolean; -- Integer;
@@ -289,7 +288,7 @@ package Engines is
    --
    procedure Pig_Open (Engine :    out PIG_Engine_Access;
                        Screen : in     SDL.Video.Surfaces.Surface);
-   procedure Pig_Close (Pe : in out PIG_Engine);
+   procedure Pig_Close (Engine : in out PIG_Engine);
 
    procedure Pig_Viewport (Engine : in out PIG_Engine;
                            X, Y   : in     Integer;

@@ -28,7 +28,7 @@ package body Engines is
       SDL.Video.Surfaces.Null_Surface,
       SDL.Video.Surfaces.Null_Surface,
       0, SDL.Video.Rectangles.Null_Rectangle, 0, (null, null),
-      False, False, False, 0.0, 0, null, Object_Lists.Empty_List, 0, 0, null, null, null, 0);
+      null, False, False, False, 0.0, 0, null, Object_Lists.Empty_List, 0, 0, null, null, null, 0);
 
    Clean_Object : constant PIG_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
@@ -82,14 +82,14 @@ package body Engines is
       else
          Engine.Surface := Screen;
       end if;
---      pe->pages = 1 + ((screen->flags & SDL_DOUBLEBUF) == SDL_DOUBLEBUF);
+      Engine.Pages := 1; --  + ((screen->flags & SDL_DOUBLEBUF) == SDL_DOUBLEBUF);
 
       Engine.Interpolation := True;
       Engine.Time          := 0.0;
       Engine.View.Width    := Engine.Surface.Size.Width;
       Engine.View.Height   := Engine.Surface.Size.Height;
 
-      Engine.Sprites := new Sprite_Array (0 .. PIG_MAX_SPRITES - 1);
+      Engine.Sprites := new Sprite_Array'(0 .. PIG_MAX_SPRITES - 1 => null);
 --      pe->sprites = (PIG_sprite **)calloc(PIG_MAX_SPRITES,
 --                      sizeof(PIG_sprite *));
 --      if(!pe->sprites)
@@ -98,30 +98,28 @@ package body Engines is
 --              return NULL;
 --      }
 
---      pe->pagedirty[0] = pig_dirty_open(128);
---      pe->workdirty = pig_dirty_open(256);
+      Engine.Pagedirty (0) := Dirty.Pig_Dirty_Open (Size => 128);
+      Engine.Workdirty     := Dirty.Pig_Dirty_Open (Size => 256);
 --      if(!pe->pagedirty[0] || !pe->workdirty)
 --      {
 --              pig_close(pe);
 --              return NULL;
 --      }
---      if(pe->pages > 1)
---      {
---              pe->pagedirty[1] = pig_dirty_open(128);
---              if(!pe->pagedirty[1])
---              {
+      if Engine.Pages > 1 then
+         Engine.Pagedirty (1) := Dirty.Pig_Dirty_Open (Size => 128);
+--              if(!pe->pagedirty[1] then
 --                      pig_close(pe);
 --                      return NULL;
---              }
---      }
+--              end if;
+      end if;
 
       --      return pe;
    end Pig_Open;
 
 
-   procedure Pig_Close (Pe : in out PIG_Engine) is
+   procedure Pig_Close (Engine : in out PIG_Engine) is
+      use Dirty;
    begin
-      null;
 --  {
 --      if(pe->sprites)
 --      {
@@ -141,12 +139,15 @@ package body Engines is
 --              pig_map_close(pe->map);
 --      if(pe->buffer)
 --              SDL_FreeSurface(pe->buffer);
---      if(pe->pagedirty[0])
---              pig_dirty_close(pe->pagedirty[0]);
---      if(pe->pagedirty[1])
---              pig_dirty_close(pe->pagedirty[1]);
---      if(pe->workdirty)
---              pig_dirty_close(pe->workdirty);
+      if Engine.Pagedirty (0) /= null then
+         Dirty.Pig_Dirty_Close (Engine.Pagedirty (0));
+      end if;
+      if Engine.Pagedirty (1) /= null then
+         Dirty.Pig_Dirty_Close (Engine.Pagedirty (1));
+      end if;
+      if Engine.Workdirty /= null then
+         Dirty.Pig_Dirty_Close (Engine.Workdirty);
+      end if;
 --      free(pe);
    end Pig_Close;
 
@@ -772,21 +773,22 @@ package body Engines is
    procedure Pig_Dirty (Engine : in out PIG_Engine;
                         Rect   : in SDL.Video.Rectangles.Rectangle)
    is
-      pragma Unreferenced (Rect);
       use type SDL.C.int;
-      R : SDL.Video.Rectangles.Rectangle;
+      use SDL.Video.Rectangles;
+      R : Rectangle;
    begin
       R.X      := 0;
       R.Y      := 0;
       R.Width  := Engine.Surface.Size.Width;
       R.Height := Engine.Surface.Size.Height;
---        if Rect then
---           Pig_Intersectrect (Dr, R);
---        end if;
-      if R.Width /= 0 and R.Height /= 0 then
-         null;
-         --  Dirty.Pig_Dirty_Add (Engine.Pagedirty (Engine.Page).all, R);
+      if Rect /= Null_Rectangle then
+         Dirty.Pig_Intersectrect (Rect, R);
       end if;
+
+      if R.Width /= 0 and R.Height /= 0 then
+         Dirty.Pig_Dirty_Add (Engine.Pagedirty (Engine.Page).all, R);
+      end if;
+
    end Pig_Dirty;
 
 
@@ -862,7 +864,7 @@ package body Engines is
             R.Y      := int (Object.Ip.Gy) - int (S.Hoty);
             R.Width  := int (S.Width);
             R.Height := int (S.Height);
---              pig_intersectrect(&pe->view, &r);
+            Dirty.Pig_Intersectrect (Engine.View, R);
             if R.Width /= 0 and R.Height /= 0 then
                if R.Y >= 0 then --  JQ
                   Tile_Area (Engine, R);
@@ -884,7 +886,7 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out PIG_Engine)
    is
---      PIG_dirtytable *pdt;
+      Pdt    : Dirty.PIG_Dirtytable_Access;
       S      : PIG_Sprite_Access;
 --      Object : PIG_Object_Access;
       Fframe : constant Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
@@ -892,13 +894,13 @@ package body Engines is
       Engine.Surface.Set_Clip_Rectangle (Engine.View);
       --  SDL_SetClipRect(pe->surface, &pe->view);
 
---      /* Swap the work and display/back page dirtytables */
---      pdt = pe->workdirty;
---      pe->workdirty = pe->pagedirty[pe->page];
---      pe->pagedirty[pe->page] = pdt;
+      --  Swap the work and display/back page dirtytables
+      Pdt := Engine.Workdirty;
+      Engine.Workdirty := Engine.Pagedirty (Engine.Page);
+      Engine.Pagedirty (Engine.Page) := Pdt;
 
---      /* Clear the display/back page dirtytable */
---      pdt->count = 0;
+      --  Clear the display/back page dirtytable
+      Pdt.Count := 0;
 
       --  Update positions and render all objects
       for Object of Engine.Objects loop
@@ -934,17 +936,16 @@ package body Engines is
                --
                --  We use the clipped rect for the dirtyrect!
                --
---                 if Dr.Width /= 0 and Dr.Height /= 0 then
---                    null;
---                    --  Dirty.pig_dirty_add(pdt, &dr);
---                 end if;
+               if Dr.Width /= 0 and Dr.Height /= 0 then
+                  Dirty.Pig_Dirty_Add (Pdt.all, Dr);
+               end if;
             end;
          end if;
          --              po = po->next;
       end loop;
 
       --  Merge the display/back page table into the work table
-      --      pig_dirty_merge(pe->workdirty, pdt);
+      Dirty.Pig_Dirty_Merge (Engine.Workdirty.all, Pdt.all);
    end Draw_Sprites;
 
 

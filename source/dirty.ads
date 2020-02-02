@@ -12,9 +12,11 @@ with SDL.Video.Rectangles;
 
 package Dirty is
 
+   subtype Rectangle is SDL.Video.Rectangles.Rectangle;
+
    --  A table of dirtyrects for one display page
    type Rect_Array is
-     array (Natural range <>) of SDL.Video.Rectangles.Rectangle;
+     array (Natural range <>) of Rectangle;
    type Rect_Array_Access is access all Rect_Array;
 
    type PIG_Dirtytable is record
@@ -23,22 +25,25 @@ package Dirty is
       Count : Integer;           --  # of rects currently used
       Best  : Integer;           --  Merge testing starts here!
    end record;
+   type PIG_Dirtytable_Access is access all PIG_Dirtytable;
 
+   function Pig_Dirty_Open (Size : in Integer) return PIG_Dirtytable_Access;
+   procedure Pig_Dirty_Close (Pdt : in out PIG_Dirtytable_Access);
 
---  PIG_dirtytable *pig_dirty_open(int size);
---  void pig_dirty_close(PIG_dirtytable *pdt);
-
-   procedure Pig_Dirty_Add (Table : in out PIG_Dirtytable;
-                            Dr    : in     SDL.Video.Rectangles.Rectangle);
+   procedure Pig_Dirty_Add (Pdt : in out PIG_Dirtytable;
+                            Dr  : in     Rectangle);
    --  Add rectangle 'dr' to table 'pdt'
 
---  /* Merge table 'from' into 'pdt' */
---  void pig_dirty_merge(PIG_dirtytable *pdt, PIG_dirtytable *from);
+   procedure Pig_Dirty_Merge (Pdt  : in out PIG_Dirtytable;
+                              From : in     PIG_Dirtytable);
+   --  Merge table 'from' into 'pdt'
 
---  /* Extend 'to' to a new rect that includes both 'from' and 'to' */
---  void pig_mergerect(SDL_Rect *from, SDL_Rect *to);
+   procedure Pig_Mergerect (From : in     Rectangle;
+                            To   : in out Rectangle);
+   --  Extend 'to' to a new rect that includes both 'from' and 'to'
 
---  /* Clip 'to' into a rect that is the intersection of 'from' and 'to' */
---  void pig_intersectrect(SDL_Rect *from, SDL_Rect *to);
+   procedure Pig_Intersectrect (From : in     Rectangle;
+                                To   : in out Rectangle);
+   --  Clip 'to' into a rect that is the intersection of 'from' and 'to'
 
 end Dirty;
