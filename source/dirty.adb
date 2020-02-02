@@ -32,7 +32,7 @@ package body Dirty is
    end Pig_Dirty_Open;
 
 
-   procedure Pig_Dirty_Close (Pdt : in out PIG_Dirtytable_Access) is
+   procedure Pig_Dirty_Close (Table : in out PIG_Dirtytable_Access) is
    begin
       null;
 --          free(pdt->rects);
@@ -102,8 +102,8 @@ package body Dirty is
    end Pig_Intersectrect;
 
 
-   procedure Pig_Dirty_Add (Pdt : in out PIG_Dirtytable;
-                            Dr  : in     SDL.Video.Rectangles.Rectangle)
+   procedure Pig_Dirty_Add (Table : in out PIG_Dirtytable;
+                            Rect  : in     SDL.Video.Rectangles.Rectangle)
    is
       I, Best_I, Best_Loss : Integer;
    begin
@@ -117,69 +117,68 @@ package body Dirty is
 
       Best_I    := -1;
       Best_Loss := 100_000_000;
-      if Pdt.Count /= 0 then
-         I := (Pdt.Best + Pdt.Count - 1) mod Pdt.Count;
+      if Table.Count /= 0 then
+         I := (Table.Best + Table.Count - 1) mod Table.Count;
       end if;
 
-      for J in 0 .. Pdt.Count - 1 loop
+      for J in 0 .. Table.Count - 1 loop
          declare
             use SDL.C;
             A1, A2, Am, Ratio, Loss : Integer;
             Testr : SDL.Video.Rectangles.Rectangle;
          begin
-            A1 := Integer (Dr.Width * Dr.Height);
+            A1 := Integer (Rect.Width * Rect.Height);
 
-            Testr := Pdt.Rects (I);
+            Testr := Table.Rects (I);
             A2    := Integer (Testr.Width * Testr.Height);
 
-            Pig_Mergerect (Dr, Testr);
+            Pig_Mergerect (Rect, Testr);
             Am := Integer (Testr.Width * Testr.Height);
 
             --  Perfect or Instant Pick?
             Ratio := 100 * Am / (if A1 > A2 then A1 else A2);
             if Ratio < PIG_INSTANT_MERGE then
                --  Ok, this is good enough! Stop searching.
-               Pig_Mergerect (Dr, Pdt.Rects (I));
-               Pdt.Best := I;
+               Pig_Mergerect (Rect, Table.Rects (I));
+               Table.Best := I;
                return;
             end if;
 
             Loss := Am - A1 - A2;
             if Loss < Best_Loss then
-               Best_I    := I;
-               Best_Loss := Loss;
-               Pdt.Best  := I;
+               Best_I     := I;
+               Best_Loss  := Loss;
+               Table.Best := I;
             end if;
 
-            I := I + 1;
-            I := I mod Pdt.Count;
+            I := (I + 1) mod Table.Count;
          end;
       end loop;
 
       --  ...and if the best result is good enough, merge!
       if Best_I >= 0 and Best_Loss < PIG_WORST_MERGE then
-         Pig_Mergerect (Dr, Pdt.Rects (Best_I));
+         Pig_Mergerect (Rect, Table.Rects (Best_I));
          return;
       end if;
 
       --  Try to add to table...
-      if Pdt.Count < Pdt.Size then
-         Pdt.Rects (Pdt.Count) := Dr;
-         Pdt.Count := Pdt.Count + 1;
+      if Table.Count < Table.Size then
+         Table.Rects (Table.Count) := Rect;
+         Table.Count := Table.Count + 1;
          return;
       end if;
 
       --  Emergency: Table full! Grab best candidate...
-      Pig_Mergerect (Dr, Pdt.Rects (Best_I));
+      Pig_Mergerect (Rect, Table.Rects (Best_I));
    end Pig_Dirty_Add;
 
 
-   procedure Pig_Dirty_Merge (Pdt  : in out PIG_Dirtytable;
-                              From : in     PIG_Dirtytable)
+   procedure Pig_Dirty_Merge (Table : in out PIG_Dirtytable;
+                              From  : in     PIG_Dirtytable)
    is
    begin
       for I in 0 .. From.Count - 1 loop
-         Pig_Dirty_Add (Pdt, From.Rects (I));
+         Pig_Dirty_Add (Table, From.Rects (I));
       end loop;
    end Pig_Dirty_Merge;
 

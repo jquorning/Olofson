@@ -28,14 +28,14 @@ package Dirty is
    type PIG_Dirtytable_Access is access all PIG_Dirtytable;
 
    function Pig_Dirty_Open (Size : in Integer) return PIG_Dirtytable_Access;
-   procedure Pig_Dirty_Close (Pdt : in out PIG_Dirtytable_Access);
+   procedure Pig_Dirty_Close (Table : in out PIG_Dirtytable_Access);
 
-   procedure Pig_Dirty_Add (Pdt : in out PIG_Dirtytable;
-                            Dr  : in     Rectangle);
+   procedure Pig_Dirty_Add (Table : in out PIG_Dirtytable;
+                            Rect  : in     Rectangle);
    --  Add rectangle 'dr' to table 'pdt'
 
-   procedure Pig_Dirty_Merge (Pdt  : in out PIG_Dirtytable;
-                              From : in     PIG_Dirtytable);
+   procedure Pig_Dirty_Merge (Table : in out PIG_Dirtytable;
+                              From  : in     PIG_Dirtytable);
    --  Merge table 'from' into 'pdt'
 
    procedure Pig_Mergerect (From : in     Rectangle;
