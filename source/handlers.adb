@@ -14,26 +14,26 @@ package body Handlers is
    --        Accounting (score, lives etc)
    ----------------------------------------------------------
 
-   procedure Add_Life (Gs : in out Game_State) is
+   procedure Add_Life (Game : in out Game_State) is
    begin
-      Gs.Lives := Gs.Lives + 1;
-      Gs.Lives_Wobble := Gs.Lives_Wobble + 10.0;
-      if Gs.Lives_Wobble > 15.0 then
-         Gs.Lives_Wobble := 15.0;
+      Game.Lives := Game.Lives + 1;
+      Game.Lives_Wobble := Game.Lives_Wobble + 10.0;
+      if Game.Lives_Wobble > 15.0 then
+         Game.Lives_Wobble := 15.0;
       end if;
-      Gs.Lives_Wobble_Time := 0.0;
+      Game.Lives_Wobble_Time := 0.0;
    end Add_Life;
 
 
-   procedure Remove_Life (Gs : in out Game_State)
+   procedure Remove_Life (Game : in out Game_State)
    is
    begin
-      Gs.Lives := Gs.Lives - 1;
-      Gs.Lives_Wobble := Gs.Lives_Wobble + 10.0;
-      if Gs.Lives_Wobble > 15.0 then
-         Gs.Lives_Wobble := 15.0;
+      Game.Lives := Game.Lives - 1;
+      Game.Lives_Wobble := Game.Lives_Wobble + 10.0;
+      if Game.Lives_Wobble > 15.0 then
+         Game.Lives_Wobble := 15.0;
       end if;
-      Gs.Lives_Wobble_Time := 0.0;
+      Game.Lives_Wobble_Time := 0.0;
    end Remove_Life;
 
 
@@ -44,7 +44,7 @@ package body Handlers is
       --        if(!gs->lives)
       --                return NULL;
    begin
-      Object := Engines.Pig_Object_Open (Game.Pe, SCREEN_W / 2, -50, 1);
+      Object := Engines.Pig_Object_Open (Game.Engine, SCREEN_W / 2, -50, 1);
       --        if(!po)
       --                return NULL;
 
@@ -69,7 +69,7 @@ package body Handlers is
                           Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Pe, X, Y, 1);
+      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, 1);
       --        if(!po)
       --                return NULL;
 
@@ -101,7 +101,7 @@ package body Handlers is
                        Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Pe, X + Vx, Y + Vy, 1);
+      Object := Engines.Pig_Object_Open (Game.Engine, X + Vx, Y + Vy, 1);
       --        if(!po)
       --                return NULL;
 
@@ -130,7 +130,7 @@ package body Handlers is
                        Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Pe,
+      Object := Engines.Pig_Object_Open (Game.Engine,
                                          X * TILE_W,
                                          Y * TILE_H, 1);
       --        if(!po)
@@ -152,7 +152,7 @@ package body Handlers is
                         Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Pe,
+      Object := Engines.Pig_Object_Open (Game.Engine,
                                         X * TILE_W, Y * TILE_H, 1);
       --        if(!po)
       --                return NULL;
@@ -174,7 +174,7 @@ package body Handlers is
                              Object   :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Pe, X, Y, 1);
+      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, 1);
       --        if(!po)
       --                return NULL;
 
@@ -191,7 +191,7 @@ package body Handlers is
                              Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Pe, X, Y, 1);
+      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, 1);
       --        if(!po)
       --                return NULL;
 
@@ -201,35 +201,35 @@ package body Handlers is
    end New_Chain_Link;
 
 
-   procedure Inc_Score_Nobonus (Gs : in out Game_State; V : in Integer)
+   procedure Inc_Score_Nobonus (Game : in out Game_State; V : in Integer)
    is
       Vc : Integer := V;
-      Os : constant Integer := Gs.Score;
+      Os : constant Integer := Game.Score;
    begin
-      Gs.Score := Gs.Score + Vc;
+      Game.Score := Game.Score + Vc;
       while Vc /= 0 loop
-         Gs.Score_Wobble := Gs.Score_Wobble + 1.0;
+         Game.Score_Wobble := Game.Score_Wobble + 1.0;
          Vc := Vc / 10;
       end loop;
-      if Gs.Score_Wobble > 15.0 then
-         Gs.Score_Wobble := 15.0;
+      if Game.Score_Wobble > 15.0 then
+         Game.Score_Wobble := 15.0;
       end if;
-      Gs.Score_Wobble_Time := 0.0;
-      if Os / 10000 /= Gs.Score / 10000 then
-         New_Powerup (Gs, SCREEN_W / 2, -20, -4, Engines.Power_Life);
+      Game.Score_Wobble_Time := 0.0;
+      if Os / 10000 /= Game.Score / 10000 then
+         New_Powerup (Game, SCREEN_W / 2, -20, -4, Engines.Power_Life);
       end if;
    end Inc_Score_Nobonus;
 
 
-   procedure Inc_Score (Gs : in out Game_State; V : in Integer)
+   procedure Inc_Score (Game : in out Game_State; V : in Integer)
    is
-      Os : constant Integer := Gs.Score;
+      Os : constant Integer := Game.Score;
    begin
-      Inc_Score_Nobonus (Gs, V);
-      if Os / 5000 /= Gs.Score / 5000 then
-         New_Powerup (Gs, SCREEN_W / 2, -20, 8, Engines.Power_Bonus_1);
-      elsif Os / 1000 /= Gs.Score / 1000 then
-         New_Powerup (Gs, SCREEN_W / 2, -20, -6, Engines.Power_Bonus_2);
+      Inc_Score_Nobonus (Game, V);
+      if Os / 5000 /= Game.Score / 5000 then
+         New_Powerup (Game, SCREEN_W / 2, -20, 8, Engines.Power_Bonus_1);
+      elsif Os / 1000 /= Game.Score / 1000 then
+         New_Powerup (Game, SCREEN_W / 2, -20, -6, Engines.Power_Bonus_2);
       end if;
    end Inc_Score;
 
@@ -276,156 +276,156 @@ package body Handlers is
    end Message;
 
 
-   procedure Player_Handler (Po : in out Engines.PIG_Object;
-                             Ev : in     Engines.PIG_Event)
+   procedure Player_Handler (Object : in out Engines.PIG_Object;
+                             Event  : in     Engines.PIG_Event)
    is
       use Engines;
       use type SDL.C.int;
-      Game : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
+      Game : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Gs   : Game_State renames Game.all;
    begin
-      case Ev.Type_C is
+      case Event.Type_C is
 
          when PIG_PREFRAME =>
-            case Po.State is
+            case Object.State is
                when Knocked | Dead | Next_Level => null;
 
                when Waiting =>
-                  if 1 = Po.Age then
+                  if 1 = Object.Age then
                      Message (Gs, "Get ready!");
-                  elsif Po.Age > 50 then
-                     Po.State := Falling;
+                  elsif Object.Age > 50 then
+                     Object.State := Falling;
                   end if;
 
                when Walking =>
                   --  if Gs.Keys (SDL.Events.Keyboards.Code_Left) then
                   if Gs.Keys (Left) then
-                     Po.Ax     := -(20.0 + Po.Vx) * 0.4;
-                     Po.Target := 3 + Po.Age mod 4 - 1;
-                     if 5 = Po.Target then
-                        Po.Target := 3;
+                     Object.Ax     := -(20.0 + Object.Vx) * 0.4;
+                     Object.Target := 3 + Object.Age mod 4 - 1;
+                     if 5 = Object.Target then
+                        Object.Target := 3;
                      end if;
                   --  elsif Gs.Keys (SDL.Events.Keyboards.Code_Right) then
                   elsif Gs.Keys (Right) then
 
-                     Po.Ax     := (20.0 - Po.Vx) * 0.4;
-                     Po.Target := 9 + Po.Age mod 4 - 1;
-                     if 11 = Po.Target then
-                        Po.Target := 9;
+                     Object.Ax     := (20.0 - Object.Vx) * 0.4;
+                     Object.Target := 9 + Object.Age mod 4 - 1;
+                     if 11 = Object.Target then
+                        Object.Target := 9;
                      end if;
                   else
 
-                     Po.Ax := -Po.Vx * 0.8;
-                     if Po.Target >= 6 then
-                        Po.Target := (Po.Target + 1) mod
+                     Object.Ax := -Object.Vx * 0.8;
+                     if Object.Target >= 6 then
+                        Object.Target := (Object.Target + 1) mod
                           PIG_FRAMES;
-                     elsif Po.Target /= 0 then
-                        Po.Target := Po.Target - 1;
+                     elsif Object.Target /= 0 then
+                        Object.Target := Object.Target - 1;
                      end if;
                   end if;
 
                when Falling =>
                   --  if Gs.Keys (SDL.Events.Keyboards.Code_Left) then
                   if Gs.Keys (Left) then
-                     Po.Ax := -(20.0 + Po.Vx) * 0.2;
+                     Object.Ax := -(20.0 + Object.Vx) * 0.2;
                   --  elsif Gs.Keys (SDL.Events.Keyboards.Code_Right) then
                   elsif Gs.Keys (Right) then
-                     Po.Ax := (20.0 - Po.Vx) * 0.2;
+                     Object.Ax := (20.0 - Object.Vx) * 0.2;
                   else
-                     Po.Ax := -Po.Vx * 0.2;
+                     Object.Ax := -Object.Vx * 0.2;
                   end if;
-                  Po.Target := (Po.Target + 1) mod PIG_FRAMES;
+                  Object.Target := (Object.Target + 1) mod PIG_FRAMES;
             end case;
 
-            Po.Timer (0) := 1;
+            Object.Timer (0) := 1;
 
          when PIG_TIMER0 =>
-            if Po.X < 0.0 then
-               Po.X := 0.0;
-            elsif Po.X > Float (Po.Owner.View.Width - 1) then
-               Po.X := Float (Po.Owner.View.Width - 1);
+            if Object.X < 0.0 then
+               Object.X := 0.0;
+            elsif Object.X > Float (Object.Owner.View.Width - 1) then
+               Object.X := Float (Object.Owner.View.Width - 1);
             end if;
 
-            case Po.State is
+            case Object.State is
                when Waiting => null;
 
                when Walking =>
-                  if Po.Power /= 0 then
-                     Po.Power := Po.Power - 1;
+                  if Object.Power /= 0 then
+                     Object.Power := Object.Power - 1;
                   end if;
-                  Po.Image := Po.Target mod PIG_FRAMES;
-                  if PIG_None = Pig_Test_Map (Gs.Pe.all,
-                                              Integer (Po.X),
-                                              Integer (Po.Y + 1.0))
+                  Object.Image := Object.Target mod PIG_FRAMES;
+                  if PIG_None = Pig_Test_Map (Gs.Engine.all,
+                                              Integer (Object.X),
+                                              Integer (Object.Y + 1.0))
                   then
-                     Po.State := Falling;
-                     Po.Ay    := Float (GRAV_ACC);
+                     Object.State := Falling;
+                     Object.Ay    := Float (GRAV_ACC);
                   end if;
                   --  if Gs.Jump or Gs.Keys (SDL.Events.Keyboards.Key_Up) then
                   if Gs.Jump /= 0 or Gs.Keys (Up) then
-                     Po.Ay    := 0.0;
-                     Po.Vy    := -JUMP_SPEED;
-                     Po.State := Falling;
+                     Object.Ay    := 0.0;
+                     Object.Vy    := -JUMP_SPEED;
+                     Object.State := Falling;
                      Gs.Jump  := 0;
                   end if;
 
                when Falling =>
-                  if Po.Vy > 2.0 then
-                     Po.Power := 3;
+                  if Object.Vy > 2.0 then
+                     Object.Power := 3;
                   end if;
-                  Po.Ay    := GRAV_ACC;
-                  Po.Image := Po.Target;
+                  Object.Ay    := GRAV_ACC;
+                  Object.Image := Object.Target;
 
                when Knocked =>
-                  Po.Power  := 0;
-                  Po.Ay     := GRAV_ACC;
-                  Po.Target := (Po.Target + 2) mod PIG_FRAMES;
-                  Po.Image  := Po.Target;
-                  Po.Ax     := -Po.Vx * 0.2;
+                  Object.Power  := 0;
+                  Object.Ay     := GRAV_ACC;
+                  Object.Target := (Object.Target + 2) mod PIG_FRAMES;
+                  Object.Image  := Object.Target;
+                  Object.Ax     := -Object.Vx * 0.2;
 
                when Next_Level =>
-                  Po.Vx     := (Float (SCREEN_W / 2) - Po.X) * 0.1;
-                  Po.Target := (Po.Target + 1) mod PIG_FRAMES;
-                  Po.Image  := Po.Target;
+                  Object.Vx     := (Float (SCREEN_W / 2) - Object.X) * 0.1;
+                  Object.Target := (Object.Target + 1) mod PIG_FRAMES;
+                  Object.Image  := Object.Target;
 
                when Dead =>
-                  Po.Ax := 0.0;
-                  Po.Ay := 0.0;
-                  Po.Vx := 0.0;
-                  Po.Vy := 0.0;
+                  Object.Ax := 0.0;
+                  Object.Ay := 0.0;
+                  Object.Vx := 0.0;
+                  Object.Vy := 0.0;
 
             end case;
             if Gs.Jump /= 0 then
                Gs.Jump := Gs.Jump - 1;
             end if;
 
-            if Next_Level /= Po.State then
+            if Next_Level /= Object.State then
                if Gs.Enemycount <= 0 then
                   Message (Gs, "Well Done!");
-                  Po.State := Next_Level;
-                  Po.Vy :=  0.0;
-                  Po.Ay := -1.0;
-                  Po.Tilemask  := PIG_None; -- 0;
-                  Po.Hitgroup  := 0;
-                  Po.Timer (2) := 50;
+                  Object.State := Next_Level;
+                  Object.Vy :=  0.0;
+                  Object.Ay := -1.0;
+                  Object.Tilemask  := PIG_None; -- 0;
+                  Object.Hitgroup  := 0;
+                  Object.Timer (2) := 50;
                end if;
             end if;
 
          when PIG_TIMER1 =>
             --  Snap out of KNOCKED mode
-            Po.State := Falling;
+            Object.State := Falling;
 
          when PIG_TIMER2 =>
-            case Po.State is
+            case Object.State is
 
                when Next_Level =>
                   Add_Life (Gs);
-                  Pig_Object_Close (Po);
+                  Pig_Object_Close (Object);
                   Load_Level (Gs, Map_Type (Gs.Level + 1));
                   New_Player (Gs);
 
                when others =>
-                  Pig_Object_Close (Po);
+                  Pig_Object_Close (Object);
                   declare
                      Object : PIG_Object_Access;
                   begin
@@ -438,61 +438,61 @@ package body Handlers is
             end case;
 
          when PIG_HIT_TILE =>
-            if Po.State /= Knocked then
-               if Ev.Cinfo.Sides.Top then
-                  Po.Y  := Float (Ev.Cinfo.Y);
-                  Po.Vy := 0.0;
-                  Po.Ay := 0.0;
+            if Object.State /= Knocked then
+               if Event.Cinfo.Sides.Top then
+                  Object.Y  := Float (Event.Cinfo.Y);
+                  Object.Vy := 0.0;
+                  Object.Ay := 0.0;
                end if;
-               Po.State := Walking;
+               Object.State := Walking;
             end if;
 
          when PIG_HIT_OBJECT =>
-            if Knocked /= Po.State then
+            if Knocked /= Object.State then
 
-               case Ev.Obj.Hitgroup is
+               case Event.Obj.Hitgroup is
 
                   when GROUP_ENEMY =>
                      if
-                       (Po.Power /= 0 and Ev.Cinfo.Sides.Top) or
-                       (Po.Vy - Ev.Obj.Vy) >= 15.0
+                       (Object.Power /= 0 and Event.Cinfo.Sides.Top) or
+                       (Object.Vy - Event.Obj.Vy) >= 15.0
                      then
                         --  Win: Stomp!
-                        Inc_Score (Gs, Ev.Obj.Score);
-                        Ev.Obj.Y := Float (Ev.Cinfo.Y + 10);
-                        if Po.Vy > 0.0 then
-                           Ev.Obj.Vy := Po.Vy;
+                        Inc_Score (Gs, Event.Obj.Score);
+                        Event.Obj.Y := Float (Event.Cinfo.Y + 10);
+                        if Object.Vy > 0.0 then
+                           Event.Obj.Vy := Object.Vy;
                         else
-                           Ev.Obj.Vy := 10.0;
+                           Event.Obj.Vy := 10.0;
                         end if;
-                        Ev.Obj.Ay       := GRAV_ACC;
-                        Ev.Obj.Tilemask := PIG_None; -- 0;
-                        Ev.Obj.Hitgroup := 0;
+                        Event.Obj.Ay       := GRAV_ACC;
+                        Event.Obj.Tilemask := PIG_None; -- 0;
+                        Event.Obj.Hitgroup := 0;
                         --  if Gs.jump or Gs.Keys (SDL.Events.Keyboards.Code_Up) then
                         if Gs.Jump /= 0 or Gs.Keys (Up) then
                            --  Mega jump!
-                           Po.Vy   := -JUMP_SPEED + 7.0;
+                           Object.Vy   := -JUMP_SPEED + 7.0;
                            Gs.Jump := 0;
                         else
                            --  Bounce a little
-                           Po.Vy := -15.0;
+                           Object.Vy := -15.0;
                         end if;
-                        Po.Y     := Float (Ev.Cinfo.Y);
-                        Po.Ay    := 0.0;
-                        Po.State := Falling;
+                        Object.Y     := Float (Event.Cinfo.Y);
+                        Object.Ay    := 0.0;
+                        Object.State := Falling;
                      else
                         --  Lose: Knocked!
-                        Po.Vy        := -15.0;
-                        Po.Ay        := GRAV_ACC;
-                        Po.State     := Knocked;
-                        Po.Timer (1) := 11;
-                        New_Star (Gs, Integer (Po.X), Integer (Po.Y) - 20, -5,  3);
-                        New_Star (Gs, Integer (Po.X), Integer (Po.Y) - 20,  2, -6);
-                        New_Star (Gs, Integer (Po.X), Integer (Po.Y) - 20,  4,  4);
+                        Object.Vy        := -15.0;
+                        Object.Ay        := GRAV_ACC;
+                        Object.State     := Knocked;
+                        Object.Timer (1) := 11;
+                        New_Star (Gs, Integer (Object.X), Integer (Object.Y) - 20, -5,  3);
+                        New_Star (Gs, Integer (Object.X), Integer (Object.Y) - 20,  2, -6);
+                        New_Star (Gs, Integer (Object.X), Integer (Object.Y) - 20,  4,  4);
                      end if;
 
                   when GROUP_POWERUP =>
-                     case Ev.Obj.Score is
+                     case Event.Obj.Score is
 
                         when Power_Ups'Pos (Power_Life) =>
                            Add_Life (Gs);
@@ -514,11 +514,11 @@ package body Handlers is
 
                         when others => null;
                      end case;
-                     Ev.Obj.State    := Dead;
-                     Ev.Obj.Tilemask := PIG_None; -- 0;
-                     Ev.Obj.Hitgroup := 0;
-                     Ev.Obj.Vy       := -20.0;
-                     Ev.Obj.Ay       := -2.0;
+                     Event.Obj.State    := Dead;
+                     Event.Obj.Tilemask := PIG_None; -- 0;
+                     Event.Obj.Hitgroup := 0;
+                     Event.Obj.Vy       := -20.0;
+                     Event.Obj.Ay       := -2.0;
 
                   when others =>
                      null;
@@ -531,16 +531,16 @@ package body Handlers is
             --  the game with a new life.
 
             if
-              Po.State /= Dead and
-              Po.Y >= 0.0  -- Above the playfield is ok.
+              Object.State /= Dead and
+              Object.Y >= 0.0  -- Above the playfield is ok.
             then
                if Gs.Lives /= 0 then
                   Message (Gs, "Oiiiiiiink!!!");
                else
                   Message (Gs, "Game Over!");
                end if;
-               Po.State     := Dead;
-               Po.Timer (2) := 50;
+               Object.State     := Dead;
+               Object.Timer (2) := 50;
             end if;
 
          when others =>
@@ -549,38 +549,38 @@ package body Handlers is
    end Player_Handler;
 
 
-   procedure Powerup_Handler (Po : in out Engines.PIG_Object;
-                              Ev : in     Engines.PIG_Event)
+   procedure Powerup_Handler (Object : in out Engines.PIG_Object;
+                              Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Game : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
+      Game : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Gs   : Game_State renames Game.all;
    begin
-      case Ev.Type_C is
+      case Event.Type_C is
 
          when PIG_PREFRAME =>
-            if Po.State /= Dead then
-               Po.Ax    := (Float (Po.Target) - Po.Vx) * 0.3;
-               Po.Ay    := GRAV_ACC;
-               Po.Image := Po.Age mod 8;
-               Po.Power := Po.Power + 1;
+            if Object.State /= Dead then
+               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.3;
+               Object.Ay    := GRAV_ACC;
+               Object.Image := Object.Age mod 8;
+               Object.Power := Object.Power + 1;
             end if;
 
          when PIG_HIT_TILE =>
-            if Po.State /= Dead then
-               if Po.Power > 2 then
-                  Po.Target := -Po.Target;
+            if Object.State /= Dead then
+               if Object.Power > 2 then
+                  Object.Target := -Object.Target;
                end if;
-               Po.Power := 0;
-               Po.Vy    := 0.0;
-               Po.Ay    := 0.0;
-               Po.X     := Float (Ev.Cinfo.X) + Po.Vx;
-               Po.Y     := Float (Ev.Cinfo.Y);
+               Object.Power := 0;
+               Object.Vy    := 0.0;
+               Object.Ay    := 0.0;
+               Object.X     := Float (Event.Cinfo.X) + Object.Vx;
+               Object.Y     := Float (Event.Cinfo.Y);
             end if;
 
          when PIG_OFFSCREEN =>
-            if Po.Y > Float (SCREEN_H) or Po.Y < -100.0 then
-               Pig_Object_Close (Po);
+            if Object.Y > Float (SCREEN_H) or Object.Y < -100.0 then
+               Pig_Object_Close (Object);
                Gs.Enemycount := Gs.Enemycount - 1;
             end if;
          when others => null;
@@ -589,18 +589,18 @@ package body Handlers is
    end Powerup_Handler;
 
 
-   procedure Star_Handler (Po : in out Engines.PIG_Object;
-                           Ev : in     Engines.PIG_Event)
+   procedure Star_Handler (Object : in out Engines.PIG_Object;
+                           Event  : in     Engines.PIG_Event)
    is
       use Engines;
    begin
-      case Ev.Type_C is
+      case Event.Type_C is
 
          when PIG_PREFRAME =>
-            if Po.Age >= 8 then
-               Pig_Object_Close (Po);
+            if Object.Age >= 8 then
+               Pig_Object_Close (Object);
             else
-               Po.Image := Po.Age;
+               Object.Image := Object.Age;
             end if;
 
          when others => null;
@@ -608,49 +608,49 @@ package body Handlers is
    end Star_Handler;
 
 
-   procedure Evil_Handler (Po : in out Engines.PIG_Object;
-                           Ev : in     Engines.PIG_Event)
+   procedure Evil_Handler (Object : in out Engines.PIG_Object;
+                           Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Game   : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
+      Game   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Gs     : Game_State renames Game.all;
       Look_X : Integer;
    begin
-      case Ev.Type_C is
+      case Event.Type_C is
 
          when PIG_PREFRAME =>
-            if Dead /= Po.State then
-               Po.Ax    := (Float (Po.Target) - Po.Vx) * 0.5;
-               Po.Ay    := Float (GRAV_ACC);
-               Po.Image := Po.Age mod 16;
+            if Dead /= Object.State then
+               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.5;
+               Object.Ay    := Float (GRAV_ACC);
+               Object.Image := Object.Age mod 16;
             end if;
 
          when PIG_HIT_TILE =>
-            if Dead /= Po.State then
-               Po.Vy := 0.0;
-               Po.Ay := 0.0;
-               Po.X  := Float (Ev.Cinfo.X) + Po.Vx;
-               Po.Y  := Float (Ev.Cinfo.Y);
+            if Dead /= Object.State then
+               Object.Vy := 0.0;
+               Object.Ay := 0.0;
+               Object.X  := Float (Event.Cinfo.X) + Object.Vx;
+               Object.Y  := Float (Event.Cinfo.Y);
             end if;
 
          when PIG_OFFSCREEN =>
-            if Po.Y > Float (SCREEN_H) then
-               Pig_Object_Close (Po);
+            if Object.Y > Float (SCREEN_H) then
+               Pig_Object_Close (Object);
                Gs.Enemycount := Gs.Enemycount - 1;
             end if;
 
          when PIG_POSTFRAME =>
-            if Dead /= Po.State then
-               Look_X := 10 + Integer (abs (Po.Vx * 2.0));
-               if Po.Target < 0 then
+            if Dead /= Object.State then
+               Look_X := 10 + Integer (abs (Object.Vx * 2.0));
+               if Object.Target < 0 then
                   Look_X := -Look_X;
                end if;
                if
-                 PIG_None = Pig_Test_Map (Po.Owner.all,
-                                          Integer (Po.X) + Look_X,
-                                          Integer (Po.Y) + 1)
+                 PIG_None = Pig_Test_Map (Object.Owner.all,
+                                          Integer (Object.X) + Look_X,
+                                          Integer (Object.Y) + 1)
                then
-                  Po.Target := -Po.Target;
+                  Object.Target := -Object.Target;
                end if;
             end if;
 
@@ -661,56 +661,56 @@ package body Handlers is
    end Evil_Handler;
 
 
-   procedure Slime_Handler (Po : in out Engines.PIG_Object;
-                            Ev : in     Engines.PIG_Event)
+   procedure Slime_Handler (Object : in out Engines.PIG_Object;
+                            Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Game   : constant Game_State_Access := To_Game_State (Po.Owner.Userdata);
+      Game   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Gs     : Game_State renames Game.all;
       Look_X : Integer;
    begin
-      case Ev.Type_C is
+      case Event.Type_C is
 
          when PIG_PREFRAME =>
-            if Dead /= Po.State then
-               Po.Ax    := (Float (Po.Target) - Po.Vx) * 0.2;
-               Po.Ay    := GRAV_ACC;
-               Po.Image := Po.Age mod 16;
+            if Dead /= Object.State then
+               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.2;
+               Object.Ay    := GRAV_ACC;
+               Object.Image := Object.Age mod 16;
             end if;
 
          when PIG_HIT_TILE =>
-            Po.Vy := Float (-(JUMP_SPEED + GRAV_ACC));
-            Po.Ay := 0.0;
-            Po.Y  := Float (Ev.Cinfo.Y);
+            Object.Vy := Float (-(JUMP_SPEED + GRAV_ACC));
+            Object.Ay := 0.0;
+            Object.Y  := Float (Event.Cinfo.Y);
 
          when PIG_OFFSCREEN =>
-            if Po.Y > Float (SCREEN_H) then
-               Pig_Object_Close (Po);
+            if Object.Y > Float (SCREEN_H) then
+               Pig_Object_Close (Object);
                Gs.Enemycount := Gs.Enemycount - 1;
             end if;
 
          when PIG_POSTFRAME =>
-            if Dead /= Po.State then
+            if Dead /= Object.State then
                --  Don't bother looking if we're close to a floor.
-               if PIG_None = Pig_Test_Map_Vector (Po.Owner.all,
-                                                  Integer (Po.X),
-                                                  Integer (Po.Y),
-                                                  Integer (Po.X),
-                                                  Integer (Po.Y + 48.0),
+               if PIG_None = Pig_Test_Map_Vector (Object.Owner.all,
+                                                  Integer (Object.X),
+                                                  Integer (Object.Y),
+                                                  Integer (Object.X),
+                                                  Integer (Object.Y + 48.0),
                                                   PIG_Top, null)
                then
                   --  Turn around if there's no floor!
-                  Look_X := 10 + Integer (abs (Po.Vx * 4.0));
-                  if Po.Target < 0 then
+                  Look_X := 10 + Integer (abs (Object.Vx * 4.0));
+                  if Object.Target < 0 then
                      Look_X := -Look_X;
                   end if;
-                  if PIG_None = Pig_Test_Map_Vector (Po.Owner.all,
-                                                     Integer (Po.X) + Look_X,
-                                                     Integer (Po.Y),
-                                                     Integer (Po.X) + Look_X, SCREEN_H,
+                  if PIG_None = Pig_Test_Map_Vector (Object.Owner.all,
+                                                     Integer (Object.X) + Look_X,
+                                                     Integer (Object.Y),
+                                                     Integer (Object.X) + Look_X, SCREEN_H,
                                                      PIG_Top, null)
                   then
-                     Po.Target := -Po.Target;
+                     Object.Target := -Object.Target;
                   end if;
                end if;
             end if;
@@ -779,20 +779,20 @@ package body Handlers is
    end Chain_Head_Handler;
 
 
-   procedure Chain_Link_Handler (Po : in out Engines.PIG_Object;
-                                 Ev : in     Engines.PIG_Event)
+   procedure Chain_Link_Handler (Object : in out Engines.PIG_Object;
+                                 Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Target : constant PIG_Object_Access := Pig_Object_Find (Po, Po.Target);
+      Target : constant PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
    begin
-      case Ev.Type_C is
+      case Event.Type_C is
 
          when PIG_PREFRAME =>
             if Target /= null then
-               Po.Vx := ((Target.X + Float (FONT_SPACING)) - Po.X) * 0.6;
-               Po.Vy := (Target.Y - Po.Y) * 0.6 - 9.0;
+               Object.Vx := ((Target.X + Float (FONT_SPACING)) - Object.X) * 0.6;
+               Object.Vy := (Target.Y - Object.Y) * 0.6 - 9.0;
             else
-               Pig_Object_Close (Po);
+               Pig_Object_Close (Object);
             end if;
 
          when others =>
@@ -801,18 +801,17 @@ package body Handlers is
    end Chain_Link_Handler;
 
 
-   procedure Load_Level (Gs : in out Game_State; Map : in Map_Type)
+   procedure Load_Level (Game : in out Game_State; Map : in Map_Type)
    is
       use Ada.Strings.Unbounded;
       M, K  : Unbounded_String;
       Dummy : Engines.PIG_Object_Access;
    begin
-      Ada.Text_IO.Put_Line ("## 3-1");
-      Gs.Level := Integer (Map);
-      Engines.Pig_Object_Close_All (Gs.Pe.all);
-      Gs.Enemycount := 0;
-      Gs.Messages   := 0;
-      Ada.Text_IO.Put_Line ("## 3-2");
+      Game.Level := Integer (Map);
+      Engines.Pig_Object_Close_All (Game.Engine.all);
+      Game.Enemycount := 0;
+      Game.Messages   := 0;
+
       case Map is
          when 1 | 2 | 4 =>
             K := To_Unbounded_String
@@ -869,10 +868,10 @@ package body Handlers is
                  "EEEEEEEEEEEEEEEEEEEEEEEEE" &
                  "FFFFFFFFFFFFFFFFFFFFFFFFF" &
                  "GGGGGGGGGGGGGGGGGGGGGGGGG");
-            New_Evil (Gs,  2, 0, 5, Dummy);
-            New_Evil (Gs, 22, 0, 5, Dummy);
-            New_Evil (Gs,  5, 0, 7, Dummy);
-            New_Evil (Gs, 19, 0, 7, Dummy);
+            New_Evil (Game,  2, 0, 5, Dummy);
+            New_Evil (Game, 22, 0, 5, Dummy);
+            New_Evil (Game,  5, 0, 7, Dummy);
+            New_Evil (Game, 19, 0, 7, Dummy);
 
          when 2 =>
             M := To_Unbounded_String
@@ -893,10 +892,10 @@ package body Handlers is
                  "EEEEEEEEEEEEEEEEEEEEEEEEE" &
                  "ijklFFFFFFFFFFFFFFFFFijkl" &
                  "GGGijlGilGilGilGilGiklGGG");
-            New_Slime (Gs,  2, 0, -5, Dummy);
-            New_Slime (Gs, 22, 0,  5, Dummy);
-            New_Evil  (Gs,  8, 0,  7, Dummy);
-            New_Evil  (Gs, 16, 0, -7, Dummy);
+            New_Slime (Game,  2, 0, -5, Dummy);
+            New_Slime (Game, 22, 0,  5, Dummy);
+            New_Evil  (Game,  8, 0,  7, Dummy);
+            New_Evil  (Game, 16, 0, -7, Dummy);
 
          when 3 =>
             M := To_Unbounded_String
@@ -917,11 +916,11 @@ package body Handlers is
                  "-------------------------" &
                  "-------------------------" &
                  "abdefghijkl---efghijklabd");
-            New_Slime (Gs,  5,  0, -5, Dummy);
-            New_Slime (Gs, 20, 15, -5, Dummy);
-            New_Evil  (Gs,  1,  0,  7, Dummy);
-            New_Evil  (Gs, 20,  0, 10, Dummy);
-            New_Evil  (Gs, 15,  0,  7, Dummy);
+            New_Slime (Game,  5,  0, -5, Dummy);
+            New_Slime (Game, 20, 15, -5, Dummy);
+            New_Evil  (Game,  1,  0,  7, Dummy);
+            New_Evil  (Game, 20,  0, 10, Dummy);
+            New_Evil  (Game, 15,  0,  7, Dummy);
 
          when 4 =>
             M := To_Unbounded_String
@@ -942,37 +941,27 @@ package body Handlers is
                  "EEEijkkjkjlikjkjlijjklEEE" &
                  "FFijkjlilijkjklikjlikklFF" &
                  "efggfggfgfgfggfgfgfgfgfgh");
-            New_Evil  (Gs, 11, 0,   5, Dummy);
-            New_Evil  (Gs, 10, 0,   6, Dummy);
-            New_Evil  (Gs,  9, 0,   7, Dummy);
-            New_Evil  (Gs,  8, 0,   8, Dummy);
-            New_Evil  (Gs,  7, 0,   9, Dummy);
-            New_Evil  (Gs,  6, 0,  10, Dummy);
-            New_Evil  (Gs,  5, 0,  11, Dummy);
-            New_Evil  (Gs,  4, 0,  12, Dummy);
-            New_Evil  (Gs,  3, 0,  13, Dummy);
-            New_Slime (Gs,  1, 0,  16, Dummy);
-            New_Slime (Gs, 24, 0, -14, Dummy);
+            New_Evil  (Game, 11, 0,   5, Dummy);
+            New_Evil  (Game, 10, 0,   6, Dummy);
+            New_Evil  (Game,  9, 0,   7, Dummy);
+            New_Evil  (Game,  8, 0,   8, Dummy);
+            New_Evil  (Game,  7, 0,   9, Dummy);
+            New_Evil  (Game,  6, 0,  10, Dummy);
+            New_Evil  (Game,  5, 0,  11, Dummy);
+            New_Evil  (Game,  4, 0,  12, Dummy);
+            New_Evil  (Game,  3, 0,  13, Dummy);
+            New_Slime (Game,  1, 0,  16, Dummy);
+            New_Slime (Game, 24, 0, -14, Dummy);
       end case;
-      Ada.Text_IO.Put_Line ("## 3-3");
-      Engines.Pig_Map_From_String (Gs.Pe.Map.all, To_String (K), To_String (M));
-      Ada.Text_IO.Put_Line ("## 3-4");
-      Gs.Refresh_Screen := Gs.Pe.Pages;
-      Ada.Text_IO.Put_Line ("## 3-5 done");
---     exception
---        when Constraint_Error =>
---           Ada.Text_IO.Put_Line ("exception hit CE");
---           raise;
---        when others =>
---           Ada.Text_IO.Put_Line ("exception hit");
---           raise;
+      Engines.Pig_Map_From_String (Game.Engine.Map.all, To_String (K), To_String (M));
+      Game.Refresh_Screen := Game.Engine.Pages;
    end Load_Level;
 
 
-   procedure Before_Objects (Pe : in out Engines.PIG_Engine)
+   procedure Before_Objects (Engine : in out Engines.PIG_Engine)
    is
       use Engines;
-      Game : constant Game_State_Access := Handlers.To_Game_State (Pe.Userdata);
+      Game : constant Game_State_Access := Handlers.To_Game_State (Engine.Userdata);
    begin
       if Game.Lives_Wobble > 0.0 then
          Game.Lives_Wobble := Game.Lives_Wobble * 0.95;

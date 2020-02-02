@@ -29,30 +29,29 @@ with Handlers;
 procedure Pig is
    use Handlers;
 
-
-----------------------------------------------------------
---        Init, load stuff etc
-----------------------------------------------------------
+   ----------------------------------------------------------
+   --        Init, load stuff etc
+   ----------------------------------------------------------
 
    procedure Init_All (Game   :    out Game_State_Access;
                        Screen : in out SDL.Video.Surfaces.Surface);
    procedure Dashboard (Game : in out Game_State);
    --  Render the dashboard
 
-   procedure Start_Game (Gs     : in out Game_State;
+   procedure Start_Game (Game   : in out Game_State;
                          Result :    out Integer);
-   procedure Handle_Input (Gs : in out Game_State;
-                           Ev : in out SDL.Events.Events.Events);
-   procedure Handle_Keys (Gs : in out Game_State);
+   procedure Handle_Input (Game  : in out Game_State;
+                           Event : in out SDL.Events.Events.Events);
+   procedure Handle_Keys (Game : in out Game_State);
 
    procedure Init_All (Game   :    out Game_State_Access;
                        Screen : in out SDL.Video.Surfaces.Surface)
 --                            Screen : in out SDL.Video.Windows.Window)
    is
       use type Engines.PIG_Map;
-      Clean_Game : constant Game_State := (Pe => null,
-                                           Keys => (others => False),
-                                           Nice => False,
+      Clean_Game : constant Game_State := (Engine => null,
+                                           Keys   => (others => False),
+                                           Nice   => False,
                                            Refresh_Screen => 0,
                                            Jump => 0,
                                            Running => False,
@@ -70,7 +69,7 @@ procedure Pig is
    begin
       Game := new Game_State'(Clean_Game); --  Game_State;
 --      Game.Pe := new Engine.PIG_Engine;
---      Game.Pe.Nsprites := 0;
+--      Game.Engine.Nsprites := 0;
       --  if(!gs)
       --         return NULL;
 
@@ -78,7 +77,7 @@ procedure Pig is
       Game.Running    := True;
 
       begin
-         Engines.Pig_Open (Game.Pe, Screen);
+         Engines.Pig_Open (Game.Engine, Screen);
       exception
          when others =>
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
@@ -88,18 +87,18 @@ procedure Pig is
             --           return NULL;
             return;
       end;
-      Game.Pe.Userdata := Handlers.From_Game_State (Game);
+      Game.Engine.Userdata := Handlers.From_Game_State (Game);
 
-      Engines.Pig_Viewport (Game.Pe.all, 0, 0, SCREEN_W, MAP_H * TILE_H);
+      Engines.Pig_Viewport (Game.Engine.all, 0, 0, SCREEN_W, MAP_H * TILE_H);
       begin
-         Engines.Pig_Sprites (Game.Pe.all, "lifepig.png",    0,  0, Game.Lifepig);
-         Engines.Pig_Sprites (Game.Pe.all, "font.png",      44, 56, Game.Scorefont);
-         Engines.Pig_Sprites (Game.Pe.all, "glassfont.png", 60, 60, Game.Glassfont);
-         Engines.Pig_Sprites (Game.Pe.all, "icons.png",     48, 48, Game.Icons);
-         Engines.Pig_Sprites (Game.Pe.all, "stars.png",     32, 32, Game.Stars);
-         Engines.Pig_Sprites (Game.Pe.all, "pigframes.png", 64, 48, Game.Pigframes);
-         Engines.Pig_Sprites (Game.Pe.all, "evil.png",      48, 48, Game.Evil);
-         Engines.Pig_Sprites (Game.Pe.all, "slime.png",     48, 48, Game.Slime);
+         Engines.Pig_Sprites (Game.Engine.all, "lifepig.png",    0,  0, Game.Lifepig);
+         Engines.Pig_Sprites (Game.Engine.all, "font.png",      44, 56, Game.Scorefont);
+         Engines.Pig_Sprites (Game.Engine.all, "glassfont.png", 60, 60, Game.Glassfont);
+         Engines.Pig_Sprites (Game.Engine.all, "icons.png",     48, 48, Game.Icons);
+         Engines.Pig_Sprites (Game.Engine.all, "stars.png",     32, 32, Game.Stars);
+         Engines.Pig_Sprites (Game.Engine.all, "pigframes.png", 64, 48, Game.Pigframes);
+         Engines.Pig_Sprites (Game.Engine.all, "evil.png",      48, 48, Game.Evil);
+         Engines.Pig_Sprites (Game.Engine.all, "slime.png",     48, 48, Game.Slime);
 --        exception
 --           when others => -- if i < 0 then
 --              Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
@@ -112,25 +111,25 @@ procedure Pig is
       end; -- if;
 
       for I in Game.Icons .. Game.Icons + 3 * 8  loop
-         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 45);
+         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 45);
       end loop;
       for I in Game.Pigframes .. Game.Pigframes + 12 loop
-         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 43);
+         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 43);
       end loop;
       for I in Game.Evil .. Game.Evil + 16 loop
-         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 46);
+         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
       end loop;
       for I in Game.Slime .. Game.Slime + 16 loop
-         Engines.Pig_Hotspot (Game.Pe.all, I, Engines.PIG_CENTER, 46);
+         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
       end loop;
 
       begin
-         Engines.Pig_Map_Open (Map, Game.Pe.all, MAP_W, MAP_H);
+         Engines.Pig_Map_Open (Map, Game.Engine.all, MAP_W, MAP_H);
       exception
          when others => --  if Pm = null then
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                   "Could not create map!");
-            Engines.Pig_Close (Game.Pe.all);
+            Engines.Pig_Close (Game.Engine.all);
             --  Free (gs);
             --  return NULL;
             return;
@@ -140,7 +139,7 @@ procedure Pig is
       if Map_Tiles_Result < 0 then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                "Could not load background graphics!");
-         Engines.Pig_Close (Game.Pe.all);
+         Engines.Pig_Close (Game.Engine.all);
          --  Free (gs);
          raise Storage_Error with "Could not load background graphics.";
       end if;
@@ -174,7 +173,7 @@ procedure Pig is
       R.Y      := SDL.C.int (SCREEN_H - 56);
       R.Width  := SCREEN_W;
       R.Height := 56;
-      SDL.Video.Surfaces.Set_Clip_Rectangle (Game.Pe.Surface, R);
+      SDL.Video.Surfaces.Set_Clip_Rectangle (Game.Engine.Surface, R);
 
       --  Render "plasma bar"
       for I in 0 .. 56 - 1 loop
@@ -196,11 +195,11 @@ procedure Pig is
             M := Sin (M * Pi * 0.5);
             M := Sin (M * Pi * 0.5);
             Pixel := SDL.Video.Pixel_Formats.To_Pixel
-              (Format => Game.Pe.Surface.Pixel_Format,
+              (Format => Game.Engine.Surface.Pixel_Format,
                Red    => (Colour_Component ((128.0 * F1 + 64.0) * M)),
                Green  => (Colour_Component ((64.0 * F1 * F2 + 64.0) * M)),
                Blue   => (Colour_Component ((128.0 * F2 + 32.0) * M)));
-            SDL.Video.Surfaces.Fill (Game.Pe.Surface, Cr, Pixel);
+            SDL.Video.Surfaces.Fill (Game.Engine.Surface, Cr, Pixel);
          end;
       end loop;
 
@@ -210,7 +209,7 @@ procedure Pig is
          X := X + 48.0 + Game.Lives_Wobble *
            Sin (Float (Game.Lives_Wobble_Time) * 12.0) * 0.2;
          Engines.Pig_Draw_Sprite
-           (Game.Pe.all, Game.Lifepig,
+           (Game.Engine.all, Game.Lifepig,
             Integer (X) + Integer (Game.Lives_Wobble *
                                      Sin (Float (Game.Lives_Wobble_Time) * 20.0
                                             + Float (I) * 1.7)),
@@ -226,7 +225,7 @@ procedure Pig is
          begin
             X := X - 39.0 - Game.Score_Wobble *
               Sin (Float (Game.Score_Wobble_Time) * 15.0 + Float (I) * 0.5);
-            Engines.Pig_Draw_Sprite (Game.Pe.all, Game.Scorefont + N,
+            Engines.Pig_Draw_Sprite (Game.Engine.all, Game.Scorefont + N,
                                      Integer (X),
                                      SCREEN_H - 56 / 2);
             V := V / 10;
@@ -234,7 +233,7 @@ procedure Pig is
          end;
       end loop;
 
-      Engines.Pig_Dirty (Game.Pe.all, R);
+      Engines.Pig_Dirty (Game.Engine.all, R);
    end Dashboard;
 
 
@@ -242,20 +241,20 @@ procedure Pig is
    --        Game logic event handlers
    ----------------------------------------------------------
 
-   procedure Start_Game (Gs     : in out Game_State;
+   procedure Start_Game (Game   : in out Game_State;
                          Result :    out Integer)
    is
    begin
-      if 0 /= Gs.Level then
+      if 0 /= Game.Level then
          Result := 0;       -- Already playing! -->
          return;
       end if;
 
-      Gs.Score := 0;
-      Gs.Lives := 5;
+      Game.Score := 0;
+      Game.Lives := 5;
 
       begin
-         Load_Level (Gs, 1);
+         Load_Level (Game, 1);
       exception
          when others => --  if Load_Result < 0 then
             Result := -1;
@@ -263,7 +262,7 @@ procedure Pig is
       end; --  if;
 
       begin
-         New_Player (Gs, Gs.Player);
+         New_Player (Game, Game.Player);
       exception
          when others =>
             --  if Gs.Player = null then
@@ -279,13 +278,13 @@ procedure Pig is
    --        Input; events and game control keys
    ----------------------------------------------------------
 
-   procedure Handle_Input (Gs : in out Game_State;
-                           Ev : in out SDL.Events.Events.Events)
+   procedure Handle_Input (Game  : in out Game_State;
+                           Event : in out SDL.Events.Events.Events)
    is
       use type SDL.Events.Event_Types;
    begin
       --   case Ev.Type_C is
-      case Ev.Common.Event_Type is
+      case Event.Common.Event_Type is
 
          when SDL.Events.Mice.Button_Up =>
             --  SDL_MOUSEBUTTONUP =>
@@ -294,46 +293,46 @@ procedure Pig is
          when SDL.Events.Keyboards.Key_Down =>
             --  SDL_KEYDOWN =>
             --         case Ev.key.keysym.Sym is
-            case Ev.Keyboard.Key_Sym.Key_Code is
+            case Event.Keyboard.Key_Sym.Key_Code is
 
             --            when SDLK_UP =>
                when SDL.Events.Keyboards.Code_Up =>
-                  Gs.Jump := 3;
+                  Game.Jump := 3;
 
                   --            when SDLK_F1 =>
                when SDL.Events.Keyboards.Code_F1 =>
-                  Gs.Pe.Interpolation := not Gs.Pe.Interpolation;
-                  if Gs.Pe.Interpolation then
-                     Message (Gs, "Interpolation: ON");
+                  Game.Engine.Interpolation := not Game.Engine.Interpolation;
+                  if Game.Engine.Interpolation then
+                     Message (Game, "Interpolation: ON");
                   else
-                     Message (Gs, "Interpolation: OFF");
+                     Message (Game, "Interpolation: OFF");
                   end if;
 
                   --            when SDLK_F2 =>
                when SDL.Events.Keyboards.Code_F2 =>
-                  Gs.Pe.Direct := not Gs.Pe.Direct;
-                  if Gs.Pe.Direct then
-                     Message (Gs, "Rendering: Direct");
+                  Game.Engine.Direct := not Game.Engine.Direct;
+                  if Game.Engine.Direct then
+                     Message (Game, "Rendering: Direct");
                   else
-                     Message (Gs, "Rendering: Buffered");
+                     Message (Game, "Rendering: Buffered");
                   end if;
 
                   --            when SDLK_F3 =>
                when SDL.Events.Keyboards.Code_F3 =>
-                  Gs.Pe.Show_Dirtyrects := not Gs.Pe.Show_Dirtyrects;
-                  if Gs.Pe.Show_Dirtyrects then
-                     Message (Gs, "Dirtyrects: ON");
+                  Game.Engine.Show_Dirtyrects := not Game.Engine.Show_Dirtyrects;
+                  if Game.Engine.Show_Dirtyrects then
+                     Message (Game, "Dirtyrects: ON");
                   else
-                     Message (Gs, "Dirtyrects: OFF");
+                     Message (Game, "Dirtyrects: OFF");
                   end if;
 
                   --            when SDLK_F4 =>
                when SDL.Events.Keyboards.Code_F4 =>
-                  Gs.Nice := not Gs.Nice;
-                  if Gs.Nice then
-                     Message (Gs, "Be Nice: ON");
+                  Game.Nice := not Game.Nice;
+                  if Game.Nice then
+                     Message (Game, "Be Nice: ON");
                   else
-                     Message (Gs, "Be Nice: OFF");
+                     Message (Game, "Be Nice: OFF");
                   end if;
 
                   --            when SDLK_SPACE =>
@@ -341,7 +340,7 @@ procedure Pig is
                   declare
                      Result : Integer;
                   begin
-                     Start_Game (Gs, Result);
+                     Start_Game (Game, Result);
                   end;
 
                when others =>
@@ -350,17 +349,17 @@ procedure Pig is
 
          when SDL.Events.Keyboards.Key_Up => --  SDL_KEYUP =>
                                              --         case Ev.key.keysym.Sym is
-            case Ev.Keyboard.Key_Sym.Key_Code is
+            case Event.Keyboard.Key_Sym.Key_Code is
 
             --            when SDLK_ESCAPE =>
                when SDL.Events.Keyboards.Code_Escape =>
-                  Gs.Running := False;
+                  Game.Running := False;
                when others =>
                   null;
             end case;
 
          when SDL.Events.Quit => -- SDL_QUIT =>
-            Gs.Running := False;
+            Game.Running := False;
 
          when others =>
             null;
@@ -368,7 +367,7 @@ procedure Pig is
    end Handle_Input;
 
 
-   procedure Handle_Keys (Gs : in out Game_State)
+   procedure Handle_Keys (Game : in out Game_State)
    is
    begin
       null;
@@ -454,16 +453,10 @@ begin
 
    Game.Logic_Frames    := 0;
    Game.Rendered_Frames := 0;
-   Game.Pe.Before_Objects := Handlers.Before_Objects'Access;
-   declare
-      use Engines;
-   begin
-      if Game.Pe = null then
-         Ada.Text_IO.Put_Line ("Game.Pe is null");
-      end if;
-   end;
-   Engines.Pig_Start (Game.Pe.all, 0);
-   Game.Refresh_Screen := Game.Pe.Pages;
+   Game.Engine.Before_Objects := Handlers.Before_Objects'Access;
+
+   Engines.Pig_Start (Game.Engine.all, 0);
+   Game.Refresh_Screen := Game.Engine.Pages;
    Start_Time := Ada.Real_Time.Clock; --  SDL_GetTicks;
    Last_Tick  := Start_Time;
 
@@ -491,7 +484,7 @@ begin
          Frames := Float (Dt) * logic_fps;
 
          --  Run the game logic
-         Engines.Pig_Animate (Game.Pe.all, Frames);
+         Engines.Pig_Animate (Game.Engine.all, Frames);
 
          --  Limit the dashboard frame rate to 15 fps
          --  when there's no wobbling going on.
@@ -503,7 +496,7 @@ begin
            Game.Score_Wobble /= 0.0 or
            (Game.Dashboard_Time > Duration (1.0 / 15.0))
          then
-            Dashframe := Game.Pe.Pages;
+            Dashframe := Game.Engine.Pages;
             Game.Dashboard_Time := 0.0;
          end if;
          if Dashframe /= 0 then
@@ -514,13 +507,13 @@ begin
          --  Update sprites
          if Game.Refresh_Screen /= 0 then
             Game.Refresh_Screen := Game.Refresh_Screen - 1;
-            Engines.Pig_Refresh_All (Game.Pe.all);
+            Engines.Pig_Refresh_All (Game.Engine.all);
          else
-            Engines.Pig_Refresh (Game.Pe.all);
+            Engines.Pig_Refresh (Game.Engine.all);
          end if;
 
          --  Make the new frame visible
-         Engines.Pig_Flip (Game.Pe.all);
+         Engines.Pig_Flip (Game.Engine.all);
          Window.Update_Surface; --  JQ
 
          --  Update statistics, timers and stuff
@@ -547,5 +540,5 @@ begin
                            Float (Game.Rendered_Frames * 1000 / I)'Image & " fps");
    Ada.Text_IO.Put_Line ("    Average logic frame rate: " &
                            Float (Game.Logic_Frames * 1000 / I)'Image & " fps");
-   Engines.Pig_Close (Game.Pe.all);
+   Engines.Pig_Close (Game.Engine.all);
 end Pig;
