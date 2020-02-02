@@ -983,14 +983,19 @@ package body Engine is
       for I in 0 .. Pdt.Count - 1 loop
          declare
             use type SDL.C.int;
-            R : SDL.Video.Rectangles.Rectangle;
+            R  : SDL.Video.Rectangles.Rectangle;
+            R2 : SDL.Video.Rectangles.Rectangle;
          begin
             R        := Pdt.Rects (I);
             R.X      := R.X - 32;
             R.Y      := R.Y - 32;
             R.Width  := R.Width  + 64;
             R.Height := R.Height + 64;
-            SDL.Video.Surfaces.Blit (Pe.Buffer, R, Pe.Screen, R);
+            R2 := R;
+            SDL.Video.Surfaces.Blit (Source      => Pe.Buffer,
+                                     Source_Area => R2,
+                                     Self        => Pe.Screen,
+                                     Self_Area   => R);
          end;
       end loop;
 
@@ -1016,6 +1021,7 @@ package body Engine is
 
 
    procedure Pig_Flip (Engine : in out PIG_Engine) is
+      use SDL.Video.Surfaces;
    begin
       null;
 --      PIG_dirtytable *pdt = pe->workdirty;
@@ -1048,10 +1054,13 @@ package body Engine is
 --      else
 --              SDL_UpdateRects(pe->screen, pdt->count, pdt->rects);
 
---      if(pe->direct)
---              pe->surface = pe->screen;
---      else
---              pe->surface = pe->buffer ? pe->buffer : pe->screen;
+      if Engine.Direct then
+         Engine.Surface := Engine.Screen;
+      elsif Engine.Buffer = Null_Surface then
+         Engine.Surface := Engine.Screen;
+      else
+         Engine.Surface := Engine.Buffer;
+      end if;
    end Pig_Flip;
 
 
