@@ -1,0 +1,32 @@
+--
+--
+
+with "sdlada.gpr";
+
+project Pig is
+
+  for Languages    use ("Ada");
+  for Source_Dirs  use ("source/");
+  for Object_Dir   use "object/";
+  for Exec_Dir     use "binary/";
+  for Main         use ("pig.adb");
+
+  for Create_Missing_Dirs use "true";
+
+  package Builder is
+
+     for Default_Switches ("Ada") use
+       ("-g",
+--        "-O2",
+        "-gnatf",
+        "-gnatwa",
+        "-gnatwj",
+        "-gnatw.x",
+        "-gnat2012",
+        "-gnaty",
+        "-gnatyM99"
+       );
+
+  end Builder;
+
+end Pig;
