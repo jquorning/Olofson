@@ -20,8 +20,8 @@ with SDL.Images.IO;
 
 package body Engines is
 
+   PIG_MAX_SPRITES : constant := 1024;
    --  Size of sprite frame table
-   PIG_MAX_SPRITES      : constant := 1024;
 
    Clean_Engine : constant PIG_Engine :=
      (SDL.Video.Surfaces.Null_Surface,
@@ -265,19 +265,6 @@ package body Engines is
       end loop;
       --  Tmp.Free;  --      SDL_FreeSurface(tmp);
       Result := Handle;
---     exception
---        when Program_Error =>
---           Ada.Text_IO.Put_Line ("excep pig_sprites program_error");
---           raise;
---        when Storage_Error =>
---           Ada.Text_IO.Put_Line ("excep pig_sprites storage_error");
---           raise;
---        when Constraint_Error =>
---           Ada.Text_IO.Put_Line ("excep pig_sprites constraint_error");
---           raise;
---        when others =>
---           Ada.Text_IO.Put_Line ("excep pig_sprites others");
---           raise;
    end Pig_Sprites;
 
 
@@ -313,14 +300,16 @@ package body Engines is
    end Pig_Hotspot;
 
 
---  int pig_radius(PIG_engine *pe, int frame, int radius)
---  {
+   procedure Pig_Radius (Engine : in out PIG_Engine;
+                         Frame  : in     Integer;
+                         Radius : in     Integer)
+   is
+   begin
 --      if((frame < 0 ) || (frame >= pe->nsprites))
 --              return -1;
-
---      pe->sprites[frame]->radius = radius;
+      Engine.Sprites (Frame).Radius := Radius;
 --      return 0;
---  }
+   end Pig_Radius;
 
 
    procedure Pig_Start (Engine : in out PIG_Engine;
@@ -549,30 +538,35 @@ package body Engines is
    --  collisions on the side indicated by 'mask'.
    function Check_Tile (M    : in PIG_Map_Access;
                         X, Y : in Integer;
-                        Mask : in Pig_Sides) return Boolean;
+                        Mask : in Pig_Sides) return Pig_Sides;
+
    function Check_Tile (M    : in PIG_Map_Access;
                         X, Y : in Integer;
-                        Mask : in Pig_Sides) return Boolean
+                        Mask : in Pig_Sides) return Pig_Sides
    is
-      pragma Unreferenced (M, X, Y, Mask);
-   --  static __inline__ int check_tile(PIG_map *m, int x, int y, int mask)
---  {
---      int mx, my;
+      Mx, My : Integer;
    begin
-      --      /*
---       * Must check < 0 first! (Division rounds
---       * towards zero - not downwards.)
---       */
---      if(x < 0 || y < 0)
---              return PIG_NONE;
+      --  Must check < 0 first! (Division rounds
+      --  towards zero - not downwards.)
+      if X < 0 or Y < 0 then
+         return PIG_None;
+      end if;
 
---      mx = x / m->tw;
---      my = y / m->th;
---      if(mx >= m->w || my >= m->h)
---              return PIG_NONE;
+      Mx := X / M.Tw;
+      My := Y / M.Th;
+      if Mx >= M.Width or My >= M.Height then
+         return PIG_None;
+      end if;
 
---      return m->hit[my * m->w + mx] & mask;
-      return False;
+      declare
+         Hit : constant Pig_Sides := M.Hit (Mx, My);
+      begin
+         return
+           (Top    => Hit.Top    and Mask.Top,
+            Botton => Hit.Botton and Mask.Botton,
+            Left   => Hit.Left   and Mask.Left,
+            Right  => Hit.Right  and Mask.Right);
+      end;
    end Check_Tile;
 
 
@@ -621,7 +615,7 @@ package body Engines is
          Y := Y1 + M.Th - Y1 mod M.Th;
          while Y <= Y2 loop
             X := X1 + (X2 - X1) * (Y - Y1) / (Y2 - Y1);
-            if Check_Tile (M, X, Y + 1, PIG_Top) then
+            if Check_Tile (M, X, Y + 1, PIG_Top) /= PIG_None then
                Dist := (X - X1) * (X - X1) + (Y - Y1) * (Y - Y1);
                Ci2.X := X;
                Ci2.Y := Y - 1;
@@ -1039,27 +1033,37 @@ package body Engines is
    procedure Pig_Flip (Engine : in out PIG_Engine)
    is
       use SDL.Video.Surfaces;
---      PIG_dirtytable *pdt = pe->workdirty;
---      int i;
+      use SDL.Video.Rectangles;
+      Table : Dirty.PIG_Dirtytable renames Engine.Workdirty.all;
    begin
---      SDL_SetClipRect(pe->surface, NULL);
+--      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
 
---      if(pe->show_dirtyrects)
---      {
---              show_rects(pe, pdt);
---              for(i = 0; i < pdt->count; ++i)
---              {
---                      pdt->rects[i].x -= 32;
---                      pdt->rects[i].y -= 32;
---                      pdt->rects[i].w += 64;
---                      pdt->rects[i].h += 64;
---                      pig_intersectrect(&pe->buffer->clip_rect, &pdt->rects[i]);
---              }
---      }
---      else if(pe->surface == pe->buffer)
---              for(i = 0; i < pdt->count; ++i)
---                      SDL_BlitSurface(pe->buffer, pdt->rects + i,
---                                      pe->screen, pdt->rects + i);
+      if Engine.Show_Dirtyrects then
+
+         Show_Rects (Engine, Table);
+         for I in 0 .. Table.Count - 1 loop
+            declare
+               use type SDL.C.int;
+               Rect : Rectangle renames Table.Rects (I);
+            begin
+               Rect.X      := Rect.X - 32;
+               Rect.Y      := Rect.Y - 32;
+               Rect.Width  := Rect.Width + 64;
+               Rect.Height := Rect.Height + 64;
+               Dirty.Pig_Intersectrect (Engine.Buffer.Clip_Rectangle, Rect);
+            end;
+         end loop;
+
+      elsif Engine.Surface = Engine.Buffer then
+         for I in 0 .. Table.Count - 1 loop
+            declare
+               Rect_Copy : Rectangle := Table.Rects (I);
+            begin
+               SDL.Video.Surfaces.Blit (Engine.Buffer, Table.Rects (I),
+                                        Engine.Screen, Rect_Copy);
+            end;
+         end loop;
+      end if;
 
 --      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
 --      {

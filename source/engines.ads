@@ -320,8 +320,10 @@ package Engines is
                           Hotx, Hoty : in     Integer);
    --  Set hot-spot of sprite 'frame' to (hotx, hoty)
 
-   --  int pig_radius(PIG_engine *pe, int frame, int radius);
-   --  /* Set sprite/sprite collision zone radius of 'frame' */
+   procedure Pig_Radius (Engine : in out PIG_Engine;
+                         Frame  : in     Integer;
+                         Radius : in     Integer);
+   --  Set sprite/sprite collision zone radius of 'frame'
 
    procedure Pig_Animate (Engine : in out PIG_Engine;
                           Frames : in     Float);
