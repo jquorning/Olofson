@@ -348,61 +348,56 @@ package body Engines is
                              Sprite : in     PIG_Sprite_Access)
    is
       use SDL.C;
+      Hot_X   : constant Integer := (if Sprite /= null then Sprite.Hotx   else 0);
+      Hot_Y   : constant Integer := (if Sprite /= null then Sprite.Hoty   else 0);
+      Width   : constant Integer := (if Sprite /= null then Sprite.Width  else 0);
+      Height  : constant Integer := (if Sprite /= null then Sprite.Height else 0);
+
+      Sides : constant Pig_Sides :=
+          (Top    =>  Integer (Object.Y) - Hot_Y < -Height,
+           Bottom =>  Integer (Object.Y) - Hot_Y >= Integer (Engine.View.Height),
+           Left   =>  Integer (Object.X) - Hot_X < -Width,
+           Right  =>  Integer (Object.X) - Hot_X >= Integer (Engine.View.Width));
+
+      Dx : constant Float := Object.X - Object.Ip.Ox;
+      Dy : constant Float := Object.Y - Object.Ip.Oy;
       Event : PIG_Event;
-      Hx, Hy, W, H : Integer;
    begin
-      if Sprite /= null then
-         Hx := Sprite.Hotx;
-         Hy := Sprite.Hoty;
-         W  := Sprite.Width;
-         H  := Sprite.Height;
-      else
-         Hx := 0; Hy := 0; W := 0; H := 0;
+      if Sides = PIG_None then
+         return;
       end if;
 
-      Event.Cinfo.Sides.Top    := Integer (Object.Y) - Hy < -H;
-      Event.Cinfo.Sides.Bottom := Integer (Object.Y) - Hy >= Integer (Engine.View.Height);
-      Event.Cinfo.Sides.Left   := Integer (Object.X) - Hx < -W;
-      Event.Cinfo.Sides.Right  := Integer (Object.X) - Hx >= Integer (Engine.View.Width);
+      if Sides.Top then
+         Event.Cinfo.Y := 0;
+         if Dy /= 0.0 then
+            Event.Cinfo.X := Integer (Object.Ip.Ox - Dx * Object.Ip.Oy / Dy);
+         end if;
 
-      if Event.Cinfo.Sides /= PIG_None then
-         declare
-            Dx : constant Float := Object.X - Object.Ip.Ox;
-            Dy : constant Float := Object.Y - Object.Ip.Oy;
-         begin
-
-            if Event.Cinfo.Sides.Top then
-               Event.Cinfo.Y := 0;
-               if Dy /= 0.0 then
-                  Event.Cinfo.X := Integer (Object.Ip.Ox - Dx * Object.Ip.Oy / Dy);
-               end if;
-
-            elsif Event.Cinfo.Sides.Bottom then
-               Event.Cinfo.Y := Integer (Engine.View.Height - 1);
-               if Dy /= 0.0 then
-                  Event.Cinfo.X := Integer (Object.Ip.Ox + Dx *
-                                              (Float (Event.Cinfo.Y) - Object.Ip.Oy) / Dy);
-               end if;
-            end if;
-
-            if Event.Cinfo.Sides.Left then
-               Event.Cinfo.X := 0;
-               if Dx /= 0.0 then
-                  Event.Cinfo.Y := Integer (Object.Ip.Oy - Dy * Object.Ip.Ox / Dx);
-               end if;
-
-            elsif Event.Cinfo.Sides.Right then
-               Event.Cinfo.X := Integer (Engine.View.Width - 1);
-               if Dx not in -0.01 .. 0.01 then
-                  Event.Cinfo.Y := Integer (Object.Ip.Oy + Dy *
-                                              (Float (Event.Cinfo.X) - Object.Ip.Ox) / Dx);
-               end if;
-            end if;
-
-            Event.Type_C := PIG_OFFSCREEN;
-            Object.Handler (Object, Event);
-         end;
+      elsif Sides.Bottom then
+         Event.Cinfo.Y := Integer (Engine.View.Height - 1);
+         if Dy /= 0.0 then
+            Event.Cinfo.X := Integer (Object.Ip.Ox + Dx *
+                                        (Float (Event.Cinfo.Y) - Object.Ip.Oy) / Dy);
+         end if;
       end if;
+
+      if Sides.Left then
+         Event.Cinfo.X := 0;
+         if Dx /= 0.0 then
+            Event.Cinfo.Y := Integer (Object.Ip.Oy - Dy * Object.Ip.Ox / Dx);
+         end if;
+
+      elsif Sides.Right then
+         Event.Cinfo.X := Integer (Engine.View.Width - 1);
+         if Dx not in -0.01 .. 0.01 then
+            Event.Cinfo.Y := Integer (Object.Ip.Oy + Dy *
+                                        (Float (Event.Cinfo.X) - Object.Ip.Ox) / Dx);
+         end if;
+      end if;
+
+      Event.Cinfo.Sides := Sides;
+      Event.Type_C      := PIG_OFFSCREEN;
+      Object.Handler (Object, Event);
    end Test_Offscreen;
 
    function Sqrt (F : Float) return Float renames Ada.Numerics.Elementary_Functions.Sqrt;
