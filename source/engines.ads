@@ -53,75 +53,47 @@ package Engines is
       Gx, Gy : Float;         --  Interpolated position
    end record;
 
-
---  /*
---   * Game logic events
---   *
---   * PREFRAME:
---   *      Occurs once per logic frame, before collision and
---   *      off-screen detection, and before timer handlers.
---   *
---   * TIMERx:
---   *      Occurs whenever timer x expires. Timers are one-
---   *      shot, but can be reloaded by the handler for
---   *      periodic action. Timer events are handled before
---   *      before collision and off-screen detection.
---   *
---   * HIT_TILE:
---   *      Occurs when the hot-spot of an object hits a
---   *      marked side of a tile, and the corresponding bit
---   *      in 'tilemask' is set.
---   *
---   * HIT_OBJECT:
---   *      Occurs when the collision circle of an object
---   *      intersects the collision circle of another object,
---   *      provided one or more bits in 'hitgroup' of the
---   *      other object matches bits in 'hitmask'.
---   *
---   * OFFSCREEN:
---   *      Occurs when an object is off-screen. This takes
---   *      in account the hot-spot and bounding rectangle of
---   *      the current sprite frame.
---   *
---   * POSTFRAME:
---   *      Occurs once per logic frame, after collision
---   *      detection, off-screen detection and all other
---   *      events.
---   *
---   */
    PIG_TIMERS : constant := 3;
+
+   --
+   --  Game logic events
+   --
    type PIG_Events is
-     (PIG_PREFRAME,
+     (
+      PIG_PREFRAME,
+      --  Occurs once per logic frame, before collision and
+      --  off-screen detection, and before timer handlers.
+
       PIG_TIMER0,
       PIG_TIMER1,
       PIG_TIMER2,
+      --  Occurs whenever timer x expires. Timers are one-
+      --  shot, but can be reloaded by the handler for
+      --  periodic action. Timer events are handled before
+      --  before collision and off-screen detection.
+
       PIG_HIT_TILE,
+      --  Occurs when the hot-spot of an object hits a
+      --  marked side of a tile, and the corresponding bit
+      --  in 'tilemask' is set.
+
       PIG_HIT_OBJECT,
+      --  Occurs when the collision circle of an object
+      --  intersects the collision circle of another object,
+      --  provided one or more bits in 'hitgroup' of the
+      --  other object matches bits in 'hitmask'.
+
       PIG_OFFSCREEN,
-      PIG_POSTFRAME);
+      --  Occurs when an object is off-screen. This takes
+      --  in account the hot-spot and bounding rectangle of
+      --  the current sprite frame.
 
---     type PIG_Sides is
---          (PIG_NONE =      0,
+      PIG_POSTFRAME
+        --  Occurs once per logic frame, after collision
+        --  detection, off-screen detection and all other
+        --  events.
+   );
 
---          /* Bit positions */
---          PIG_TOP_B =     0,
---          PIG_BOTTOM_B =  1,
---          PIG_LEFT_B =    2,
---          PIG_RIGHT_B =   3,
-
---          /* Masks */
---          PIG_TOP =       1 << PIG_TOP_B,
---          PIG_BOTTOM =    1 << PIG_BOTTOM_B,
---          PIG_LEFT =      1 << PIG_LEFT_B,
---          PIG_RIGHT =     1 << PIG_RIGHT_B,
-
---          /* Combined masks */
---          PIG_TL =        PIG_TOP | PIG_LEFT,
---          PIG_TR =        PIG_TOP | PIG_RIGHT,
---          PIG_BL =        PIG_BOTTOM | PIG_LEFT,
---          PIG_BR =        PIG_BOTTOM | PIG_RIGHT,
---          PIG_ALL =       0xf,
---  );
    type Pig_Sides is record
       Top    : Boolean;
       Bottom : Boolean;
@@ -132,18 +104,11 @@ package Engines is
    PIG_None : constant Pig_Sides := (others => False);
    PIG_All  : constant Pig_Sides := (others => True);
 
---   type PIC_Values is
---  {
---          PIG_UNCHANGED = -10000000,
---          PIG_MIN =       -10000001,
---          PIG_CENTER =    -10000002,
---          PIG_MAX =       -10000003
---  } PIG_values;
+   --  Magic values
    PIG_UNCHANGED : constant := -10000000;
    PIG_MIN       : constant := -10000001;
    PIG_CENTER    : constant := -10000002;
    PIG_MAX       : constant := -10000003;
-
 
    --  Collision info
    type PIG_Cinfo is record
@@ -189,13 +154,12 @@ package Engines is
       Timer    : Timer_Array;   -- Down-counting timers
       Age      : Integer;       -- Age timer (logic frames)
 
-      Score    : Natural;   -- Integer
+      Score    : Natural;
       Power    : Integer;
       Target   : Integer;
-      State    : Object_States; --  Integer
+      State    : Object_States;
 
       Handler  : Handler_Access;
---        void (*handler)(PIG_object *po, const PIG_event *ev);
 
 --        void            *userdata;
    end record;
@@ -273,16 +237,14 @@ package Engines is
 --          PIG_object      *object_pool;
       Object_Id_Counter : Integer;
       Nsprites : Integer;
-      Sprites  : Sprite_Array_Access;  --          PIG_sprite      **sprites;
+      Sprites  : Sprite_Array_Access;
 
       --  Logic frame global handlers
---          void (*before_objects)(PIG_engine *pe);
---          void (*after_objects)(PIG_engine *pe);
       Before_Objects : Bef_Aft_Access;
       After_Objects  : Bef_Aft_Access;
 
       --  Space for user data
-      Userdata : Long_Integer; --          void            *userdata;
+      Userdata : Long_Integer;
    end record;
 
    --
@@ -305,16 +267,16 @@ package Engines is
                           Filename      : in     String;
                           Width, Height : in     Integer;
                           Handle        :    out Integer);
---  Load a sprite palette image. The image is chopped up into
---  sprites, based on 'sw' and 'sh', and added as new frames
---  in the sprite bank. Default values:
---       Hot-spot:               (sw/2, sh/2)
---       Collision radius:       0.2 * (sw + sh)
---
---  Passing 0 for 'sw' and/or 'sh' makes pig_sprites() take
---  the respective value from the image width and/or height.
---
---  Returns the index of the first frame loaded.
+   --  Load a sprite palette image. The image is chopped up into
+   --  sprites, based on Width and Height, and added as new frames
+   --  in the sprite bank. Default values:
+   --       Hot-spot:               (Width / 2, Height / 2)
+   --       Collision radius:       0.2 * (Width + Height)
+   --
+   --  Passing 0 for With and/or Height makes pig_sprites() take
+   --  the respective value from the image width and/or height.
+   --
+   --  Returns the index of the first frame loaded.
 
 
    procedure Pig_Hotspot (Engine     : in out PIG_Engine;
@@ -356,7 +318,7 @@ package Engines is
    --  Render a sprite "manually", bypassing the engine
 
    function Pig_Test_Map (Engine : in PIG_Engine;
-                          X, Y   :    Integer) return Pig_Sides; --  Boolean;
+                          X, Y   :    Integer) return Pig_Sides;
    --  Get the collision flags for the tile at (x, y),
    --  where the unit of x and y is pixels. The return
    --  is the PIG_sides flags for the tile, or PIG_NONE
