@@ -936,73 +936,76 @@ package body Engines is
    end Pig_Refresh_All;
 
 
-   procedure Show_Rects (Pe  : in out PIG_Engine;
-                         Pdt : in     Dirty.PIG_Dirtytable);
-   procedure Show_Rects (Pe  : in out PIG_Engine;
-                         Pdt : in     Dirty.PIG_Dirtytable)
+   procedure Show_Rects (Engine : in out PIG_Engine;
+                         Table  : in     Dirty.PIG_Dirtytable);
+   procedure Show_Rects (Engine : in out PIG_Engine;
+                         Table  : in     Dirty.PIG_Dirtytable)
    is
       use SDL.Video.Surfaces;
       Color  : Interfaces.Unsigned_32;
       Format : SDL.Video.Pixel_Formats.Pixel_Format_Access;
    begin
-      if Pe.Buffer = Null_Surface then
-         Format := Pe.Screen.Pixel_Format;
+      if Engine.Buffer = Null_Surface then
+         Format := Engine.Screen.Pixel_Format;
          SDL.Video.Surfaces.Makers.Create --  RGBSurface
-           (Pe.Buffer,
+           (Engine.Buffer,
 --            SDL_SWSURFACE,
-            Pe.Screen.Size, -- .Width, Pe.Screen.Size.Height,
+            Engine.Screen.Size, -- .Width, Pe.Screen.Size.Height,
             Pixel_Depths (Format.Bits), --  BPP, --  Bits_Per_Pixel,
             Red_Mask   => Colour_Masks (Format.Red_Mask),
             Green_Mask => Colour_Masks (Format.Green_Mask),
             Blue_Mask  => Colour_Masks (Format.Blue_Mask),
             Alpha_Mask => Colour_Masks (Format.Alpha_Mask));
-         if Pe.Buffer = Null_Surface then
+         if Engine.Buffer = Null_Surface then
             return;
          end if;
-         Pe.Surface := Pe.Buffer;
-         Tile_Area (Pe, Pe.View);
+         Engine.Surface := Engine.Buffer;
+         Tile_Area (Engine, Engine.View);
       end if;
-      if Pe.Buffer = Null_Surface then
+      if Engine.Buffer = Null_Surface then
          return;
       end if;
 
-      Pe.Direct := False;
+      Engine.Direct := True; --False;
 
-      for I in 0 .. Pdt.Count - 1 loop
+      for I in 0 .. Table.Count - 1 loop
          declare
             use type SDL.C.int;
             R  : SDL.Video.Rectangles.Rectangle;
             R2 : SDL.Video.Rectangles.Rectangle;
          begin
-            R        := Pdt.Rects (I);
+            R        := Table.Rects (I);
             R.X      := R.X - 32;
             R.Y      := R.Y - 32;
             R.Width  := R.Width  + 64;
             R.Height := R.Height + 64;
             R2 := R;
-            SDL.Video.Surfaces.Blit (Source      => Pe.Buffer,
+            SDL.Video.Surfaces.Blit (Source      => Engine.Buffer,
                                      Source_Area => R2,
-                                     Self        => Pe.Screen,
+                                     Self        => Engine.Screen,
                                      Self_Area   => R);
          end;
       end loop;
 
-      Color := SDL.Video.Pixel_Formats.To_Pixel (Pe.Screen.Pixel_Format, 255, 0, 255);
-      for I in 0 .. Pdt.Count - 1 loop
+      Color := SDL.Video.Pixel_Formats.To_Pixel (Engine.Screen.Pixel_Format, 255, 0, 255);
+      for I in 0 .. Table.Count - 1 loop
          declare
             use SDL.C;
             R : SDL.Video.Rectangles.Rectangle;
          begin
-            R := Pdt.Rects (I);
+            R := Table.Rects (I);
             R.Height := 1;
-            Pe.Screen.Fill (R, Color);
-            R.Y := R.Y + Pdt.Rects (I).Height - 1;
-            Pe.Screen.Fill (R, Color);
-            R := Pdt.Rects (I);
+            Engine.Screen.Fill (R, Color);
+
+            R.Y := R.Y + Table.Rects (I).Height - 1;
+            Engine.Screen.Fill (R, Color);
+
+            R := Table.Rects (I);
             R.Width := 1;
-            Pe.Screen.Fill (R, Color);
-            R.X := R.X + Pdt.Rects (I).Width - 1;
-            Pe.Screen.Fill (R, Color);
+            Engine.Screen.Fill (R, Color);
+
+            R.X := R.X + Table.Rects (I).Width - 1;
+            Engine.Screen.Fill (R, Color);
          end;
       end loop;
    end Show_Rects;
