@@ -14,7 +14,7 @@ with Ada.Unchecked_Conversion;
 
 with Engines;
 
-package Handlers is
+package Games is
 
    --  Graphics defines
    SCREEN_W     : constant := 800;
@@ -188,4 +188,4 @@ package Handlers is
 
    procedure Before_Objects (Engine : in out Engines.PIG_Engine);
 
-end Handlers;
+end Games;

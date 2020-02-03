@@ -16,7 +16,7 @@ with Ada.Characters.Handling;
 
 with SDL;
 
-package body Handlers is
+package body Games is
 
    ----------------------------------------------------------
    --        Accounting (score, lives etc)
@@ -57,7 +57,7 @@ package body Handlers is
 
       Remove_Life (Game);
       Object.Ibase   := Game.Pigframes;
-      Object.Handler := Handlers.Player_Handler'Access;
+      Object.Handler := Player_Handler'Access;
       Object.Hitmask := GROUP_POWERUP + GROUP_ENEMY;
    end New_Player;
 
@@ -82,7 +82,7 @@ package body Handlers is
       Object.Score    := Engines.Power_Ups'Pos (Type_C);
       Object.Ibase    := Game.Icons + 8 * Object.Score;
       Object.Target   := Speed;
-      Object.Handler  := Handlers.Powerup_Handler'Access;
+      Object.Handler  := Powerup_Handler'Access;
       Object.Tilemask := Engines.PIG_Top;
       Object.Hitgroup := GROUP_POWERUP;
    end New_Powerup;
@@ -112,7 +112,7 @@ package body Handlers is
       Object.Vx      := Float (Vx * 3);
       Object.Ay      := -0.3 * Float (Vy);
       Object.Vy      := Float (Vy * 3);
-      Object.Handler := Handlers.Star_Handler'Access;
+      Object.Handler := Star_Handler'Access;
    end New_Star;
 
 
@@ -139,7 +139,7 @@ package body Handlers is
       Game.Enemycount := Game.Enemycount + 1;
       Object.Ibase    := Game.Evil;
       Object.Target   := Speed;
-      Object.Handler  := Handlers.Evil_Handler'Access;
+      Object.Handler  := Evil_Handler'Access;
       Object.Score    := 200;
       Object.Tilemask := Engines.PIG_Top;
       Object.Hitgroup := GROUP_ENEMY;
@@ -158,7 +158,7 @@ package body Handlers is
       Game.Enemycount := Game.Enemycount + 1;
       Object.Ibase    := Game.Slime;
       Object.Target   := Speed;
-      Object.Handler  := Handlers.Slime_Handler'Access;
+      Object.Handler  := Slime_Handler'Access;
       Object.Score    := 300;
       Object.Tilemask := Engines.PIG_Top;
       Object.Hitgroup := GROUP_ENEMY;
@@ -175,7 +175,7 @@ package body Handlers is
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
       Object.Ibase   := Image;
-      Object.Handler := Handlers.Chain_Head_Handler'Access;
+      Object.Handler := Chain_Head_Handler'Access;
       Object.Target  := Target_X;
    end New_Chain_Head;
 
@@ -190,7 +190,7 @@ package body Handlers is
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
       Object.Ibase   := Image;
-      Object.Handler := Handlers.Chain_Link_Handler'Access;
+      Object.Handler := Chain_Link_Handler'Access;
       Object.Target  := Target;
    end New_Chain_Link;
 
@@ -942,7 +942,7 @@ package body Handlers is
    procedure Before_Objects (Engine : in out Engines.PIG_Engine)
    is
       use Engines;
-      Game : constant Game_State_Access := Handlers.To_Game_State (Engine.Userdata);
+      Game : constant Game_State_Access := To_Game_State (Engine.Userdata);
    begin
       if Game.Lives_Wobble > 0.0 then
          Game.Lives_Wobble := Game.Lives_Wobble * 0.95;
@@ -982,4 +982,4 @@ package body Handlers is
    end Before_Objects;
 
 
-end Handlers;
+end Games;

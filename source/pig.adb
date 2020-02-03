@@ -27,11 +27,11 @@ with SDL.Events.Mice;
 with SDL.Events.Keyboards;
 
 with Engines;
-with Handlers;
+with Games;
 with Signals;
 
 procedure Pig is
-   use Handlers;
+   use Games;
 
    ----------------------------------------------------------
    --        Init, load stuff etc
@@ -70,7 +70,7 @@ procedure Pig is
             --           return NULL;
             return;
       end;
-      Game.Engine.Userdata := Handlers.From_Game_State (Game);
+      Game.Engine.Userdata := Games.From_Game_State (Game);
 
       Engines.Pig_Viewport (Game.Engine.all, 0, 0, SCREEN_W, MAP_H * TILE_H);
 
@@ -383,7 +383,7 @@ procedure Pig is
 
       Game.Logic_Frames    := 0;
       Game.Rendered_Frames := 0;
-      Game.Engine.Before_Objects := Handlers.Before_Objects'Access;
+      Game.Engine.Before_Objects := Games.Before_Objects'Access;
 
       Engines.Pig_Start (Game.Engine.all, 0);
       Game.Refresh_Screen := Game.Engine.Pages;
