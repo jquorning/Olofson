@@ -207,18 +207,17 @@ package Engines is
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
 
    type PIG_Map is record
-      Owner : PIG_Engine_Access;
+      Owner       : PIG_Engine_Access;
 
-      Width, Height : Integer;           --  Size of map (tiles)
---          unsigned char   *map;
-      Map : Map_Array_Access;            --  2D aray of tile indices
-      --          unsigned char   *hit;
-      Hit : Hit_Array_Access;            --  2D aray of collision flags
+      Width       : Integer;                     --  Size of map (tiles)
+      Height      : Integer;
+      Map         : Map_Array_Access;            --  2D aray of tile indices
+      Hit         : Hit_Array_Access;            --  2D aray of collision flags
 
-      Tw, Th : Integer;                     --  Size of one tile (pixels)
-      Tiles  : SDL.Video.Surfaces.Surface;  --  Tile palette image
---          unsigned char   hitinfo[256];
-      Hitinfo : Hitinfo_Array;         --  Collision info for the tiles
+      Tile_Width  : Integer;                     --  Size of one tile (pixels)
+      Tile_Height : Integer;
+      Tiles       : SDL.Video.Surfaces.Surface;  --  Tile palette image
+      Hitinfo     : Hitinfo_Array;               --  Collision info for the tiles
    end record;
    type PIG_Map_Access is access all PIG_Map;
 
@@ -290,9 +289,9 @@ package Engines is
                        Screen : in     SDL.Video.Surfaces.Surface);
    procedure Pig_Close (Engine : in out PIG_Engine);
 
-   procedure Pig_Viewport (Engine : in out PIG_Engine;
-                           X, Y   : in     Integer;
-                           W, H   : in     Integer);
+   procedure Pig_Viewport (Engine        : in out PIG_Engine;
+                           X, Y          : in     Integer;
+                           Width, Height : in     Positive);
    --  Set viewport size and position
 
    procedure Pig_Start (Engine : in out PIG_Engine;
@@ -382,10 +381,10 @@ package Engines is
                            Width, Height : in     Integer);
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
-   procedure Pig_Map_Tiles (Map      : in out PIG_Map;
-                            Filename : in     String;
-                            Tw, Th   : in     Integer;
-                            Result   :    out Integer);
+   procedure Pig_Map_Tiles (Map           : in out PIG_Map;
+                            Filename      : in     String;
+                            Width, Height : in     Integer;
+                            Result        :    out Integer);
    --  Load a tile palette image
 
    procedure Pig_Map_Collisions (Map   : in out PIG_Map;

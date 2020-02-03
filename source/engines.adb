@@ -151,16 +151,16 @@ package body Engines is
 --      free(pe);
    end Pig_Close;
 
-   procedure Pig_Viewport (Engine : in out PIG_Engine;
-                           X, Y   : in     Integer;
-                           W, H   : in     Integer)
+   procedure Pig_Viewport (Engine        : in out PIG_Engine;
+                           X, Y          : in     Integer;
+                           Width, Height : in     Positive)
    is
-      use SDL;
+      use SDL.C;
    begin
-      Engine.View.X      := C.int (X);
-      Engine.View.Y      := C.int (Y);
-      Engine.View.Width  := C.int (W);
-      Engine.View.Height := C.int (H);
+      Engine.View := (X      => int (X),
+                      Y      => int (Y),
+                      Width  => int (Width),
+                      Height => int (Height));
    end Pig_Viewport;
 
 
@@ -533,8 +533,8 @@ package body Engines is
          return PIG_None;
       end if;
 
-      Mx := X / M.Tw;
-      My := Y / M.Th;
+      Mx := X / M.Tile_Width;
+      My := Y / M.Tile_Height;
       if Mx >= M.Width or My >= M.Height then
          return PIG_None;
       end if;
@@ -559,8 +559,8 @@ package body Engines is
       if X < 0 or Y < 0 then
          return PIG_None;
       end if;
-      Mx := X / Engine.Map.Tw;
-      My := Y / Engine.Map.Th;
+      Mx := X / Engine.Map.Tile_Width;
+      My := Y / Engine.Map.Tile_Height;
       if Mx >= Engine.Map.Width or My >= Engine.Map.Height then
          return PIG_None;
       end if;
@@ -593,7 +593,7 @@ package body Engines is
       if Mask.Top and Y1 < Y2 then
 
          --  Test for tiles that can be hit from the top
-         Y := Y1 + M.Th - Y1 mod M.Th;
+         Y := Y1 + M.Tile_Height - Y1 mod M.Tile_Height;
          while Y <= Y2 loop
             X := X1 + (X2 - X1) * (Y - Y1) / (Y2 - Y1);
             if Check_Tile (M, X, Y + 1, PIG_Top) /= PIG_None then
@@ -603,7 +603,7 @@ package body Engines is
                Ci2.Sides.Top := True;
                exit;
             end if;
-            Y := Y + M.Th;
+            Y := Y + M.Tile_Height;
          end loop;
       end if;
 
@@ -768,41 +768,47 @@ package body Engines is
 
 
    procedure Tile_Area (Engine : in out PIG_Engine;
-                        R      : in SDL.Video.Rectangles.Rectangle);
+                        Area   : in SDL.Video.Rectangles.Rectangle);
 
    procedure Tile_Area (Engine : in out PIG_Engine;
-                        R      : in SDL.Video.Rectangles.Rectangle)
+                        Area   : in     SDL.Video.Rectangles.Rectangle)
    is
       use type SDL.C.int;
-      Cr : SDL.Video.Rectangles.Rectangle;
-      Startx, Starty, Maxx, Maxy, Tilesperrow : Integer;
+      Tile_Width  : Integer renames Engine.Map.Tile_Width;
+      Tile_Height : Integer renames Engine.Map.Tile_Height;
+      Area_Right  : constant Integer := Integer (Area.X + Area.Width);
+      Area_Top    : constant Integer := Integer (Area.Y + Area.Height);
+      Start_X     : constant Integer := Integer (Area.X) / Tile_Width;
+      Start_Y     : constant Integer := Integer (Area.Y) / Tile_Height;
+      Max_X       : constant Integer := Integer'Min ((Area_Right + Tile_Width - 1) / Tile_Width,
+                                                     Engine.Map.Width  - 1);
+      Max_Y       : constant Integer := Integer'Min ((Area_Top + Tile_Height - 1) / Tile_Height,
+                                                     Engine.Map.Height - 1);
+      Tilesperrow : constant Integer := Integer (Engine.Map.Tiles.Size.Width) / Tile_Width;
+
    begin
-      Cr := R;
-      Cr.X := Cr.X + Engine.View.X;
-      Cr.Y := Cr.Y + Engine.View.Y;
---      Engine.Surface.Set_Clip_Rectangle (Cr);
+      Engine.Surface.Set_Clip_Rectangle ((X      => Area.X + Engine.View.X,
+                                          Y      => Area.Y + Engine.View.Y,
+                                          Width  => Area.Width,
+                                          Height => Area.Height));
 
-      Startx := Integer (R.X) / Engine.Map.Tw;
-      Starty := Integer (R.Y) / Engine.Map.Th;
-      Maxx   := (Integer (R.X) + Integer (R.Width)  + Engine.Map.Tw - 1) / Engine.Map.Tw;
-      Maxy   := (Integer (R.Y) + Integer (R.Height) + Engine.Map.Th - 1) / Engine.Map.Th;
-      if Maxx > Engine.Map.Width  - 1 then Maxx := Engine.Map.Width  - 1; end if;
-      if Maxy > Engine.Map.Height - 1 then Maxy := Engine.Map.Height - 1; end if;
-      Tilesperrow := Integer (Engine.Map.Tiles.Size.Width) / Engine.Map.Tw;
-
-      for Y in Starty .. Maxy loop
-         for X in Startx .. Maxx loop
+      for Y in Start_Y .. Max_Y loop
+         for X in Start_X .. Max_X loop
             declare
                use SDL.C;
-               From, To : SDL.Video.Rectangles.Rectangle;
-               C2 : constant Integer := Integer (Engine.Map.Map (X, Y));
+               C2   : constant Integer := Integer (Engine.Map.Map (X, Y));
+
+               From : SDL.Video.Rectangles.Rectangle :=
+                 (X      => int (C2 mod Tilesperrow * Tile_Width),
+                  Y      => int (C2 / Tilesperrow   * Tile_Height),
+                  Width  => int (Tile_Width),
+                  Height => int (Tile_Height));
+
+               To   : SDL.Video.Rectangles.Rectangle :=
+                 (X        => int (Engine.View.X) + int (X * Tile_Width),
+                  Y        => int (Engine.View.Y) + int (Y * Tile_Height),
+                  others   => 0);
             begin
-               From.X      := int (C2 mod Tilesperrow * Engine.Map.Tw);
-               From.Y      := int (C2 / Tilesperrow   * Engine.Map.Th);
-               From.Width  := int (Engine.Map.Tw);
-               From.Height := int (Engine.Map.Th);
-               To.X        := int (Engine.View.X) + int (X * Engine.Map.Tw);
-               To.Y        := int (Engine.View.Y) + int (Y * Engine.Map.Th);
                SDL.Video.Surfaces.Blit (Source      => Engine.Map.Tiles,
                                         Source_Area => From,
                                         Self        => Engine.Surface,
@@ -1140,18 +1146,18 @@ package body Engines is
    end Pig_Map_Close;
 
 
-   procedure Pig_Map_Tiles (Map      : in out PIG_Map;
-                            Filename : in     String;
-                            Tw, Th   : in     Integer;
-                            Result   :    out Integer)
+   procedure Pig_Map_Tiles (Map           : in out PIG_Map;
+                            Filename      : in     String;
+                            Width, Height : in     Integer;
+                            Result        :    out Integer)
    is
       pragma Unreferenced (Result);
 --  int pig_map_tiles(PIG_map *pm, const char *filename, int tw, int th)
 --  {
       Tmp : SDL.Video.Surfaces.Surface;
    begin
-      Map.Tw := Tw;
-      Map.Th := Th;
+      Map.Tile_Width  := Width;
+      Map.Tile_Height := Height;
       SDL.Images.IO.Create (Tmp, Filename);
 --      if(!tmp)
 --      {
