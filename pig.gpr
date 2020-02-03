@@ -29,4 +29,8 @@ project Pig is
 
   end Builder;
 
+  package Binder is
+     for Default_Switches ("ada") use ("-E");
+  end Binder;
+
 end Pig;
