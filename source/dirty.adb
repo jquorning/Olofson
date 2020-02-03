@@ -22,14 +22,13 @@ package body Dirty is
 
    function Pig_Dirty_Open (Size : in Integer) return PIG_Dirtytable_Access
    is
-      Pdt : PIG_Dirtytable_Access;
+      Table : PIG_Dirtytable_Access;
    begin
-      Pdt := new PIG_Dirtytable'(Rects => null, others => 0);
-      Pdt.Size  := Size;
-      Pdt.Rects := new Rect_Array'(0 .. Size - 1 => SDL.Video.Rectangles.Null_Rectangle);
-      Pdt.Count := 0;
-      Pdt.Best  := 0;
-      return Pdt;
+      Table       := new PIG_Dirtytable'(Rects => null, others => 0);
+      Table.Rects := new Rectangle_Arrays'(1 .. Index_Type (Size) => Null_Rectangle);
+      Table.Last  := 0;
+      Table.Best  := 0;
+      return Table;
    end Pig_Dirty_Open;
 
 
@@ -41,8 +40,8 @@ package body Dirty is
    end Pig_Dirty_Close;
 
 
-   procedure Pig_Mergerect (From : in     SDL.Video.Rectangles.Rectangle;
-                            To   : in out SDL.Video.Rectangles.Rectangle)
+   procedure Pig_Merge (From : in     SDL.Video.Rectangles.Rectangle;
+                        To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
       X1 : int := From.X;
@@ -66,11 +65,11 @@ package body Dirty is
       To.Y      := Y1;
       To.Width  := X2 - X1;
       To.Height := Y2 - Y1;
-   end Pig_Mergerect;
+   end Pig_Merge;
 
 
-   procedure Pig_Intersectrect (From : in     SDL.Video.Rectangles.Rectangle;
-                                To   : in out SDL.Video.Rectangles.Rectangle)
+   procedure Pig_Intersect (From : in     SDL.Video.Rectangles.Rectangle;
+                            To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
       Amin, Amax, Bmin, Bmax : Integer;
@@ -100,13 +99,15 @@ package body Dirty is
          Amax := Bmax;
       end if;
       To.Height := int (if Amax - Amin > 0 then Amax - Amin else 0);
-   end Pig_Intersectrect;
+   end Pig_Intersect;
 
 
    procedure Pig_Dirty_Add (Table : in out PIG_Dirtytable;
                             Rect  : in     SDL.Video.Rectangles.Rectangle)
    is
-      I, Best_I, Best_Loss : Integer;
+      I         : Index_Type := 0;
+      Best_I    : Index_Type;
+      Best_Loss : Integer;
    begin
       --  Look for merger candidates.
       --
@@ -116,13 +117,13 @@ package body Dirty is
       --  when dealing with old/new rects for moving
       --  objects and the like.
 
-      Best_I    := -1;
+      Best_I    := 0;
       Best_Loss := 100_000_000;
-      if Table.Count /= 0 then
-         I := (Table.Best + Table.Count - 1) mod Table.Count;
+      if Table.Last /= 0 then
+         I := ((Table.Best + Table.Last - 1) mod Table.Last) + 1;
       end if;
 
-      for J in 0 .. Table.Count - 1 loop
+      for J in 1 .. Table.Last loop
          declare
             use SDL.C;
             A1, A2, Am, Ratio, Loss : Integer;
@@ -133,14 +134,14 @@ package body Dirty is
             Testr := Table.Rects (I);
             A2    := Integer (Testr.Width * Testr.Height);
 
-            Pig_Mergerect (Rect, Testr);
+            Pig_Merge (Rect, Testr);
             Am := Integer (Testr.Width * Testr.Height);
 
             --  Perfect or Instant Pick?
             Ratio := 100 * Am / (if A1 > A2 then A1 else A2);
             if Ratio < PIG_INSTANT_MERGE then
                --  Ok, this is good enough! Stop searching.
-               Pig_Mergerect (Rect, Table.Rects (I));
+               Pig_Merge (Rect, Table.Rects (I));
                Table.Best := I;
                return;
             end if;
@@ -152,25 +153,25 @@ package body Dirty is
                Table.Best := I;
             end if;
 
-            I := (I + 1) mod Table.Count;
+            I := (I + 1) mod Table.Last + 1;
          end;
       end loop;
 
       --  ...and if the best result is good enough, merge!
-      if Best_I >= 0 and Best_Loss < PIG_WORST_MERGE then
-         Pig_Mergerect (Rect, Table.Rects (Best_I));
+      if Best_I > 0 and Best_Loss < PIG_WORST_MERGE then
+         Pig_Merge (Rect, Table.Rects (Best_I));
          return;
       end if;
 
       --  Try to add to table...
-      if Table.Count < Table.Size then
-         Table.Rects (Table.Count) := Rect;
-         Table.Count := Table.Count + 1;
+      if Table.Last < Table.Rects'Last then
+         Table.Last := Table.Last + 1;
+         Table.Rects (Table.Last) := Rect;
          return;
       end if;
 
       --  Emergency: Table full! Grab best candidate...
-      Pig_Mergerect (Rect, Table.Rects (Best_I));
+      Pig_Merge (Rect, Table.Rects (Best_I));
    end Pig_Dirty_Add;
 
 
@@ -178,7 +179,7 @@ package body Dirty is
                               From  : in     PIG_Dirtytable)
    is
    begin
-      for I in 0 .. From.Count - 1 loop
+      for I in 1 .. From.Last loop
          Pig_Dirty_Add (Table, From.Rects (I));
       end loop;
    end Pig_Dirty_Merge;

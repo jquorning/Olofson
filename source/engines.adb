@@ -759,7 +759,7 @@ package body Engines is
       R.Width  := Engine.Surface.Size.Width;
       R.Height := Engine.Surface.Size.Height;
       if Area /= Null_Rectangle then
-         Dirty.Pig_Intersectrect (Area, R);
+         Dirty.Pig_Intersect (Area, R);
       end if;
 
       if R.Width /= 0 and R.Height /= 0 then
@@ -846,7 +846,7 @@ package body Engines is
                   Width  => int (Sprite.Width),
                   Height => int (Sprite.Height));
             begin
-               Dirty.Pig_Intersectrect (Engine.View, Area);
+               Dirty.Pig_Intersect (Engine.View, Area);
                if Area.Width /= 0 and Area.Height /= 0 then
                   Tile_Area (Engine, Area);
                end if;
@@ -876,7 +876,7 @@ package body Engines is
       Engine.Pagedirty (Engine.Page) := Table;
 
       --  Clear the display/back page dirtytable
-      Table.Count := 0;
+      Table.Last := 0;
 
       --  Update positions and render all objects
       for Object of Engine.Objects loop
@@ -943,6 +943,7 @@ package body Engines is
    procedure Show_Rects (Engine : in out PIG_Engine;
                          Table  : in     Dirty.PIG_Dirtytable)
    is
+      use type Dirty.Index_Type;
       use SDL.Video.Surfaces;
       Color  : Interfaces.Unsigned_32;
       Format : SDL.Video.Pixel_Formats.Pixel_Format_Access;
@@ -970,7 +971,7 @@ package body Engines is
 
       Engine.Direct := False;
 
-      for I in 0 .. Table.Count - 1 loop
+      for I in 1 .. Table.Last loop
          declare
             use type SDL.C.int;
             R  : SDL.Video.Rectangles.Rectangle;
@@ -990,7 +991,7 @@ package body Engines is
       end loop;
 
       Color := SDL.Video.Pixel_Formats.To_Pixel (Engine.Screen.Pixel_Format, 255, 0, 255);
-      for I in 0 .. Table.Count - 1 loop
+      for I in 1 .. Table.Last loop
          declare
             use SDL.C;
             R : SDL.Video.Rectangles.Rectangle;
@@ -1016,6 +1017,7 @@ package body Engines is
    procedure Pig_Flip (Engine : in out PIG_Engine;
                        Window : in out SDL.Video.Windows.Window)
    is
+      use type Dirty.Index_Type;
       use SDL.Video.Surfaces;
       use SDL.Video.Rectangles;
       Table : Dirty.PIG_Dirtytable renames Engine.Workdirty.all;
@@ -1025,7 +1027,7 @@ package body Engines is
       if Engine.Show_Dirtyrects then
 
          Show_Rects (Engine, Table);
-         for I in 0 .. Table.Count - 1 loop
+         for I in 1 .. Table.Last loop
             declare
                use type SDL.C.int;
                Rect : Rectangle renames Table.Rects (I);
@@ -1034,12 +1036,12 @@ package body Engines is
                Rect.Y      := Rect.Y - 32;
                Rect.Width  := Rect.Width + 64;
                Rect.Height := Rect.Height + 64;
-               Dirty.Pig_Intersectrect (Engine.Buffer.Clip_Rectangle, Rect);
+               Dirty.Pig_Intersect (Engine.Buffer.Clip_Rectangle, Rect);
             end;
          end loop;
 
       elsif Engine.Surface = Engine.Buffer then
-         for I in 0 .. Table.Count - 1 loop
+         for I in 1 .. Table.Last loop
             declare
                Rect_Copy : Rectangle := Table.Rects (I);
             begin
@@ -1056,9 +1058,7 @@ package body Engines is
             Engine.Page := 1 - Engine.Page;
          end if;
       else
-         null;
-         --  SDL_UpdateRects (Engine.Screen, Table.Count, Table.Rects);
-         --         SDL.Video.Windows.Update_Rectangles (Window, Table.Count, Table.Rects);
+         Window.Update_Surface_Rectangles (Table.Rects.all);
       end if;
 
       if Engine.Direct then
@@ -1068,7 +1068,7 @@ package body Engines is
       else
          Engine.Surface := Engine.Buffer;
       end if;
-      Window.Update_Surface; --  JQ
+
    end Pig_Flip;
 
 

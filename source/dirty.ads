@@ -12,19 +12,17 @@
 with SDL.Video.Rectangles;
 
 package Dirty is
-
-   subtype Rectangle is SDL.Video.Rectangles.Rectangle;
+   use SDL.Video.Rectangles;
+   use type SDL.C.size_t;
 
    --  A table of dirtyrects for one display page
-   type Rect_Array is
-     array (Natural range <>) of Rectangle;
-   type Rect_Array_Access is access all Rect_Array;
+   subtype Index_Type     is SDL.C.size_t;
+   type Rect_Array_Access is access all Rectangle_Arrays;
 
    type PIG_Dirtytable is record
-      Size  : Integer;           --  Table size
       Rects : Rect_Array_Access; --  Table of rects
-      Count : Integer;           --  # of rects currently used
-      Best  : Integer;           --  Merge testing starts here!
+      Last  : Index_Type;        --  # of rects currently used
+      Best  : Index_Type;        --  Merge testing starts here!
    end record;
    type PIG_Dirtytable_Access is access all PIG_Dirtytable;
 
@@ -33,18 +31,18 @@ package Dirty is
 
    procedure Pig_Dirty_Add (Table : in out PIG_Dirtytable;
                             Rect  : in     Rectangle);
-   --  Add rectangle 'dr' to table 'pdt'
+   --  Add rectangle Rect to Table.
 
    procedure Pig_Dirty_Merge (Table : in out PIG_Dirtytable;
                               From  : in     PIG_Dirtytable);
-   --  Merge table 'from' into 'pdt'
+   --  Merge table From into table Table.
 
-   procedure Pig_Mergerect (From : in     Rectangle;
+   procedure Pig_Merge (From : in     Rectangle;
+                        To   : in out Rectangle);
+   --  Extend 'to' to a new rect that includes both 'From' and 'To'
+
+   procedure Pig_Intersect (From : in     Rectangle;
                             To   : in out Rectangle);
-   --  Extend 'to' to a new rect that includes both 'from' and 'to'
-
-   procedure Pig_Intersectrect (From : in     Rectangle;
-                                To   : in out Rectangle);
    --  Clip 'to' into a rect that is the intersection of 'from' and 'to'
 
 end Dirty;
