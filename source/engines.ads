@@ -14,6 +14,7 @@ with Ada.Finalization;
 
 with SDL.Video.Rectangles;
 with SDL.Video.Surfaces;
+with SDL.Video.Windows;
 
 with Dirty;
 
@@ -335,7 +336,8 @@ package Engines is
    --  Manually add a dirtyrect for pig_refresh().
    --  Area can be outside the engine viewport.
 
-   procedure Pig_Flip (Engine : in out PIG_Engine);
+   procedure Pig_Flip (Engine : in out PIG_Engine;
+                       Window : in out SDL.Video.Windows.Window);
    --  Do what's needed to deal with the dirtyrects
    --  and then make the new frame visible.
 

@@ -458,8 +458,7 @@ procedure Pig is
             end if;
 
             --  Make the new frame visible
-            Engines.Pig_Flip (Game.Engine.all);
-            Window.Update_Surface; --  JQ
+            Engines.Pig_Flip (Game.Engine.all, Window);
 
             --  Update statistics, timers and stuff
             Game.Rendered_Frames   := Game.Rendered_Frames + 1;

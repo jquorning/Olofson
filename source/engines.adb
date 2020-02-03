@@ -1013,7 +1013,8 @@ package body Engines is
    end Show_Rects;
 
 
-   procedure Pig_Flip (Engine : in out PIG_Engine)
+   procedure Pig_Flip (Engine : in out PIG_Engine;
+                       Window : in out SDL.Video.Windows.Window)
    is
       use SDL.Video.Surfaces;
       use SDL.Video.Rectangles;
@@ -1049,7 +1050,7 @@ package body Engines is
       end if;
 
 --      if((Engine.screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE) then
-      if True then
+      if False then
 --         SDL_Flip (Engine.Screen);
          if Engine.Pages > 1 then
             Engine.Page := 1 - Engine.Page;
@@ -1057,6 +1058,7 @@ package body Engines is
       else
          null;
          --  SDL_UpdateRects (Engine.Screen, Table.Count, Table.Rects);
+         --         SDL.Video.Windows.Update_Rectangles (Window, Table.Count, Table.Rects);
       end if;
 
       if Engine.Direct then
@@ -1066,6 +1068,7 @@ package body Engines is
       else
          Engine.Surface := Engine.Buffer;
       end if;
+      Window.Update_Surface; --  JQ
    end Pig_Flip;
 
 
