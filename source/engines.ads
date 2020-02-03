@@ -348,9 +348,10 @@ package Engines is
    --
    --  Map
    --
-   procedure Pig_Map_Open (Map           :    out not null PIG_Map_Access;
-                           Engine        : in     not null PIG_Engine_Access;
-                           Width, Height : in     Integer);
+   function Pig_Map_Open (Engine        : in not null PIG_Engine_Access;
+                          Width, Height : in Integer)
+                         return not null PIG_Map_Access;
+
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
    procedure Pig_Map_Tiles (Map           : in out PIG_Map;

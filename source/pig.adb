@@ -51,7 +51,6 @@ procedure Pig is
    procedure Init_All (Game   :    out not null Game_State_Access;
                        Screen : in out SDL.Video.Surfaces.Surface)
    is
-      Map              : Engines.PIG_Map_Access;
       Map_Tiles_Result : Integer;
    begin
       Game := new Game_State'(Clean_Game);
@@ -99,33 +98,26 @@ procedure Pig is
          Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
       end loop;
 
+      declare
+         Map : constant Engines.PIG_Map_Access :=
+           Engines.Pig_Map_Open (Game.Engine, MAP_W, MAP_H);
       begin
-         Engines.Pig_Map_Open (Map, Game.Engine, MAP_W, MAP_H);
-      exception
-         when others => --  if Pm = null then
+         Engines.Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
+         if Map_Tiles_Result < 0 then
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                                  "Could not create map!");
+                                  "Could not load background graphics!");
             Engines.Pig_Close (Game.Engine.all);
             --  Free (gs);
-            --  return NULL;
-            return;
-      end; -- if;
+            raise Storage_Error with "Could not load background graphics.";
+         end if;
 
-      Engines.Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
-      if Map_Tiles_Result < 0 then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                               "Could not load background graphics!");
-         Engines.Pig_Close (Game.Engine.all);
-         --  Free (gs);
-         raise Storage_Error with "Could not load background graphics.";
-      end if;
+         --  Mark tiles for collision detection
+         Engines.Pig_Map_Collisions (Map.all,  0, 12, Engines.PIG_All);   --  Red, green, yellov
+         Engines.Pig_Map_Collisions (Map.all, 12, 17, Engines.PIG_None);  --  Sky
+         Engines.Pig_Map_Collisions (Map.all, 29,  3, Engines.PIG_All);   --  Single R, G, Y
 
-      --  Mark tiles for collision detection
-      Engines.Pig_Map_Collisions (Map.all,  0, 12, Engines.PIG_All);   --  Red, green, yellov
-      Engines.Pig_Map_Collisions (Map.all, 12, 17, Engines.PIG_None);  --  Sky
-      Engines.Pig_Map_Collisions (Map.all, 29,  3, Engines.PIG_All);   --  Single R, G, Y
-
-      Load_Level (Game.all, 0);
+         Load_Level (Game.all, 0);
+      end;
    end Init_All;
 
 

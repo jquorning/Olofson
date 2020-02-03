@@ -902,7 +902,10 @@ package body Engines is
          if Object.Ip.Gimage >= 0 and Object.Ip.Gimage < Engine.Nsprites then
             declare
                use SDL.C;
-               Sprite      : constant not null PIG_Sprite_Access := Engine.Sprites (Object.Ip.Gimage);
+
+               Sprite      : constant not null PIG_Sprite_Access :=
+                 Engine.Sprites (Object.Ip.Gimage);
+
                Source_Area : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
 
                Target_Area : SDL.Video.Rectangles.Rectangle :=
@@ -1106,9 +1109,9 @@ package body Engines is
    --    Map
    ------------------------------------------------------------
 
-   procedure Pig_Map_Open (Map           :    out not null PIG_Map_Access;
-                           Engine        : in     not null PIG_Engine_Access;
-                           Width, Height : in     Integer)
+   function Pig_Map_Open (Engine        : in not null PIG_Engine_Access;
+                          Width, Height : in Integer)
+                         return not null PIG_Map_Access
    is
    begin
       if Engine.Map /= null then
@@ -1132,7 +1135,7 @@ package body Engines is
 
       Engine.Map.Hit.all := (others => (others => PIG_None));
       Engine.Map.Map.all := (others => (others => 0));
-      Map := Engine.Map;
+      return Engine.Map;
    end Pig_Map_Open;
 
 
