@@ -519,11 +519,11 @@ package body Engines is
 
    --  Returns a non-zero value if the tile at (x, y) is marked for
    --  collisions on the side indicated by 'mask'.
-   function Check_Tile (M    : in PIG_Map_Access;
+   function Check_Tile (Map  : in PIG_Map_Access;
                         X, Y : in Integer;
                         Mask : in Pig_Sides) return Pig_Sides;
 
-   function Check_Tile (M    : in PIG_Map_Access;
+   function Check_Tile (Map  : in PIG_Map_Access;
                         X, Y : in Integer;
                         Mask : in Pig_Sides) return Pig_Sides
    is
@@ -535,14 +535,14 @@ package body Engines is
          return PIG_None;
       end if;
 
-      Mx := X / M.Tile_Width;
-      My := Y / M.Tile_Height;
-      if Mx >= M.Width or My >= M.Height then
+      Mx := X / Map.Tile_Width;
+      My := Y / Map.Tile_Height;
+      if Mx >= Map.Width or My >= Map.Height then
          return PIG_None;
       end if;
 
       declare
-         Hit : constant Pig_Sides := M.Hit (Mx, My);
+         Hit : constant Pig_Sides := Map.Hit (Mx, My);
       begin
          return
            (Top    => Hit.Top    and Mask.Top,
