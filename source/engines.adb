@@ -1109,7 +1109,7 @@ package body Engines is
    ------------------------------------------------------------
 
    procedure Pig_Map_Open (Map           :    out PIG_Map_Access;
-                           Engine        : in out PIG_Engine;
+                           Engine        : in     PIG_Engine_Access;
                            Width, Height : in     Integer)
    is
    begin
@@ -1117,27 +1117,23 @@ package body Engines is
          Pig_Map_Close (Engine.Map.all);
       end if;
 
-      Engine.Map := new PIG_Map;
---      if(!pe->map)
---              return NULL;
+      Engine.Map := new
+        PIG_Map'(Ada.Finalization.Controlled with
+                 Owner       => Engine,
+                 Width       => Width,
+                 Height      => Height,
+                 Map         => new Map_Array (0 .. Width - 1,
+                                               0 .. Height - 1),
+                 Hit         => new Hit_Array (0 .. Width - 1,
+                                               0 .. Height - 1),
+                 Tile_Width  => 0,
+                 Tile_Height => 0,
+                 Tiles       => SDL.Video.Surfaces.Null_Surface,
+                 Hitinfo     => (others => (others => False))
+                );
 
---      Engine.Map.Owner := Engine;
-      Engine.Map.Width  := Width;
-      Engine.Map.Height := Height;
-      Engine.Map.Hit    := new Hit_Array (0 .. Width - 1, 0 .. Height - 1);
-      --(unsigned char *)calloc(w, h);
---      if(!pe->map->hit)
---      {
---              pig_map_close(pe->map);
---              return NULL;
---      }
-      Engine.Map.Map := new Map_Array (0 .. Width - 1, 0 .. Height - 1);
-      --  (unsigned char *)calloc(w, h);
---      if(!pe->map->map)
---      {
---              pig_map_close(pe->map);
---              return NULL;
---      }
+      Engine.Map.Hit.all := (others => (others => PIG_None));
+      Engine.Map.Map.all := (others => (others => 0));
       Map := Engine.Map;
    end Pig_Map_Open;
 

@@ -343,7 +343,7 @@ package Engines is
    --  Map
    --
    procedure Pig_Map_Open (Map           :    out PIG_Map_Access;
-                           Engine        : in out PIG_Engine;
+                           Engine        : in     PIG_Engine_Access;
                            Width, Height : in     Integer);
    procedure Pig_Map_Close (Map : in out PIG_Map);
 

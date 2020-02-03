@@ -100,7 +100,7 @@ procedure Pig is
       end loop;
 
       begin
-         Engines.Pig_Map_Open (Map, Game.Engine.all, MAP_W, MAP_H);
+         Engines.Pig_Map_Open (Map, Game.Engine, MAP_W, MAP_H);
       exception
          when others => --  if Pm = null then
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
