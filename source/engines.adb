@@ -823,39 +823,36 @@ package body Engines is
    procedure Remove_Sprites (Engine : in out PIG_Engine)
    is
       use SDL.C;
-      R : SDL.Video.Rectangles.Rectangle;
-      S : PIG_Sprite_Access;
---      PIG_object *po, *next;
    begin
-      --       * Remove all objects, using the information that
-      --       * remains from the last frame. The actual removal
-      --       * is done by drawing over the sprites with tiles
-      --       * from the map.
-      --       *
-      --       * We assume that most objects don't overlap. If
-      --       * they do that a lot, we could use a "dirty map"
-      --       * to avoid rendering the same tiles multiple times
-      --       * in the overlapping areas.
+      --  Remove all objects, using the information that
+      --  remains from the last frame. The actual removal
+      --  is done by drawing over the sprites with tiles
+      --  from the map.
+      --
+      --  We assume that most objects don't overlap. If
+      --  they do that a lot, we could use a "dirty map"
+      --  to avoid rendering the same tiles multiple times
+      --  in the overlapping areas.
       for Object of Engine.Objects loop
---              next = po->next;
          if Object.Ip.Gimage in 0 .. Engine.Nsprites - 1 then
+            declare
+               Sprite : constant PIG_Sprite_Access := Engine.Sprites (Object.Ip.Gimage);
 
-            S := Engine.Sprites (Object.Ip.Gimage);
-            R.X      := int (Object.Ip.Gx) - int (S.Hotx);
-            R.Y      := int (Object.Ip.Gy) - int (S.Hoty);
-            R.Width  := int (S.Width);
-            R.Height := int (S.Height);
-            Dirty.Pig_Intersectrect (Engine.View, R);
-            if R.Width /= 0 and R.Height /= 0 then
-               if R.Y >= 0 then --  JQ
-                  Tile_Area (Engine, R);
+               Area   : SDL.Video.Rectangles.Rectangle :=
+                 (X      => int (Object.Ip.Gx) - int (Sprite.Hotx),
+                  Y      => int (Object.Ip.Gy) - int (Sprite.Hoty),
+                  Width  => int (Sprite.Width),
+                  Height => int (Sprite.Height));
+            begin
+               Dirty.Pig_Intersectrect (Engine.View, Area);
+               if Area.Width /= 0 and Area.Height /= 0 then
+                  Tile_Area (Engine, Area);
                end if;
-            end if;
+            end;
 
             --  Delete dead objects *after* they've
             --  been removed from the rendering buffer!
             if Object.Id = 0 then
-               null;
                Close_Object (Object.all);
             end if;
          end if;
@@ -940,7 +937,7 @@ package body Engines is
    procedure Pig_Refresh_All (Engine : in out PIG_Engine) is
    begin
       Tile_Area (Engine, Engine.View);
-      --      Pig_Dirty (Pe, null);
+--      Pig_Dirty (Engine, null);
       Draw_Sprites (Engine);
    end Pig_Refresh_All;
 
