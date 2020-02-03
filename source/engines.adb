@@ -954,7 +954,6 @@ package body Engines is
    procedure Show_Rects (Engine : in out PIG_Engine;
                          Table  : in     Dirty.Table_Type)
    is
-      use type Dirty.Index_Type;
       use SDL.Video.Surfaces;
       Color  : Interfaces.Unsigned_32;
       Format : SDL.Video.Pixel_Formats.Pixel_Format_Access;
@@ -1028,7 +1027,6 @@ package body Engines is
    procedure Pig_Flip (Engine : in out PIG_Engine;
                        Window : in out SDL.Video.Windows.Window)
    is
-      use type Dirty.Index_Type;
       use SDL.Video.Surfaces;
       use SDL.Video.Rectangles;
       Table : Dirty.Table_Type renames Engine.Workdirty.all;

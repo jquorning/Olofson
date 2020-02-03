@@ -50,9 +50,7 @@ procedure Pig is
 
    procedure Init_All (Game   :    out Game_State_Access;
                        Screen : in out SDL.Video.Surfaces.Surface)
---                            Screen : in out SDL.Video.Windows.Window)
    is
-      use type Engines.PIG_Map;
       Map              : Engines.PIG_Map_Access;
       Map_Tiles_Result : Integer;
    begin
@@ -248,25 +246,18 @@ procedure Pig is
    procedure Handle_Input (Game  : in out Game_State;
                            Event : in out SDL.Events.Events.Events)
    is
-      use type SDL.Events.Event_Types;
    begin
-      --   case Ev.Type_C is
       case Event.Common.Event_Type is
 
          when SDL.Events.Mice.Button_Up =>
-            --  SDL_MOUSEBUTTONUP =>
             null;
 
          when SDL.Events.Keyboards.Key_Down =>
-            --  SDL_KEYDOWN =>
-            --         case Ev.key.keysym.Sym is
             case Event.Keyboard.Key_Sym.Key_Code is
 
-            --            when SDLK_UP =>
                when SDL.Events.Keyboards.Code_Up =>
                   Game.Jump := 3;
 
-                  --            when SDLK_F1 =>
                when SDL.Events.Keyboards.Code_F1 =>
                   Game.Engine.Interpolation := not Game.Engine.Interpolation;
                   if Game.Engine.Interpolation then
@@ -275,7 +266,6 @@ procedure Pig is
                      Message (Game, "Interpolation: OFF");
                   end if;
 
-                  --            when SDLK_F2 =>
                when SDL.Events.Keyboards.Code_F2 =>
                   Game.Engine.Direct := not Game.Engine.Direct;
                   if Game.Engine.Direct then
@@ -284,7 +274,6 @@ procedure Pig is
                      Message (Game, "Rendering: Buffered");
                   end if;
 
-                  --            when SDLK_F3 =>
                when SDL.Events.Keyboards.Code_F3 =>
                   Game.Engine.Show_Dirtyrects := not Game.Engine.Show_Dirtyrects;
                   if Game.Engine.Show_Dirtyrects then
@@ -293,7 +282,6 @@ procedure Pig is
                      Message (Game, "Dirtyrects: OFF");
                   end if;
 
-                  --            when SDLK_F4 =>
                when SDL.Events.Keyboards.Code_F4 =>
                   Game.Nice := not Game.Nice;
                   if Game.Nice then
@@ -302,7 +290,6 @@ procedure Pig is
                      Message (Game, "Be Nice: OFF");
                   end if;
 
-                  --            when SDLK_SPACE =>
                when SDL.Events.Keyboards.Code_Space =>
                   declare
                      Result : Integer;
@@ -314,18 +301,16 @@ procedure Pig is
                   null;
             end case;
 
-         when SDL.Events.Keyboards.Key_Up => --  SDL_KEYUP =>
-                                             --         case Ev.key.keysym.Sym is
-            case Event.Keyboard.Key_Sym.Key_Code is
+         when SDL.Events.Keyboards.Key_Up =>
 
-            --            when SDLK_ESCAPE =>
+            case Event.Keyboard.Key_Sym.Key_Code is
                when SDL.Events.Keyboards.Code_Escape =>
                   Game.Running := False;
                when others =>
                   null;
             end case;
 
-         when SDL.Events.Quit => -- SDL_QUIT =>
+         when SDL.Events.Quit =>
             Game.Running := False;
 
          when others =>
