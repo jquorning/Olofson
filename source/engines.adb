@@ -25,8 +25,7 @@ package body Engines is
    --  Size of sprite frame table
 
    Clean_Engine : constant PIG_Engine :=
-     (Ada.Finalization.Controlled with
-      SDL.Video.Surfaces.Null_Surface,
+     (SDL.Video.Surfaces.Null_Surface,
       SDL.Video.Surfaces.Null_Surface,
       SDL.Video.Surfaces.Null_Surface,
       0, SDL.Video.Rectangles.Null_Rectangle, 0, (null, null),
@@ -200,8 +199,7 @@ package body Engines is
                   Surface_Sprite : SDL.Video.Surfaces.Surface;
 
                   Sprite : constant not null PIG_Sprite_Access :=
-                    new PIG_Sprite'(Ada.Finalization.Controlled with
-                                    Width   => Sprite_Width,
+                    new PIG_Sprite'(Width   => Sprite_Width,
                                     Height  => Sprite_Height,
                                     Hotx    => Sprite_Width  / 2,
                                     Hoty    => Sprite_Height / 2,
@@ -1119,8 +1117,7 @@ package body Engines is
       end if;
 
       Engine.Map := new
-        PIG_Map'(Ada.Finalization.Controlled with
-                 Owner       => Engine,
+        PIG_Map'(Owner       => Engine,
                  Width       => Width,
                  Height      => Height,
                  Map         => new Map_Array (0 .. Width - 1,

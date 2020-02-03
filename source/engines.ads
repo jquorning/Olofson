@@ -10,7 +10,6 @@
 --  software, or work derived from it, under other terms.
 
 with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Finalization;
 
 with SDL.Video.Rectangles;
 with SDL.Video.Surfaces;
@@ -176,7 +175,7 @@ package Engines is
    type Hit_Array is array (Natural range <>, Natural range <>) of Pig_Sides;
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
 
-   type PIG_Map is new Ada.Finalization.Controlled with record
+   type PIG_Map is record
       Owner       : PIG_Engine_Access;
 
       Width       : Integer;                     --  Size of map (tiles)
@@ -192,7 +191,7 @@ package Engines is
    type PIG_Map_Access is access all PIG_Map;
 
    --  Sprite frame
-   type PIG_Sprite is new Ada.Finalization.Controlled with record
+   type PIG_Sprite is record
       Width, Height : Integer;     --  Size of sprite (pixels)
       Hotx, Hoty    : Integer;     --  Hot-spot offset (pixels)
       Radius        : Integer;     --  Collision zone radius (pixels)
@@ -213,7 +212,7 @@ package Engines is
    type Sprite_Array_Access is access all Sprite_Array;
    type Dirty_Array         is array (0 .. 1) of Dirty.Table_Access;
 
-   type PIG_Engine is new Ada.Finalization.Controlled with record
+   type PIG_Engine is record
       --  Video stuff
       Screen  : SDL.Video.Surfaces.Surface;
       Buffer  : SDL.Video.Surfaces.Surface;  --  For h/w surface displays
