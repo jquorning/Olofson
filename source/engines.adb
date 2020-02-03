@@ -202,7 +202,8 @@ package body Engines is
          X := 0;
          while X <= Integer (Surface_Load.Size.Width) - Sprite_Width loop
             declare
-               R, SA          : SDL.Video.Rectangles.Rectangle;
+               Source_Area    : SDL.Video.Rectangles.Rectangle;
+               Target_Area    : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
                Surface_Sprite : SDL.Video.Surfaces.Surface;
                Sprite         : PIG_Sprite_Access;
             begin
@@ -213,9 +214,6 @@ package body Engines is
 --                      }
 --                      s = (PIG_sprite *)calloc(1, sizeof(PIG_sprite));
                Sprite := new PIG_Sprite;
-               --                      if(!s)
-               --                              return -1;
-               --  end if;
                Sprite.Width  := Sprite_Width;
                Sprite.Height := Sprite_Height;
                Sprite.Hotx   := Sprite_Width  / 2;
@@ -231,19 +229,14 @@ package body Engines is
                                                  Alpha_Mask => 16#000000FF#);
                Surface_Sprite.Set_Alpha_Blend (0);
                Surface_Sprite.Set_Blend_Mode  (SDL.Video.None);
-               R.X      := int (X);
-               R.Y      := int (Y);
-               R.Width  := int (Sprite_Width);
-               R.Height := int (Sprite_Height);
-               SA := (0, 0, 0, 0);
+               Source_Area := (X      => int (X),
+                               Y      => int (Y),
+                               Width  => int (Sprite_Width),
+                               Height => int (Sprite_Height));
                SDL.Video.Surfaces.Blit (Source      => Surface_Load,
-                                        Source_Area => SA,
+                                        Source_Area => Source_Area,
                                         Self        => Surface_Sprite,
-                                        Self_Area   => R);
---                 SDL.Video.Surfaces.Blit (Self        => Surface_Load,
---                                          Self_Area   => R,
---                                          Source      => Surface_Sprite,
---                                          Source_Area => SA);
+                                        Self_Area   => Target_Area);
                Surface_Sprite.Set_Alpha_Blend (0); --  (SDL_ALPHA_OPAQUE);
                Surface_Sprite.Set_Blend_Mode  (SDL.Video.None); --  SDL_SRCALPHA or SDL_RLEACCEL);
                Sprite.Surface := Surface_Sprite;
