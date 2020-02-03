@@ -117,7 +117,7 @@ package Games is
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
                           Type_C : in     Engines.Power_Ups;
-                          Object :    out Engines.PIG_Object_Access);
+                          Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   : in     Integer;
@@ -131,29 +131,29 @@ package Games is
    procedure New_Star (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Vx, Vy : in     Integer;
-                       Object :    out Engines.PIG_Object_Access);
+                       Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Speed  : in     Integer;
-                       Object :    out Engines.PIG_Object_Access);
+                       Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Integer;
                         Speed  : in     Integer;
-                        Object :    out Engines.PIG_Object_Access);
+                        Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     : in     Integer;
                              Image    : in     Integer;
                              Target_X : in     Integer;
-                             Object   :    out Engines.PIG_Object_Access);
+                             Object   :    out not null Engines.PIG_Object_Access);
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   : in     Integer;
                              Image  : in     Integer;
                              Target : in     Integer;
-                             Object :    out Engines.PIG_Object_Access);
+                             Object :    out not null Engines.PIG_Object_Access);
 
 
    type Map_Type is range 0 .. 4;

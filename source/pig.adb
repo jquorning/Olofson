@@ -37,7 +37,7 @@ procedure Pig is
    --        Init, load stuff etc
    ----------------------------------------------------------
 
-   procedure Init_All (Game   :    out Game_State_Access;
+   procedure Init_All (Game   :    out not null Game_State_Access;
                        Screen : in out SDL.Video.Surfaces.Surface);
    procedure Dashboard (Game : in out Game_State);
    --  Render the dashboard
@@ -48,13 +48,13 @@ procedure Pig is
                            Event : in out SDL.Events.Events.Events);
    procedure Handle_Keys (Game : in out Game_State);
 
-   procedure Init_All (Game   :    out Game_State_Access;
+   procedure Init_All (Game   :    out not null Game_State_Access;
                        Screen : in out SDL.Video.Surfaces.Surface)
    is
       Map              : Engines.PIG_Map_Access;
       Map_Tiles_Result : Integer;
    begin
-      Game := new Game_State'(Clean_Game); --  Game_State;
+      Game := new Game_State'(Clean_Game);
       Game.Nice       := True; --  JQ
       Game.Start_Time := Ada.Real_Time.Clock;
       Game.Running    := True;
@@ -254,6 +254,7 @@ procedure Pig is
             null;
 
          when Keyboards.Key_Down =>
+            Ada.Text_IO.Put_Line ("Key pressed => " & Event.Keyboard.Key_Sym.Key_Code'Image);
             case Event.Keyboard.Key_Sym.Key_Code is
 
                when Keyboards.Code_Up =>

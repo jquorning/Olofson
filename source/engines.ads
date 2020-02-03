@@ -250,7 +250,7 @@ package Engines is
    --
    --  Engine
    --
-   procedure Pig_Open (Engine :    out PIG_Engine_Access;
+   procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
                        Screen : in     SDL.Video.Surfaces.Surface);
    procedure Pig_Close (Engine : in out PIG_Engine);
 
@@ -342,8 +342,8 @@ package Engines is
    --
    --  Map
    --
-   procedure Pig_Map_Open (Map           :    out PIG_Map_Access;
-                           Engine        : in     PIG_Engine_Access;
+   procedure Pig_Map_Open (Map           :    out not null PIG_Map_Access;
+                           Engine        : in     not null PIG_Engine_Access;
                            Width, Height : in     Integer);
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
@@ -375,9 +375,9 @@ package Engines is
    --  Object
    --
 
-   function Pig_Object_Open (Engine : in PIG_Engine_Access;
+   function Pig_Object_Open (Engine : in not null PIG_Engine_Access;
                              X, Y   : in Integer;
-                             Last   : in Boolean) return PIG_Object_Access;
+                             Last   : in Boolean) return not null PIG_Object_Access;
    --  Create an object with the initial position (x, y). If
    --  Last, the object will end up last in the
    --  processing and rendering order, otherwise, first.
@@ -403,7 +403,7 @@ package Engines is
    --  Close all objects.
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Integer) return PIG_Object_Access;
+                             Id    :        Integer) return not null PIG_Object_Access;
    --  Find object by 'id', starting at object 'start'.
    --
    --  The search starts at 'start' and is done in both

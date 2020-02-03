@@ -73,7 +73,7 @@ package body Games is
                           X, Y   : in     Integer;
                           Speed  : in     Integer;
                           Type_C : in     Engines.Power_Ups;
-                          Object :    out Engines.PIG_Object_Access)
+                          Object :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
@@ -102,7 +102,7 @@ package body Games is
    procedure New_Star (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Vx, Vy : in     Integer;
-                       Object :    out Engines.PIG_Object_Access)
+                       Object :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X + Vx, Y + Vy, Last => True);
@@ -129,7 +129,7 @@ package body Games is
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   : in     Integer;
                        Speed  : in     Integer;
-                       Object :    out Engines.PIG_Object_Access)
+                       Object :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine,
@@ -149,7 +149,7 @@ package body Games is
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   : in     Integer;
                         Speed  : in     Integer;
-                        Object :    out Engines.PIG_Object_Access)
+                        Object :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine,
@@ -169,7 +169,7 @@ package body Games is
                              X, Y     : in     Integer;
                              Image    : in     Integer;
                              Target_X : in     Integer;
-                             Object   :    out Engines.PIG_Object_Access)
+                             Object   :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
@@ -184,7 +184,7 @@ package body Games is
                              X, Y   : in     Integer;
                              Image  : in     Integer;
                              Target : in     Integer;
-                             Object :    out Engines.PIG_Object_Access)
+                             Object :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
@@ -231,31 +231,24 @@ package body Games is
    procedure Message (Game : in out Game_State; Text : in String)
    is
       use Ada.Characters.Handling;
-      use type Engines.PIG_Object_Access;
+
+      function To_Frame (C : Character) return Natural is
+         (Game.Glassfont + Character'Pos (C) - Character'Pos (' '));
+
       X  : constant Integer := SCREEN_W + FONT_SPACING;
       Y  : constant Integer := MAP_H * TILE_H - 30;
       Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
+      First  : Boolean := True;
       Object : Engines.PIG_Object_Access := null;
    begin
       Ada.Text_IO.Put_Line ("Message : " & Text);
-      for I in Text'Range loop
-         declare
-            C : constant Integer :=
-              Character'Pos (To_Upper (Text (I))) - Character'Pos (' ') + Game.Glassfont;
-         begin
-            Ada.Text_IO.Put_Line ("C:" & C'Image);
-            if I = Text'First then
-               New_Chain_Head (Game, X, Y, C, Tx, Object);
-            else
---               Ada.Text_IO.Put_Line ("Object.Id:" & Object.Id'Image);
-               New_Chain_Link (Game, X, Y, C, Object.Id, Object);
-            end if;
-
-            if Object = null then
-               Ada.Text_IO.Put_Line ("Object = null");
-               return;
-            end if;
-         end;
+      for C of To_Upper (Text) loop
+         if First then
+            First := False;
+            New_Chain_Head (Game, X, Y, To_Frame (C), Tx, Object);
+         else
+            New_Chain_Link (Game, X, Y, To_Frame (C), Object.Id, Object);
+         end if;
       end loop;
       Game.Messages := Game.Messages + 1;
    end Message;
@@ -266,7 +259,7 @@ package body Games is
    is
       use Engines;
       use type SDL.C.int;
-      GP   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game : Game_State renames GP.all;
    begin
       case Event.Type_C is
@@ -534,7 +527,7 @@ package body Games is
                               Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      GP   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game : Game_State renames GP.all;
    begin
       case Event.Type_C is
@@ -593,7 +586,7 @@ package body Games is
                            Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      GP     : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      GP     : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game   : Game_State renames GP.all;
       Look_X : Integer;
    begin
@@ -646,7 +639,7 @@ package body Games is
                             Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      GP     : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      GP     : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game   : Game_State renames GP.all;
       Look_X : Integer;
    begin
@@ -707,7 +700,7 @@ package body Games is
    is
       use Ada.Numerics.Elementary_Functions;
       use Engines;
-      GP   : constant Game_State_Access := To_Game_State (Object.Owner.Userdata);
+      GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game : Game_State renames GP.all;
 
       procedure Do_Timer_1;
@@ -764,7 +757,7 @@ package body Games is
                                  Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Target : constant PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
+      Target : constant not null PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
    begin
       case Event.Type_C is
 
@@ -942,7 +935,7 @@ package body Games is
    procedure Before_Objects (Engine : in out Engines.PIG_Engine)
    is
       use Engines;
-      Game : constant Game_State_Access := To_Game_State (Engine.Userdata);
+      Game : constant not null Game_State_Access := To_Game_State (Engine.Userdata);
    begin
       if Game.Lives_Wobble > 0.0 then
          Game.Lives_Wobble := Game.Lives_Wobble * 0.95;

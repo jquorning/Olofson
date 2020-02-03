@@ -51,7 +51,7 @@ package body Engines is
    --      Engine
    ------------------------------------------------------------
 
-   procedure Pig_Open (Engine :    out PIG_Engine_Access;
+   procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
                        Screen : in     SDL.Video.Surfaces.Surface)
    is
    begin
@@ -197,7 +197,15 @@ package body Engines is
                   Source_Area    : SDL.Video.Rectangles.Rectangle;
                   Target_Area    : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
                   Surface_Sprite : SDL.Video.Surfaces.Surface;
-                  Sprite         : PIG_Sprite_Access;
+
+                  Sprite : constant not null PIG_Sprite_Access :=
+                    new PIG_Sprite'(Ada.Finalization.Controlled with
+                                    Width   => Sprite_Width,
+                                    Height  => Sprite_Height,
+                                    Hotx    => Sprite_Width  / 2,
+                                    Hoty    => Sprite_Height / 2,
+                                    Radius  => (Sprite_Width + Sprite_Height) / 5,
+                                    Surface => SDL.Video.Surfaces.Null_Surface);
                begin
 --                      if(pe->nsprites >= PIG_MAX_SPRITES)
 --                      {
@@ -205,12 +213,6 @@ package body Engines is
 --                              return -1;
 --                      }
 --                      s = (PIG_sprite *)calloc(1, sizeof(PIG_sprite));
-                  Sprite := new PIG_Sprite;
-                  Sprite.Width  := Sprite_Width;
-                  Sprite.Height := Sprite_Height;
-                  Sprite.Hotx   := Sprite_Width  / 2;
-                  Sprite.Hoty   := Sprite_Height / 2;
-                  Sprite.Radius := (Sprite_Width + Sprite_Height) / 5;
                   SDL.Video.Surfaces.Makers.Create (Surface_Sprite,
                                                     Size       => (int (Sprite_Width),
                                                                    int (Sprite_Height)),
@@ -262,7 +264,7 @@ package body Engines is
       end if;
 
       declare
-         Sprite : PIG_Sprite_Access renames Engine.Sprites (Frame);
+         Sprite : not null PIG_Sprite_Access renames Engine.Sprites (Frame);
       begin
          case Hotx is
             when PIG_UNCHANGED =>  null;
@@ -403,13 +405,13 @@ package body Engines is
    function Sqrt (F : Float) return Float renames Ada.Numerics.Elementary_Functions.Sqrt;
 
    --  Test for stationary sprite/sprite collision
-   procedure Sprite_Sprite_One (Object   : in PIG_Object_Access;
-                                Object_2 : in PIG_Object_Access;
+   procedure Sprite_Sprite_One (Object   : in not null PIG_Object_Access;
+                                Object_2 : in not null PIG_Object_Access;
                                 T        : in Float;
                                 Hitdist  : in Float);
 
-   procedure Sprite_Sprite_One (Object   : in PIG_Object_Access;
-                                Object_2 : in PIG_Object_Access;
+   procedure Sprite_Sprite_One (Object   : in not null PIG_Object_Access;
+                                Object_2 : in not null PIG_Object_Access;
                                 T        : in Float;
                                 Hitdist  : in Float)
    is
@@ -471,11 +473,11 @@ package body Engines is
    --  moves more than 25% of the collision distance between tests.
    --  (25% should be sufficient for correct direction flags.)
    procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
-                                 Object : in     PIG_Object_Access;
+                                 Object : in     not null PIG_Object_Access;
                                  Sprite : in     PIG_Sprite_Access);
 
    procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
-                                 Object : in     PIG_Object_Access;
+                                 Object : in     not null PIG_Object_Access;
                                  Sprite : in     PIG_Sprite_Access)
    is
       Object_2 : PIG_Object_Access;
@@ -531,11 +533,11 @@ package body Engines is
 
    --  Returns a non-zero value if the tile at (x, y) is marked for
    --  collisions on the side indicated by 'mask'.
-   function Check_Tile (Map  : in PIG_Map_Access;
+   function Check_Tile (Map  : in not null PIG_Map_Access;
                         X, Y : in Integer;
                         Mask : in Pig_Sides) return Pig_Sides;
 
-   function Check_Tile (Map  : in PIG_Map_Access;
+   function Check_Tile (Map  : in not null PIG_Map_Access;
                         X, Y : in Integer;
                         Mask : in Pig_Sides) return Pig_Sides
    is
@@ -594,37 +596,34 @@ package body Engines is
                                  Ci             : in     PIG_Cinfo_Access)
                                 return Pig_Sides
    is
-      Ci2  : PIG_Cinfo_Access := Ci;
-      M    : constant PIG_Map_Access := Engine.Map;
+      Ci2  : constant not null PIG_Cinfo_Access := (if Ci /= null then Ci else Lci'Access);
+      Map  : constant not null PIG_Map_Access   := Engine.Map;
       X, Y : Integer;
       Dist : Integer := 2_000_000_000;
    begin
-      if Ci2 = null then
-         Ci2 := Lci'Access;
-      end if;
       Ci2.Sides := PIG_None;
       if Mask.Top and Y1 < Y2 then
 
          --  Test for tiles that can be hit from the top
-         Y := Y1 + M.Tile_Height - Y1 mod M.Tile_Height;
+         Y := Y1 + Map.Tile_Height - Y1 mod Map.Tile_Height;
          while Y <= Y2 loop
             X := X1 + (X2 - X1) * (Y - Y1) / (Y2 - Y1);
-            if Check_Tile (M, X, Y + 1, PIG_Top) /= PIG_None then
+            if Check_Tile (Map, X, Y + 1, PIG_Top) /= PIG_None then
                Dist := (X - X1) * (X - X1) + (Y - Y1) * (Y - Y1);
                Ci2.X := X;
                Ci2.Y := Y - 1;
                Ci2.Sides.Top := True;
                exit;
             end if;
-            Y := Y + M.Tile_Height;
+            Y := Y + Map.Tile_Height;
          end loop;
       end if;
 
-      if Ci.Sides /= PIG_None then
-         Ci.Ff := Sqrt (Float ((X2 - X1) * (X2 - X1) +
+      if Ci2.Sides /= PIG_None then
+         Ci2.Ff := Sqrt (Float ((X2 - X1) * (X2 - X1) +
                                  (Y2 - Y1) * (Y2 - Y1) / Dist));
       end if;
-      return Ci.Sides;
+      return Ci2.Sides;
    end Pig_Test_Map_Vector;
 
 
@@ -849,7 +848,7 @@ package body Engines is
       for Object of Engine.Objects loop
          if Object.Ip.Gimage in 0 .. Engine.Nsprites - 1 then
             declare
-               Sprite : constant PIG_Sprite_Access := Engine.Sprites (Object.Ip.Gimage);
+               Sprite : constant not null PIG_Sprite_Access := Engine.Sprites (Object.Ip.Gimage);
 
                Area   : SDL.Video.Rectangles.Rectangle :=
                  (X      => int (Object.Ip.Gx) - int (Sprite.Hotx),
@@ -877,7 +876,7 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out PIG_Engine)
    is
-      Table  : Dirty.Table_Access renames Engine.Workdirty;
+      Table  : not null Dirty.Table_Access renames Engine.Workdirty;
       Fframe : constant Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
    begin
       Engine.Surface.Set_Clip_Rectangle (Engine.View);
@@ -906,7 +905,7 @@ package body Engines is
          if Object.Ip.Gimage >= 0 and Object.Ip.Gimage < Engine.Nsprites then
             declare
                use SDL.C;
-               Sprite      : constant PIG_Sprite_Access     := Engine.Sprites (Object.Ip.Gimage);
+               Sprite      : constant not null PIG_Sprite_Access := Engine.Sprites (Object.Ip.Gimage);
                Source_Area : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
 
                Target_Area : SDL.Video.Rectangles.Rectangle :=
@@ -956,19 +955,22 @@ package body Engines is
    is
       use SDL.Video.Surfaces;
       Color  : Interfaces.Unsigned_32;
-      Format : SDL.Video.Pixel_Formats.Pixel_Format_Access;
    begin
       if Engine.Buffer = Null_Surface then
-         Format := Engine.Screen.Pixel_Format;
-         SDL.Video.Surfaces.Makers.Create --  RGBSurface
-           (Engine.Buffer,
+         declare
+            Format : constant not null SDL.Video.Pixel_Formats.Pixel_Format_Access :=
+              Engine.Screen.Pixel_Format;
+         begin
+            SDL.Video.Surfaces.Makers.Create --  RGBSurface
+              (Engine.Buffer,
 --            SDL_SWSURFACE,
-            Engine.Screen.Size, -- .Width, Pe.Screen.Size.Height,
-            Pixel_Depths (Format.Bits), --  BPP, --  Bits_Per_Pixel,
-            Red_Mask   => Colour_Masks (Format.Red_Mask),
-            Green_Mask => Colour_Masks (Format.Green_Mask),
-            Blue_Mask  => Colour_Masks (Format.Blue_Mask),
-            Alpha_Mask => Colour_Masks (Format.Alpha_Mask));
+               Engine.Screen.Size, -- .Width, Pe.Screen.Size.Height,
+               Pixel_Depths (Format.Bits), --  BPP, --  Bits_Per_Pixel,
+               Red_Mask   => Colour_Masks (Format.Red_Mask),
+               Green_Mask => Colour_Masks (Format.Green_Mask),
+               Blue_Mask  => Colour_Masks (Format.Blue_Mask),
+               Alpha_Mask => Colour_Masks (Format.Alpha_Mask));
+         end;
          if Engine.Buffer = Null_Surface then
             return;
          end if;
@@ -1034,7 +1036,6 @@ package body Engines is
 --      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
 
       if Engine.Show_Dirtyrects then
-
          Show_Rects (Engine, Table);
          for I in 1 .. Table.Last loop
             declare
@@ -1108,8 +1109,8 @@ package body Engines is
    --    Map
    ------------------------------------------------------------
 
-   procedure Pig_Map_Open (Map           :    out PIG_Map_Access;
-                           Engine        : in     PIG_Engine_Access;
+   procedure Pig_Map_Open (Map           :    out not null PIG_Map_Access;
+                           Engine        : in     not null PIG_Engine_Access;
                            Width, Height : in     Integer)
    is
    begin
@@ -1256,10 +1257,10 @@ package body Engines is
    --      Object
    ------------------------------------------------------------
 
-   function Get_Object (Engine : in out PIG_Engine) return PIG_Object_Access;
-   function Get_Object (Engine : in out PIG_Engine) return PIG_Object_Access
+   function Get_Object (Engine : in out PIG_Engine) return not null PIG_Object_Access;
+   function Get_Object (Engine : in out PIG_Engine) return not null PIG_Object_Access
    is
-      Object : PIG_Object_Access;
+      Object : constant not null PIG_Object_Access := new PIG_Object'(Clean_Object);
    begin
       --      if(pe->object_pool)
 --      {
@@ -1269,7 +1270,7 @@ package body Engines is
 --      }
 --      else
 --      {
-      Object := new PIG_Object'(Clean_Object);
+
       --              po = (PIG_object *)calloc(1, sizeof(PIG_object));
 --              if(!po)
 --                      return NULL;
@@ -1292,11 +1293,11 @@ package body Engines is
    end Free_Object;
 
 
-   function Pig_Object_Open (Engine : in PIG_Engine_Access;
+   function Pig_Object_Open (Engine : in not null PIG_Engine_Access;
                              X, Y   : in Integer;
-                             Last   : in Boolean) return PIG_Object_Access
+                             Last   : in Boolean) return not null PIG_Object_Access
    is
-      Object : constant PIG_Object_Access := Get_Object (Engine.all);
+      Object : constant not null PIG_Object_Access := Get_Object (Engine.all);
    begin
       Object.Owner    := Engine;
       Object.Tilemask := PIG_All;
@@ -1352,7 +1353,7 @@ package body Engines is
 
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Integer) return PIG_Object_Access
+                             Id    :        Integer) return not null PIG_Object_Access
    is
 --  PIG_object *pig_object_find(PIG_object *start, int id)
 --      Pob, Pof : PIG_Object_Access;
@@ -1395,7 +1396,9 @@ package body Engines is
 --              end if;
 --           end if;
 --        end loop;
-      return null;
+--      Ada.Text_IO.Put_Line ("ERROR");
+--      return null;
+      raise Program_Error;
    end Pig_Object_Find;
 
 
