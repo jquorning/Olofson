@@ -19,7 +19,7 @@ project Pig is
        ("-g",
 --        "-O2",
         "-gnatf",
-        "-gnatVa",
+--        "-gnatVa",
         "-gnatwa",
         "-gnatwj",
         "-gnatw.x",

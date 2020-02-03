@@ -129,68 +129,79 @@ procedure Pig is
    is
       use Ada.Numerics.Elementary_Functions;
       use Ada.Real_Time;
-      Pi : constant := Ada.Numerics.Pi;
-      R  : SDL.Video.Rectangles.Rectangle;
-      V  : Integer;
-      X  : Float;
-      --   T : Float := SDL_GetTicks * 0.001;
-      Now : constant Time := Clock; --  Float := SDL_GetTicks * 0.001;
-      T   : constant Float := Float (To_Duration (Now - Game.Start_Time));
+      Pi   : constant       := Ada.Numerics.Pi;
+      Now  : constant Time  := Clock;
+      T    : constant Float := Float (To_Duration (Now - Game.Start_Time));
+
+      Clip : constant SDL.Video.Rectangles.Rectangle :=
+        (X      => 0,
+         Y      => SDL.C.int (SCREEN_H - 56),
+         Width  => SCREEN_W,
+         Height => 56);
+
+--      V   : Integer;
+--      X   : Float;
    begin
-      R.X      := 0;
-      R.Y      := SDL.C.int (SCREEN_H - 56);
-      R.Width  := SCREEN_W;
-      R.Height := 56;
-      SDL.Video.Surfaces.Set_Clip_Rectangle (Game.Engine.Surface, R);
+      Game.Engine.Surface.Set_Clip_Rectangle (Clip);
 
       --  Render "plasma bar"
       for I in 0 .. 56 - 1 loop
          declare
             use SDL.Video.Palettes;
-            F1, F2, M : Float;
-            Cr    : SDL.Video.Rectangles.Rectangle;
-            Pixel : Interfaces.Unsigned_32;
-         begin
-            Cr.X      := 0;
-            Cr.Width  := SCREEN_W;
-            Cr.Y      := SDL.C.int (SCREEN_H - 56 + I);
-            Cr.Height := 1;
-            F1 := 0.25 + 0.25 * Sin (T * 1.7 + Float (I) / Float (SCREEN_H * 42));
-            F1 := F1 + 0.25 + 0.25 * Sin (-T * 2.1 + Float (I) / Float (SCREEN_H * 66));
-            F2 := 0.25 + 0.25 * Sin (T * 3.31 + Float (I) / Float (SCREEN_H * 90));
-            F2 := F2 + 0.25 + 0.25 * Sin (-T * 1.1 + Float (I) / Float (SCREEN_H * 154));
-            M := Sin (Float (I) * Pi / 56.0);
-            M := Sin (M * Pi * 0.5);
-            M := Sin (M * Pi * 0.5);
-            Pixel := SDL.Video.Pixel_Formats.To_Pixel
+
+            Line : constant SDL.Video.Rectangles.Rectangle :=
+              (X      => 0,
+               Width  => SCREEN_W,
+               Y      => SDL.C.int (I + SCREEN_H - 56),
+               Height => 1);
+
+            F1 : constant Float :=
+              0.25 + 0.25 * Sin (T  * 1.7  + Float (I) / Float (SCREEN_H * 42))
+              + 0.25 + 0.25 * Sin (-T * 2.1  + Float (I) / Float (SCREEN_H * 66));
+
+            F2 : constant Float :=
+              0.25 + 0.25 * Sin (T  * 3.31 + Float (I) / Float (SCREEN_H * 90))
+              + 0.25 + 0.25 * Sin (-T * 1.1  + Float (I) / Float (SCREEN_H * 154));
+
+            M_1 : constant Float := Sin (Float (I) * Pi / 56.0);
+            M_2 : constant Float := Sin (M_1 * Pi * 0.5);
+            M   : constant Float := Sin (M_2 * Pi * 0.5);
+
+            Pixel : constant Interfaces.Unsigned_32 :=
+              SDL.Video.Pixel_Formats.To_Pixel
               (Format => Game.Engine.Surface.Pixel_Format,
-               Red    => (Colour_Component ((128.0 * F1 + 64.0) * M)),
-               Green  => (Colour_Component ((64.0 * F1 * F2 + 64.0) * M)),
-               Blue   => (Colour_Component ((128.0 * F2 + 32.0) * M)));
-            SDL.Video.Surfaces.Fill (Game.Engine.Surface, Cr, Pixel);
+               Red    => (Colour_Component ((128.0 * F1      + 64.0) * M)),
+               Green  => (Colour_Component ((64.0  * F1 * F2 + 64.0) * M)),
+               Blue   => (Colour_Component ((128.0 * F2      + 32.0) * M)));
+         begin
+            Game.Engine.Surface.Fill (Line, Pixel);
          end;
       end loop;
 
       --  Draw pigs... uh, lives!
-      X := -10.0;
-      for I in 0 .. Game.Lives - 1 loop
-         X := X + 48.0 + Game.Lives_Wobble *
-           Sin (Float (Game.Lives_Wobble_Time) * 12.0) * 0.2;
-         Engines.Pig_Draw_Sprite
-           (Game.Engine.all, Game.Lifepig,
-            Integer (X) + Integer (Game.Lives_Wobble *
-                                     Sin (Float (Game.Lives_Wobble_Time) * 20.0
-                                            + Float (I) * 1.7)),
-            SCREEN_H - 56 / 2);
-      end loop;
+      declare
+         X : Float := -10.0;
+      begin
+         for I in 0 .. Game.Lives - 1 loop
+            X := X + 48.0 + Game.Lives_Wobble *
+              Sin (Float (Game.Lives_Wobble_Time) * 12.0) * 0.2;
+            Engines.Pig_Draw_Sprite
+              (Game.Engine.all, Game.Lifepig,
+               Integer (X) + Integer (Game.Lives_Wobble *
+                                        Sin (Float (Game.Lives_Wobble_Time) * 20.0
+                                               + Float (I) * 1.7)),
+               SCREEN_H - 56 / 2);
+         end loop;
+      end;
 
       --  Print score
-      X := Float (SCREEN_W + 5);
-      V := Game.Score;
-      for I in reverse 0 .. 9 loop
-         declare
-            N : constant Integer := V mod 10;
-         begin
+      declare
+         X : Float   := Float (SCREEN_W + 5);
+         V : Integer := Game.Score;
+         N : Natural;
+      begin
+         for I in reverse 0 .. 9 loop
+            N := V mod 10;
             X := X - 39.0 - Game.Score_Wobble *
               Sin (Float (Game.Score_Wobble_Time) * 15.0 + Float (I) * 0.5);
             Engines.Pig_Draw_Sprite (Game.Engine.all, Game.Scorefont + N,
@@ -198,10 +209,10 @@ procedure Pig is
                                      SCREEN_H - 56 / 2);
             V := V / 10;
             exit when V = 0;
-         end;
-      end loop;
+         end loop;
+      end;
 
-      Engines.Pig_Dirty (Game.Engine.all, R);
+      Engines.Pig_Dirty (Game.Engine.all, Clip);
    end Dashboard;
 
 
@@ -246,13 +257,13 @@ procedure Pig is
             null;
 
          when Keyboards.Key_Down =>
-            Ada.Text_IO.Put_Line ("Key pressed => " & Event.Keyboard.Key_Sym.Key_Code'Image);
-            case Event.Keyboard.Key_Sym.Key_Code is
 
-               when Keyboards.Code_Up =>
+            case Event.Keyboard.Key_Sym.Scan_Code is
+
+               when Keyboards.Scan_Code_Up =>
                   Game.Jump := 3;
 
-               when Keyboards.Code_F1 =>
+               when Keyboards.Scan_Code_F1 =>
                   Game.Engine.Interpolation := not Game.Engine.Interpolation;
                   if Game.Engine.Interpolation then
                      Message (Game, "Interpolation: ON");
@@ -260,7 +271,7 @@ procedure Pig is
                      Message (Game, "Interpolation: OFF");
                   end if;
 
-               when Keyboards.Code_F2 =>
+               when Keyboards.Scan_Code_F2 =>
                   Game.Engine.Direct := not Game.Engine.Direct;
                   if Game.Engine.Direct then
                      Message (Game, "Rendering: Direct");
@@ -268,7 +279,7 @@ procedure Pig is
                      Message (Game, "Rendering: Buffered");
                   end if;
 
-               when Keyboards.Code_F3 =>
+               when Keyboards.Scan_Code_F3 =>
                   Game.Engine.Show_Dirtyrects := not Game.Engine.Show_Dirtyrects;
                   if Game.Engine.Show_Dirtyrects then
                      Message (Game, "Dirtyrects: ON");
@@ -276,7 +287,7 @@ procedure Pig is
                      Message (Game, "Dirtyrects: OFF");
                   end if;
 
-               when Keyboards.Code_F4 =>
+               when Keyboards.Scan_Code_F4 =>
                   Game.Nice := not Game.Nice;
                   if Game.Nice then
                      Message (Game, "Be Nice: ON");
@@ -284,7 +295,7 @@ procedure Pig is
                      Message (Game, "Be Nice: OFF");
                   end if;
 
-               when Keyboards.Code_Space =>
+               when Keyboards.Scan_Code_Space =>
                   declare
                      Result : Integer;
                   begin
