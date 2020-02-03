@@ -241,7 +241,7 @@ package Engines is
    type Bef_Aft_Access      is access procedure (Pe : in out PIG_Engine);
    type Sprite_Array        is array (Natural range <>) of PIG_Sprite_Access;
    type Sprite_Array_Access is access all Sprite_Array;
-   type Dirty_Array         is array (0 .. 1) of Dirty.PIG_Dirtytable_Access;
+   type Dirty_Array         is array (0 .. 1) of Dirty.Table_Access;
 
    type PIG_Engine is new Ada.Finalization.Controlled with record
       --  Video stuff
@@ -253,16 +253,16 @@ package Engines is
 
       Page      : Integer range 0 .. 1;        --  Current page (double buffer)
       Pagedirty : Dirty_Array;                 --  One table for each page
-      Workdirty : Dirty.PIG_Dirtytable_Access; --  The work dirtytable
+      Workdirty : Dirty.Table_Access;          --  The work dirtytable
 
       --  "Live" switches
-      Interpolation   : Boolean; -- Integer;
-      Direct          : Boolean; -- Integer; --  1 ==> render directly to screen
-      Show_Dirtyrects : Boolean; -- Integer;
+      Interpolation   : Boolean;
+      Direct          : Boolean;    --  True: Render directly to screen
+      Show_Dirtyrects : Boolean;
 
       --  Time
-      Time  : Long_Float;       --  Logic time (frames)
-      Frame : Integer;          --  Logic time; integer part
+      Time  : Long_Float;           --  Logic time (frames)
+      Frame : Integer;              --  Logic time; integer part
 
       --  Background graphics
       Map : PIG_Map_Access;

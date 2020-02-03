@@ -20,28 +20,28 @@ package body Dirty is
    --  accept it as Perfect.
 
 
-   function Pig_Dirty_Open (Size : in Integer) return PIG_Dirtytable_Access
+   function Create (Size : in Integer) return Table_Access
    is
-      Table : PIG_Dirtytable_Access;
+      Table : Table_Access;
    begin
-      Table       := new PIG_Dirtytable'(Rects => null, others => 0);
+      Table       := new Table_Type'(Rects => null, others => 0);
       Table.Rects := new Rectangle_Arrays'(1 .. Index_Type (Size) => Null_Rectangle);
       Table.Last  := 0;
       Table.Best  := 0;
       return Table;
-   end Pig_Dirty_Open;
+   end Create;
 
 
-   procedure Pig_Dirty_Close (Table : in out PIG_Dirtytable_Access) is
+   procedure Close (Table : in out Table_Access) is
    begin
       null;
 --          free(pdt->rects);
 --          free(pdt);
-   end Pig_Dirty_Close;
+   end Close;
 
 
-   procedure Pig_Merge (From : in     SDL.Video.Rectangles.Rectangle;
-                        To   : in out SDL.Video.Rectangles.Rectangle)
+   procedure Merge (From : in     SDL.Video.Rectangles.Rectangle;
+                    To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
       X1 : int := From.X;
@@ -65,11 +65,11 @@ package body Dirty is
       To.Y      := Y1;
       To.Width  := X2 - X1;
       To.Height := Y2 - Y1;
-   end Pig_Merge;
+   end Merge;
 
 
-   procedure Pig_Intersect (From : in     SDL.Video.Rectangles.Rectangle;
-                            To   : in out SDL.Video.Rectangles.Rectangle)
+   procedure Intersect (From : in     SDL.Video.Rectangles.Rectangle;
+                        To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
       Amin, Amax, Bmin, Bmax : Integer;
@@ -99,11 +99,11 @@ package body Dirty is
          Amax := Bmax;
       end if;
       To.Height := int (if Amax - Amin > 0 then Amax - Amin else 0);
-   end Pig_Intersect;
+   end Intersect;
 
 
-   procedure Pig_Dirty_Add (Table : in out PIG_Dirtytable;
-                            Rect  : in     SDL.Video.Rectangles.Rectangle)
+   procedure Add (Table : in out Table_Type;
+                  Rect  : in     SDL.Video.Rectangles.Rectangle)
    is
       I         : Index_Type := 0;
       Best_I    : Index_Type;
@@ -134,14 +134,14 @@ package body Dirty is
             Testr := Table.Rects (I);
             A2    := Integer (Testr.Width * Testr.Height);
 
-            Pig_Merge (Rect, Testr);
+            Merge (Rect, Testr);
             Am := Integer (Testr.Width * Testr.Height);
 
             --  Perfect or Instant Pick?
             Ratio := 100 * Am / (if A1 > A2 then A1 else A2);
             if Ratio < PIG_INSTANT_MERGE then
                --  Ok, this is good enough! Stop searching.
-               Pig_Merge (Rect, Table.Rects (I));
+               Merge (Rect, Table.Rects (I));
                Table.Best := I;
                return;
             end if;
@@ -159,7 +159,7 @@ package body Dirty is
 
       --  ...and if the best result is good enough, merge!
       if Best_I > 0 and Best_Loss < PIG_WORST_MERGE then
-         Pig_Merge (Rect, Table.Rects (Best_I));
+         Merge (Rect, Table.Rects (Best_I));
          return;
       end if;
 
@@ -171,18 +171,18 @@ package body Dirty is
       end if;
 
       --  Emergency: Table full! Grab best candidate...
-      Pig_Merge (Rect, Table.Rects (Best_I));
-   end Pig_Dirty_Add;
+      Merge (Rect, Table.Rects (Best_I));
+   end Add;
 
 
-   procedure Pig_Dirty_Merge (Table : in out PIG_Dirtytable;
-                              From  : in     PIG_Dirtytable)
+   procedure Merge_Tables (Table : in out Table_Type;
+                           From  : in     Table_Type)
    is
    begin
       for I in 1 .. From.Last loop
-         Pig_Dirty_Add (Table, From.Rects (I));
+         Add (Table, From.Rects (I));
       end loop;
-   end Pig_Dirty_Merge;
+   end Merge_Tables;
 
 
 end Dirty;

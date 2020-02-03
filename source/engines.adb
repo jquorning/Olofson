@@ -100,15 +100,15 @@ package body Engines is
 --              return NULL;
 --      }
 
-      Engine.Pagedirty (0) := Dirty.Pig_Dirty_Open (Size => 128);
-      Engine.Workdirty     := Dirty.Pig_Dirty_Open (Size => 256);
+      Engine.Pagedirty (0) := Dirty.Create (Size => 128);
+      Engine.Workdirty     := Dirty.Create (Size => 256);
 --      if(!pe->pagedirty[0] || !pe->workdirty)
 --      {
 --              pig_close(pe);
 --              return NULL;
 --      }
       if Engine.Pages > 1 then
-         Engine.Pagedirty (1) := Dirty.Pig_Dirty_Open (Size => 128);
+         Engine.Pagedirty (1) := Dirty.Create (Size => 128);
 --              if(!pe->pagedirty[1] then
 --                      pig_close(pe);
 --                      return NULL;
@@ -142,13 +142,13 @@ package body Engines is
 --      if(pe->buffer)
 --              SDL_FreeSurface(pe->buffer);
       if Engine.Pagedirty (0) /= null then
-         Dirty.Pig_Dirty_Close (Engine.Pagedirty (0));
+         Dirty.Close (Engine.Pagedirty (0));
       end if;
       if Engine.Pagedirty (1) /= null then
-         Dirty.Pig_Dirty_Close (Engine.Pagedirty (1));
+         Dirty.Close (Engine.Pagedirty (1));
       end if;
       if Engine.Workdirty /= null then
-         Dirty.Pig_Dirty_Close (Engine.Workdirty);
+         Dirty.Close (Engine.Workdirty);
       end if;
 --      free(pe);
    end Pig_Close;
@@ -759,11 +759,11 @@ package body Engines is
       R.Width  := Engine.Surface.Size.Width;
       R.Height := Engine.Surface.Size.Height;
       if Area /= Null_Rectangle then
-         Dirty.Pig_Intersect (Area, R);
+         Dirty.Intersect (Area, R);
       end if;
 
       if R.Width /= 0 and R.Height /= 0 then
-         Dirty.Pig_Dirty_Add (Engine.Pagedirty (Engine.Page).all, R);
+         Dirty.Add (Engine.Pagedirty (Engine.Page).all, R);
       end if;
 
    end Pig_Dirty;
@@ -846,7 +846,7 @@ package body Engines is
                   Width  => int (Sprite.Width),
                   Height => int (Sprite.Height));
             begin
-               Dirty.Pig_Intersect (Engine.View, Area);
+               Dirty.Intersect (Engine.View, Area);
                if Area.Width /= 0 and Area.Height /= 0 then
                   Tile_Area (Engine, Area);
                end if;
@@ -866,7 +866,7 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out PIG_Engine)
    is
-      Table  : Dirty.PIG_Dirtytable_Access renames Engine.Workdirty;
+      Table  : Dirty.Table_Access renames Engine.Workdirty;
       Fframe : constant Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
    begin
       Engine.Surface.Set_Clip_Rectangle (Engine.View);
@@ -911,14 +911,14 @@ package body Engines is
                --  We use the clipped rect for the dirtyrect!
                --
                if Target_Area.Width /= 0 and Target_Area.Height /= 0 then
-                  Dirty.Pig_Dirty_Add (Table.all, Target_Area);
+                  Dirty.Add (Table.all, Target_Area);
                end if;
             end;
          end if;
       end loop;
 
       --  Merge the display/back page table into the work table
-      Dirty.Pig_Dirty_Merge (Engine.Workdirty.all, Table.all);
+      Dirty.Merge_Tables (Engine.Workdirty.all, Table.all);
    end Draw_Sprites;
 
 
@@ -939,9 +939,9 @@ package body Engines is
 
 
    procedure Show_Rects (Engine : in out PIG_Engine;
-                         Table  : in     Dirty.PIG_Dirtytable);
+                         Table  : in     Dirty.Table_Type);
    procedure Show_Rects (Engine : in out PIG_Engine;
-                         Table  : in     Dirty.PIG_Dirtytable)
+                         Table  : in     Dirty.Table_Type)
    is
       use type Dirty.Index_Type;
       use SDL.Video.Surfaces;
@@ -1020,7 +1020,7 @@ package body Engines is
       use type Dirty.Index_Type;
       use SDL.Video.Surfaces;
       use SDL.Video.Rectangles;
-      Table : Dirty.PIG_Dirtytable renames Engine.Workdirty.all;
+      Table : Dirty.Table_Type renames Engine.Workdirty.all;
    begin
 --      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
 
@@ -1036,7 +1036,7 @@ package body Engines is
                Rect.Y      := Rect.Y - 32;
                Rect.Width  := Rect.Width + 64;
                Rect.Height := Rect.Height + 64;
-               Dirty.Pig_Intersect (Engine.Buffer.Clip_Rectangle, Rect);
+               Dirty.Intersect (Engine.Buffer.Clip_Rectangle, Rect);
             end;
          end loop;
 

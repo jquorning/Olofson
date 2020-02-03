@@ -19,30 +19,30 @@ package Dirty is
    subtype Index_Type     is SDL.C.size_t;
    type Rect_Array_Access is access all Rectangle_Arrays;
 
-   type PIG_Dirtytable is record
+   type Table_Type is record
       Rects : Rect_Array_Access; --  Table of rects
       Last  : Index_Type;        --  # of rects currently used
       Best  : Index_Type;        --  Merge testing starts here!
    end record;
-   type PIG_Dirtytable_Access is access all PIG_Dirtytable;
+   type Table_Access is access all Table_Type;
 
-   function Pig_Dirty_Open (Size : in Integer) return PIG_Dirtytable_Access;
-   procedure Pig_Dirty_Close (Table : in out PIG_Dirtytable_Access);
+   function Create (Size : in Integer) return Table_Access;
+   procedure Close (Table : in out Table_Access);
 
-   procedure Pig_Dirty_Add (Table : in out PIG_Dirtytable;
-                            Rect  : in     Rectangle);
+   procedure Add (Table : in out Table_Type;
+                  Rect  : in     Rectangle);
    --  Add rectangle Rect to Table.
 
-   procedure Pig_Dirty_Merge (Table : in out PIG_Dirtytable;
-                              From  : in     PIG_Dirtytable);
-   --  Merge table From into table Table.
+   procedure Merge_Tables (Table : in out Table_Type;
+                           From  : in     Table_Type);
+   --  Merge From into Table.
 
-   procedure Pig_Merge (From : in     Rectangle;
+   procedure Merge (From : in     Rectangle;
+                    To   : in out Rectangle);
+   --  Extend To to a new rect that includes both From and To.
+
+   procedure Intersect (From : in     Rectangle;
                         To   : in out Rectangle);
-   --  Extend 'to' to a new rect that includes both 'From' and 'To'
-
-   procedure Pig_Intersect (From : in     Rectangle;
-                            To   : in out Rectangle);
-   --  Clip 'to' into a rect that is the intersection of 'from' and 'to'
+   --  Clip To into a rect that is the intersection of From and To.
 
 end Dirty;
