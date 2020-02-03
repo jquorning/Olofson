@@ -345,9 +345,9 @@ procedure Pig is
       Dashframe  : Integer;
       Logic_FPS  : constant Float := 20.0;
       --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
-
+      use type SDL.Init_Flags;
    begin
-      if not SDL.Initialise (0) then
+      if not SDL.Initialise (SDL.Enable_Screen or SDL.Enable_Events) then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                "Could not initialise SDL library.");
          return;
