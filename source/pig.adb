@@ -8,8 +8,9 @@
 --  Contact author for permission if you want to use this
 --  software, or work derived from it, under other terms.
 
-with Ada.Numerics.Elementary_Functions;
 with Ada.Real_Time;
+with Ada.Command_Line;
+with Ada.Numerics.Elementary_Functions;
 with Ada.Text_IO;
 
 with Interfaces;
@@ -239,8 +240,9 @@ procedure Pig is
    procedure Start_Game (Game   : in out Game_State;
                          Result :    out Integer)
    is
+      Player : Engines.PIG_Object_Access;
    begin
-      if 0 /= Game.Level then
+      if Game.Level /= 0 then
          Result := 0;       -- Already playing! -->
          return;
       end if;
@@ -248,22 +250,10 @@ procedure Pig is
       Game.Score := 0;
       Game.Lives := 5;
 
-      begin
-         Load_Level (Game, 1);
-      exception
-         when others => --  if Load_Result < 0 then
-            Result := -1;
-            return;
-      end; --  if;
+      Load_Level (Game, 1);
 
-      begin
-         New_Player (Game, Game.Player);
-      exception
-         when others =>
-            --  if Gs.Player = null then
-            Result := -1;
-            return;
-      end; --  if;
+      New_Player (Game, Player);
+      Game.Player := Player;
 
       Result := 0;
    end Start_Game;
@@ -377,27 +367,33 @@ procedure Pig is
    Screen     : SDL.Video.Surfaces.Surface;
    Game       : Game_State_Access;
    I          : Integer;
-   BPP        : Integer := 0;
    Last_Tick  : Ada.Real_Time.Time;
    Start_Time : Ada.Real_Time.Time;
    End_Time   : Ada.Real_Time.Time;
    Dashframe  : Integer;
-   logic_fps  : constant Float := 20.0;
---   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
+   Logic_FPS  : constant Float := 20.0;
+   BPP           : Integer := 0;
+   Double_Buffer : Boolean := False;
+   Full_Screen   : Boolean := False;
+   pragma Unreferenced (BPP, Double_Buffer, Full_Screen);
+   --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
 begin
+
+   Process_Command_Line :
+   for Index in 1 .. Ada.Command_Line.Argument_Count loop
+      declare
+         Argument : String renames Ada.Command_Line.Argument (Index);
+      begin
+         if    Argument = "-s" then  Double_Buffer := False;
+         elsif Argument = "-f" then  Full_Screen   := True;
+         else                        BPP := Integer'Value (Argument);
+         end if;
+      end;
+   end loop Process_Command_Line;
+
    if not SDL.Initialise (SDL.Enable_Everything) then
       null;
    end if;
-
---          for(i = 1; i < argc; ++i)
---          {
---                  if(strncmp(argv[i], "-s", 2) == 0)
---                          flags &= ~SDL_DOUBLEBUF;
---                  else if(strncmp(argv[i], "-f", 2) == 0)
---                          flags |= SDL_FULLSCREEN;
---                  else
---                          bpp = atoi(&argv[i][1]);
---          }
 
    begin
       SDL.Video.Windows.Makers.Create (Window, Width => SCREEN_W, Height => SCREEN_H,
@@ -440,23 +436,24 @@ begin
          Tick2   : Ada.Real_Time.Time; -- Integer;
          Frames  : Float;
          Dt      : Duration; -- Ada.Real_Time.Time_Span; --  Duration;
-         Ev      : SDL.Events.Events.Events;
+         Event   : SDL.Events.Events.Events;
       begin
          --  Handle input
-         while SDL.Events.Events.Poll (Ev) loop
-            Handle_Input (Game.all, Ev);
+         while SDL.Events.Events.Poll (Event) loop
+            Handle_Input (Game.all, Event);
          end loop;
+
          Handle_Keys (Game.all);
+
          if not Signals.Process_Control.Is_Running then
             Game.Running := False;
          end if;
 
          --  Calculate time since last update
          Tick2   := Ada.Real_Time.Clock;
-         --  SDL_GetTicks;
          --  Dt     := Float (tick - last_tick) * 0.001;
          Dt     := Ada.Real_Time.To_Duration (Tick2 - Last_Tick);
-         Frames := Float (Dt) * logic_fps;
+         Frames := Float (Dt) * Logic_FPS;
 
          --  Run the game logic
          Engines.Pig_Animate (Game.Engine.all, Frames);
@@ -466,14 +463,17 @@ begin
          --
          --  The 'dashframe' deal is about keeping the
          --  pages in sync on a double buffered display.
+         pragma Warnings (Off, "* not a multiple of Small");
          if
            Game.Lives_Wobble /= 0.0 or
            Game.Score_Wobble /= 0.0 or
-           (Game.Dashboard_Time > Duration (1.0 / 15.0))
+           Game.Dashboard_Time > Duration (1.0 / 15.0)
          then
             Dashframe := Game.Engine.Pages;
             Game.Dashboard_Time := 0.0;
          end if;
+         pragma Warnings (On, "* not a multiple of Small");
+
          if Dashframe /= 0 then
             Dashframe := Dashframe - 1;
             Dashboard (Game.all);
