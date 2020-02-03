@@ -299,10 +299,10 @@ package Engines is
                         Frame  : in     Integer);
    --  Start engine at logic time 'frame'
 
-   procedure Pig_Sprites (Engine   : in out PIG_Engine;
-                          Filename : in     String;
-                          Sw, Sh   : in     Integer;
-                          Result   :    out Integer);
+   procedure Pig_Sprites (Engine        : in out PIG_Engine;
+                          Filename      : in     String;
+                          Width, Height : in     Integer;
+                          Handle        :    out Integer);
 --  Load a sprite palette image. The image is chopped up into
 --  sprites, based on 'sw' and 'sh', and added as new frames
 --  in the sprite bank. Default values:

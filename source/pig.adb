@@ -11,6 +11,7 @@
 with Ada.Real_Time;
 with Ada.Command_Line;
 with Ada.Numerics.Elementary_Functions;
+with Ada.Exceptions;
 with Ada.Text_IO;
 
 with Interfaces;
@@ -518,4 +519,8 @@ begin
    Ada.Text_IO.Put_Line ("    Average logic frame rate: " &
                            Float (Game.Logic_Frames * 1000 / I)'Image & " fps");
    Engines.Pig_Close (Game.Engine.all);
+exception
+   when Occurence : others =>
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message     (Occurence));
+      Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Information (Occurence));
 end Pig;

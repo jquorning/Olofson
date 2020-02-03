@@ -164,82 +164,73 @@ package body Engines is
    end Pig_Viewport;
 
 
-   procedure Pig_Sprites (Engine   : in out PIG_Engine;
-                          Filename : in     String;
-                          Sw, Sh   : in     Integer;
-                          Result   :    out Integer)
+   procedure Pig_Sprites (Engine        : in out PIG_Engine;
+                          Filename      : in     String;
+                          Width, Height : in     Integer;
+                          Handle        :    out Integer)
    is
-      use SDL.C;
-      X, Y, Count, Handle : Integer;
-      Surface_Load  : SDL.Video.Surfaces.Surface;
-      Sprite_Width  : Integer := Sw;
-      Sprite_Height : Integer := Sh;
+      Surface_Load : SDL.Video.Surfaces.Surface;
    begin
-      Ada.Text_IO.Put_Line ("Loading: " & Filename);
-      begin
-         SDL.Images.IO.Create (Surface_Load, Filename);
-      exception
-         when others =>
-            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                                  "Could not load '" & Filename & "'!");
-            raise;
-      end;
-
-      Handle := Engine.Nsprites;
-
-      if Sprite_Width  = 0 then Sprite_Width  := Integer (Surface_Load.Size.Width);  end if;
-      if Sprite_Height = 0 then Sprite_Height := Integer (Surface_Load.Size.Height); end if;
+      SDL.Images.IO.Create (Surface_Load, Filename);
 
       --  Disable blending, so we get the alpha channel COPIED!
       Surface_Load.Set_Alpha_Blend (0);               --      SDL_SetAlpha(tmp, 0, 0);
       Surface_Load.Set_Blend_Mode  (SDL.Video.None);  --      SDL_SetAlpha(tmp, 0, 0);
 --      Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0), Enable => True);
 
-      Count := 0;
+      Handle := Engine.Nsprites;
 
-      Y := 0;
-      while Y <= Integer (Surface_Load.Size.Height) - Sprite_Height loop
-         X := 0;
-         while X <= Integer (Surface_Load.Size.Width) - Sprite_Width loop
-            declare
-               Source_Area    : SDL.Video.Rectangles.Rectangle;
-               Target_Area    : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
-               Surface_Sprite : SDL.Video.Surfaces.Surface;
-               Sprite         : PIG_Sprite_Access;
-            begin
+      declare
+         use SDL.C;
+         Surface_Width  : constant Natural := Natural (Surface_Load.Size.Width);
+         Surface_Height : constant Natural := Natural (Surface_Load.Size.Height);
+         Sprite_Width   : constant Natural := (if Width  /= 0 then Width  else Surface_Width);
+         Sprite_Height  : constant Natural := (if Height /= 0 then Height else Surface_Height);
+         Last_X         : constant Natural := Surface_Width  / Sprite_Width;
+         Last_Y         : constant Natural := Surface_Height / Sprite_Height;
+      begin
+         for Y in 1 .. Last_Y loop
+            for X in 1 .. Last_X loop
+               declare
+                  Source_Area    : SDL.Video.Rectangles.Rectangle;
+                  Target_Area    : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
+                  Surface_Sprite : SDL.Video.Surfaces.Surface;
+                  Sprite         : PIG_Sprite_Access;
+               begin
 --                      if(pe->nsprites >= PIG_MAX_SPRITES)
 --                      {
 --                              fprintf(stderr, "Sprite bank full!\n");
 --                              return -1;
 --                      }
 --                      s = (PIG_sprite *)calloc(1, sizeof(PIG_sprite));
-               Sprite := new PIG_Sprite;
-               Sprite.Width  := Sprite_Width;
-               Sprite.Height := Sprite_Height;
-               Sprite.Hotx   := Sprite_Width  / 2;
-               Sprite.Hoty   := Sprite_Height / 2;
-               Sprite.Radius := (Sprite_Width + Sprite_Height) / 5;
-               SDL.Video.Surfaces.Makers.Create (Surface_Sprite,
-                                                 Size       => (int (Sprite_Width),
-                                                                int (Sprite_Height)),
-                                                 BPP        => 32,
-                                                 Red_Mask   => 16#FF000000#,
-                                                 Green_Mask => 16#00FF0000#,
-                                                 Blue_Mask  => 16#0000FF00#,
-                                                 Alpha_Mask => 16#000000FF#);
-               Surface_Sprite.Set_Alpha_Blend (0);
-               Surface_Sprite.Set_Blend_Mode  (SDL.Video.None);
-               Source_Area := (X      => int (X),
-                               Y      => int (Y),
-                               Width  => int (Sprite_Width),
-                               Height => int (Sprite_Height));
-               SDL.Video.Surfaces.Blit (Source      => Surface_Load,
-                                        Source_Area => Source_Area,
-                                        Self        => Surface_Sprite,
-                                        Self_Area   => Target_Area);
-               Surface_Sprite.Set_Alpha_Blend (0); --  (SDL_ALPHA_OPAQUE);
-               Surface_Sprite.Set_Blend_Mode  (SDL.Video.None); --  SDL_SRCALPHA or SDL_RLEACCEL);
-               Sprite.Surface := Surface_Sprite;
+                  Sprite := new PIG_Sprite;
+                  Sprite.Width  := Sprite_Width;
+                  Sprite.Height := Sprite_Height;
+                  Sprite.Hotx   := Sprite_Width  / 2;
+                  Sprite.Hoty   := Sprite_Height / 2;
+                  Sprite.Radius := (Sprite_Width + Sprite_Height) / 5;
+                  SDL.Video.Surfaces.Makers.Create (Surface_Sprite,
+                                                    Size       => (int (Sprite_Width),
+                                                                   int (Sprite_Height)),
+                                                    BPP        => 32,
+                                                    Red_Mask   => 16#FF000000#,
+                                                    Green_Mask => 16#00FF0000#,
+                                                    Blue_Mask  => 16#0000FF00#,
+                                                    Alpha_Mask => 16#000000FF#);
+                  Surface_Sprite.Set_Alpha_Blend (0);
+                  Surface_Sprite.Set_Blend_Mode  (SDL.Video.None);
+                  Source_Area := (X      => int (Sprite_Width  * (X - 1)),
+                                  Y      => int (Sprite_Height * (Y - 1)),
+                                  Width  => int (Sprite_Width),
+                                  Height => int (Sprite_Height));
+                  SDL.Video.Surfaces.Blit (Source      => Surface_Load,
+                                           Source_Area => Source_Area,
+                                           Self        => Surface_Sprite,
+                                           Self_Area   => Target_Area);
+                  Surface_Sprite.Set_Alpha_Blend (0); --  (SDL_ALPHA_OPAQUE);
+                  Surface_Sprite.Set_Blend_Mode  (SDL.Video.None);
+                  --  SDL_SRCALPHA or SDL_RLEACCEL);
+                  Sprite.Surface := Surface_Sprite;
                --                      s->surface = SDL_DisplayFormatAlpha(tmp2);
 --                      if(!s->surface)
 --                      {
@@ -249,16 +240,12 @@ package body Engines is
 --                              return -1;
 --                      end if;
                --  Tmp2.Free;  --                      SDL_FreeSurface(tmp2);
-               Engine.Sprites (Engine.Nsprites) := Sprite;
-               Engine.Nsprites := Engine.Nsprites + 1;
-               Count := Count + 1;
-            end;
-            X := X + Sprite_Width;
+                  Engine.Sprites (Engine.Nsprites) := Sprite;
+                  Engine.Nsprites := Engine.Nsprites + 1;
+               end;
+            end loop;
          end loop;
-         Y := Y + Sprite_Height;
-      end loop;
-      --  Tmp.Free;  --      SDL_FreeSurface(tmp);
-      Result := Handle;
+      end;
    end Pig_Sprites;
 
 
