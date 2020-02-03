@@ -347,7 +347,7 @@ procedure Pig is
       --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
 
    begin
-      if not SDL.Initialise then
+      if not SDL.Initialise (0) then
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                "Could not initialise SDL library.");
          return;
