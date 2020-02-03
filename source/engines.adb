@@ -1017,7 +1017,7 @@ package body Engines is
       use SDL.Video.Rectangles;
       Table : Dirty.PIG_Dirtytable renames Engine.Workdirty.all;
    begin
-      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
+--      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
 
       if Engine.Show_Dirtyrects then
 
@@ -1046,14 +1046,16 @@ package body Engines is
          end loop;
       end if;
 
---      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
---      {
---              SDL_Flip(pe->screen);
---              if(pe->pages > 1)
---                      pe->page = 1 - pe->page;
---      }
---      else
---              SDL_UpdateRects(pe->screen, pdt->count, pdt->rects);
+--      if((Engine.screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE) then
+      if True then
+--         SDL_Flip (Engine.Screen);
+         if Engine.Pages > 1 then
+            Engine.Page := 1 - Engine.Page;
+         end if;
+      else
+         null;
+         --  SDL_UpdateRects (Engine.Screen, Table.Count, Table.Rects);
+      end if;
 
       if Engine.Direct then
          Engine.Surface := Engine.Screen;
