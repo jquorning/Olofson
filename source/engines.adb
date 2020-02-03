@@ -24,7 +24,8 @@ package body Engines is
    --  Size of sprite frame table
 
    Clean_Engine : constant PIG_Engine :=
-     (SDL.Video.Surfaces.Null_Surface,
+     (Ada.Finalization.Controlled with
+      SDL.Video.Surfaces.Null_Surface,
       SDL.Video.Surfaces.Null_Surface,
       SDL.Video.Surfaces.Null_Surface,
       0, SDL.Video.Rectangles.Null_Rectangle, 0, (null, null),

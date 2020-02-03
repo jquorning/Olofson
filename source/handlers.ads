@@ -27,12 +27,13 @@ package Handlers is
    GROUP_ENEMY   : constant :=  16#0001#;
    GROUP_POWERUP : constant :=  16#0002#;
 
-   type Key_Used is (Up, Down, Left, Right);
+   type Key_Used  is (Up, Down, Left, Right);
    type Key_Array is array (Key_Used) of Boolean;
+
    type Game_State is record
+
       --  I/O
       Engine         : Engines.PIG_Engine_Access;
---        Uint8           *keys;
       Keys           : Key_Array;
       Nice           : Boolean;
       Refresh_Screen : Integer;
@@ -53,11 +54,11 @@ package Handlers is
       Level             : Integer;
       Lives             : Integer;
       Lives_Wobble      : Float;
-      Lives_Wobble_Time : Duration; -- Float;
+      Lives_Wobble_Time : Duration;
       Score             : Integer;
       Score_Wobble      : Float;
-      Score_Wobble_Time : Duration; -- Float;
-      Dashboard_Time    : Duration; -- Float;
+      Score_Wobble_Time : Duration;
+      Dashboard_Time    : Duration;
       Fun_Count         : Integer;
       Enemycount        : Integer;
       Messages          : Integer;
@@ -69,9 +70,25 @@ package Handlers is
       Logic_Frames      : Integer;
       Rendered_Frames   : Integer;
 
-      Start_Time  : Ada.Real_Time.Time;
+      Start_Time        : Ada.Real_Time.Time;
    end record;
    type Game_State_Access is access all Game_State;
+
+   Clean_Game : constant Game_State :=
+     (Engine            => null,
+      Keys              => (others => False),
+      Nice              => False,
+      Refresh_Screen    => 0,
+      Jump              => 0,
+      Running           => False,
+      Lives_Wobble      => 0.0,
+      Lives_Wobble_Time => 0.0,
+      Score_Wobble      => 0.0,
+      Score_Wobble_Time => 0.0,
+      Dashboard_Time    => 0.0,
+      Player            => null,
+      Start_Time        => Ada.Real_Time.Time_First,
+      others            => 0);
 
 
    procedure Inc_Score (Game : in out Game_State; V : Integer);

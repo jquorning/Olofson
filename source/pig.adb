@@ -52,31 +52,11 @@ procedure Pig is
 --                            Screen : in out SDL.Video.Windows.Window)
    is
       use type Engines.PIG_Map;
-      Clean_Game : constant Game_State := (Engine => null,
-                                           Keys   => (others => False),
-                                           Nice   => False,
-                                           Refresh_Screen => 0,
-                                           Jump => 0,
-                                           Running => False,
-                                           Lives_Wobble => 0.0,
-                                           Lives_Wobble_Time => 0.0,
-                                           Score_Wobble => 0.0,
-                                           Score_Wobble_Time => 0.0,
-                                           Dashboard_Time => 0.0,
-                                           Player => null,
-                                           Start_Time => Ada.Real_Time.Time_First,
-                                           others => 0);
-
       Map              : Engines.PIG_Map_Access;
       Map_Tiles_Result : Integer;
    begin
       Game := new Game_State'(Clean_Game); --  Game_State;
-      Game.Nice := True; --  JQ
-      --      Game.Pe := new Engine.PIG_Engine;
---      Game.Engine.Nsprites := 0;
-      --  if(!gs)
-      --         return NULL;
-
+      Game.Nice       := True; --  JQ
       Game.Start_Time := Ada.Real_Time.Clock;
       Game.Running    := True;
 
@@ -363,21 +343,156 @@ procedure Pig is
    ----------------------------------------------------------
    --        Main
    ----------------------------------------------------------
-   use Ada.Real_Time;
-   Window     : SDL.Video.Windows.Window;
-   Screen     : SDL.Video.Surfaces.Surface;
-   Game       : Game_State_Access;
-   I          : Integer;
-   Last_Tick  : Ada.Real_Time.Time;
-   Start_Time : Ada.Real_Time.Time;
-   End_Time   : Ada.Real_Time.Time;
-   Dashframe  : Integer;
-   Logic_FPS  : constant Float := 20.0;
+   procedure Play_Game;
+
+   procedure Play_Game
+   is
+      use Ada.Real_Time;
+      Window     : SDL.Video.Windows.Window;
+      Screen     : SDL.Video.Surfaces.Surface;
+      Game       : Game_State_Access;
+      I          : Integer;
+      Last_Tick  : Ada.Real_Time.Time;
+      Start_Time : Ada.Real_Time.Time;
+      End_Time   : Ada.Real_Time.Time;
+      Dashframe  : Integer;
+      Logic_FPS  : constant Float := 20.0;
+      --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
+   begin
+      if not SDL.Initialise then
+         null;
+      end if;
+
+      begin
+         SDL.Video.Windows.Makers.Create (Window, Width => SCREEN_W, Height => SCREEN_H,
+                                          X => 10, Y => 10, Title => "Pig");
+         --  bpp, Flags);
+         --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
+         Screen := Window.Get_Surface;
+      exception
+         when others => --  if Screen = null then
+            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
+                                  "Failed to open screen!");
+            return; -- 1;
+      end; -- if;
+
+      --   SDL_WM_SetCaption ("Fixed Rate Pig", "Pig");
+      --   SDL_ShowCursor (0);
+
+      begin
+         Init_All (Game, Screen);
+         --     exception
+         --        when others => --  if not Gs then
+         --           Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
+         --                                 "Init_All failed");
+         --           raise;
+         --           return; -- 1;
+      end; --  if;
+
+      --   Game.Keys := SDL_GetKeyState (I);
+
+      Game.Logic_Frames    := 0;
+      Game.Rendered_Frames := 0;
+      Game.Engine.Before_Objects := Handlers.Before_Objects'Access;
+
+      Engines.Pig_Start (Game.Engine.all, 0);
+      Game.Refresh_Screen := Game.Engine.Pages;
+      Start_Time := Ada.Real_Time.Clock; --  SDL_GetTicks;
+      Last_Tick  := Start_Time;
+
+      while Game.Running loop
+         declare
+            Tick2   : Ada.Real_Time.Time; -- Integer;
+            Frames  : Float;
+            Dt      : Duration; -- Ada.Real_Time.Time_Span; --  Duration;
+            Event   : SDL.Events.Events.Events;
+         begin
+            --  Handle input
+            while SDL.Events.Events.Poll (Event) loop
+               Handle_Input (Game.all, Event);
+            end loop;
+
+            Handle_Keys (Game.all);
+
+            if not Signals.Process_Control.Is_Running then
+               Game.Running := False;
+            end if;
+
+            --  Calculate time since last update
+            Tick2   := Ada.Real_Time.Clock;
+            --  Dt     := Float (tick - last_tick) * 0.001;
+            Dt     := Ada.Real_Time.To_Duration (Tick2 - Last_Tick);
+            Frames := Float (Dt) * Logic_FPS;
+
+            --  Run the game logic
+            Engines.Pig_Animate (Game.Engine.all, Frames);
+
+            --  Limit the dashboard frame rate to 15 fps
+            --  when there's no wobbling going on.
+            --
+            --  The 'dashframe' deal is about keeping the
+            --  pages in sync on a double buffered display.
+            pragma Warnings (Off, "* not a multiple of Small");
+            if
+              Game.Lives_Wobble /= 0.0 or
+              Game.Score_Wobble /= 0.0 or
+              Game.Dashboard_Time > Duration (1.0 / 15.0)
+            then
+               Dashframe := Game.Engine.Pages;
+               Game.Dashboard_Time := 0.0;
+            end if;
+            pragma Warnings (On, "* not a multiple of Small");
+
+            if Dashframe /= 0 then
+               Dashframe := Dashframe - 1;
+               Dashboard (Game.all);
+            end if;
+
+            --  Update sprites
+            if Game.Refresh_Screen /= 0 then
+               Game.Refresh_Screen := Game.Refresh_Screen - 1;
+               Engines.Pig_Refresh_All (Game.Engine.all);
+            else
+               Engines.Pig_Refresh (Game.Engine.all);
+            end if;
+
+            --  Make the new frame visible
+            Engines.Pig_Flip (Game.Engine.all);
+            Window.Update_Surface; --  JQ
+
+            --  Update statistics, timers and stuff
+            Game.Rendered_Frames   := Game.Rendered_Frames + 1;
+            Game.Lives_Wobble_Time := Game.Lives_Wobble_Time + Dt;
+            Game.Score_Wobble_Time := Game.Score_Wobble_Time + Dt;
+            Game.Dashboard_Time    := Game.Dashboard_Time + Dt;
+
+            Last_Tick := Tick2;
+            if Game.Nice then
+               delay 0.010;
+            end if;
+         end;
+      end loop;
+
+      SDL.Finalise;
+
+      --  Print some statistics
+      End_Time := Ada.Real_Time.Clock; -- SDL_GetTicks;
+      I := Integer (Ada.Real_Time.To_Duration (Ada.Real_Time.Time_Span'(End_Time - Start_Time)));
+      Ada.Text_IO.Put_Line ("          Total time running: " & I'Image & " ms");
+      if I = 0 then
+         I := 1;
+      end if;
+      Ada.Text_IO.Put_Line ("Average rendering frame rate: " &
+                              Float (Game.Rendered_Frames * 1000 / I)'Image & " fps");
+      Ada.Text_IO.Put_Line ("    Average logic frame rate: " &
+                              Float (Game.Logic_Frames * 1000 / I)'Image & " fps");
+      Engines.Pig_Close (Game.Engine.all);
+   end Play_Game;
+
    BPP           : Integer := 0;
    Double_Buffer : Boolean := False;
    Full_Screen   : Boolean := False;
    pragma Unreferenced (BPP, Double_Buffer, Full_Screen);
-   --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
 begin
 
    Process_Command_Line :
@@ -392,133 +507,8 @@ begin
       end;
    end loop Process_Command_Line;
 
-   if not SDL.Initialise (SDL.Enable_Everything) then
-      null;
-   end if;
+   Play_Game;
 
-   begin
-      SDL.Video.Windows.Makers.Create (Window, Width => SCREEN_W, Height => SCREEN_H,
-                                       X => 10, Y => 10, Title => "Pig"); -- , bpp, Flags);
---      Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
-      Screen := Window.Get_Surface;
-   exception
-      when others => --  if Screen = null then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                               "Failed to open screen!");
-         return; -- 1;
-   end; -- if;
-
---   SDL_WM_SetCaption ("Fixed Rate Pig", "Pig");
---   SDL_ShowCursor (0);
-
-   begin
-      Init_All (Game, Screen);
---     exception
---        when others => --  if not Gs then
---           Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
---                                 "Init_All failed");
---           raise;
---           return; -- 1;
-   end; --  if;
-
---   Game.Keys := SDL_GetKeyState (I);
-
-   Game.Logic_Frames    := 0;
-   Game.Rendered_Frames := 0;
-   Game.Engine.Before_Objects := Handlers.Before_Objects'Access;
-
-   Engines.Pig_Start (Game.Engine.all, 0);
-   Game.Refresh_Screen := Game.Engine.Pages;
-   Start_Time := Ada.Real_Time.Clock; --  SDL_GetTicks;
-   Last_Tick  := Start_Time;
-
-   while Game.Running loop
-      declare
-         Tick2   : Ada.Real_Time.Time; -- Integer;
-         Frames  : Float;
-         Dt      : Duration; -- Ada.Real_Time.Time_Span; --  Duration;
-         Event   : SDL.Events.Events.Events;
-      begin
-         --  Handle input
-         while SDL.Events.Events.Poll (Event) loop
-            Handle_Input (Game.all, Event);
-         end loop;
-
-         Handle_Keys (Game.all);
-
-         if not Signals.Process_Control.Is_Running then
-            Game.Running := False;
-         end if;
-
-         --  Calculate time since last update
-         Tick2   := Ada.Real_Time.Clock;
-         --  Dt     := Float (tick - last_tick) * 0.001;
-         Dt     := Ada.Real_Time.To_Duration (Tick2 - Last_Tick);
-         Frames := Float (Dt) * Logic_FPS;
-
-         --  Run the game logic
-         Engines.Pig_Animate (Game.Engine.all, Frames);
-
-         --  Limit the dashboard frame rate to 15 fps
-         --  when there's no wobbling going on.
-         --
-         --  The 'dashframe' deal is about keeping the
-         --  pages in sync on a double buffered display.
-         pragma Warnings (Off, "* not a multiple of Small");
-         if
-           Game.Lives_Wobble /= 0.0 or
-           Game.Score_Wobble /= 0.0 or
-           Game.Dashboard_Time > Duration (1.0 / 15.0)
-         then
-            Dashframe := Game.Engine.Pages;
-            Game.Dashboard_Time := 0.0;
-         end if;
-         pragma Warnings (On, "* not a multiple of Small");
-
-         if Dashframe /= 0 then
-            Dashframe := Dashframe - 1;
-            Dashboard (Game.all);
-         end if;
-
-         --  Update sprites
-         if Game.Refresh_Screen /= 0 then
-            Game.Refresh_Screen := Game.Refresh_Screen - 1;
-            Engines.Pig_Refresh_All (Game.Engine.all);
-         else
-            Engines.Pig_Refresh (Game.Engine.all);
-         end if;
-
-         --  Make the new frame visible
-         Engines.Pig_Flip (Game.Engine.all);
-         Window.Update_Surface; --  JQ
-
-         --  Update statistics, timers and stuff
-         Game.Rendered_Frames   := Game.Rendered_Frames + 1;
-         Game.Lives_Wobble_Time := Game.Lives_Wobble_Time + Dt;
-         Game.Score_Wobble_Time := Game.Score_Wobble_Time + Dt;
-         Game.Dashboard_Time    := Game.Dashboard_Time + Dt;
-
-         Last_Tick := Tick2;
-         if Game.Nice then
-            delay 0.010;
-         end if;
-      end;
-   end loop;
-
-   SDL.Finalise;
-
-   --  Print some statistics
-   End_Time := Ada.Real_Time.Clock; -- SDL_GetTicks;
-   I := Integer (Ada.Real_Time.To_Duration (Ada.Real_Time.Time_Span'(End_Time - Start_Time)));
-   Ada.Text_IO.Put_Line ("          Total time running: " & I'Image & " ms");
-   if I = 0 then
-      I := 1;
-   end if;
-   Ada.Text_IO.Put_Line ("Average rendering frame rate: " &
-                           Float (Game.Rendered_Frames * 1000 / I)'Image & " fps");
-   Ada.Text_IO.Put_Line ("    Average logic frame rate: " &
-                           Float (Game.Logic_Frames * 1000 / I)'Image & " fps");
-   Engines.Pig_Close (Game.Engine.all);
 exception
    when Occurence : others =>
       Ada.Text_IO.Put_Line (Ada.Exceptions.Exception_Message     (Occurence));
