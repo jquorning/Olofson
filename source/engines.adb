@@ -864,27 +864,23 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out PIG_Engine)
    is
-      Pdt    : Dirty.PIG_Dirtytable_Access;
-      S      : PIG_Sprite_Access;
---      Object : PIG_Object_Access;
+      Table  : Dirty.PIG_Dirtytable_Access renames Engine.Workdirty;
       Fframe : constant Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
    begin
       Engine.Surface.Set_Clip_Rectangle (Engine.View);
-      --  SDL_SetClipRect(pe->surface, &pe->view);
 
       --  Swap the work and display/back page dirtytables
-      Pdt := Engine.Workdirty;
-      Engine.Workdirty := Engine.Pagedirty (Engine.Page);
-      Engine.Pagedirty (Engine.Page) := Pdt;
+      Engine.Workdirty               := Engine.Pagedirty (Engine.Page);
+      Engine.Pagedirty (Engine.Page) := Table;
 
       --  Clear the display/back page dirtytable
-      Pdt.Count := 0;
+      Table.Count := 0;
 
       --  Update positions and render all objects
       for Object of Engine.Objects loop
 
          --  Calculate graphic coordinates
-         if False then --  Engine.Interpolation then
+         if Engine.Interpolation then
             Object.Ip.Gx := Object.Ip.Ox * (1.0 - Fframe) + Object.X * Fframe;
             Object.Ip.Gy := Object.Ip.Oy * (1.0 - Fframe) + Object.Y * Fframe;
          else
@@ -897,33 +893,30 @@ package body Engines is
          if Object.Ip.Gimage >= 0 and Object.Ip.Gimage < Engine.Nsprites then
             declare
                use SDL.C;
-               Self_Area : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
-               Dr        : SDL.Video.Rectangles.Rectangle;
+               Sprite      : constant PIG_Sprite_Access     := Engine.Sprites (Object.Ip.Gimage);
+               Source_Area : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
+
+               Target_Area : SDL.Video.Rectangles.Rectangle :=
+                 (X => int (Object.Ip.Gx - Float (Sprite.Hotx) + Float (Engine.View.X)),
+                  Y => int (Object.Ip.Gy - Float (Sprite.Hoty) + Float (Engine.View.Y)),
+                  others => 0);
             begin
-               S := Engine.Sprites (Object.Ip.Gimage);
-               Dr.X := int (Object.Ip.Gx - Float (S.Hotx) + Float (Engine.View.X));
-               Dr.Y := int (Object.Ip.Gy - Float (S.Hoty) + Float (Engine.View.Y));
                SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Object.Ip.Gimage).Surface,
-                                        Source_Area => Self_Area,
+                                        Source_Area => Source_Area,
                                         Self        => Engine.Surface,
-                                        Self_Area   => Dr);
---          SDL.Video.Surfaces.Blit (Self        => Engine.Sprites (Object.Ip.Gimage).Surface,
---                                          Self_Area   => Self_Area,
---                                          Source      => Engine.Surface,
---                                          Source_Area => Dr);
+                                        Self_Area   => Target_Area);
                --
                --  We use the clipped rect for the dirtyrect!
                --
-               if Dr.Width /= 0 and Dr.Height /= 0 then
-                  Dirty.Pig_Dirty_Add (Pdt.all, Dr);
+               if Target_Area.Width /= 0 and Target_Area.Height /= 0 then
+                  Dirty.Pig_Dirty_Add (Table.all, Target_Area);
                end if;
             end;
          end if;
-         --              po = po->next;
       end loop;
 
       --  Merge the display/back page table into the work table
-      Dirty.Pig_Dirty_Merge (Engine.Workdirty.all, Pdt.all);
+      Dirty.Pig_Dirty_Merge (Engine.Workdirty.all, Table.all);
    end Draw_Sprites;
 
 
