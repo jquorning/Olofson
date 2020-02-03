@@ -30,7 +30,8 @@ package body Engines is
       SDL.Video.Surfaces.Null_Surface,
       SDL.Video.Surfaces.Null_Surface,
       0, SDL.Video.Rectangles.Null_Rectangle, 0, (null, null),
-      null, False, False, False, 0.0, 0, null, Object_Lists.Empty_List, 0, 0, null, null, null, 0);
+      null, False, False, False, 0.0, 0, null, Object_Lists.Empty_List, 0, 0, null,
+      Null_Before_After'Access, Null_Before_After'Access, 0);
 
    Clean_Object : constant PIG_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
@@ -40,7 +41,7 @@ package body Engines is
       Timer    => (0, 0, 0),
       Age      => 0, Score => 0, Power => 0, Target => 0,
       State    => Object_States'First,
-      Handler  => null, others => 0.0);
+      Handler  => Null_Handler'Access, others => 0.0);
 
    procedure Close_Object (Object : in out PIG_Object);
    --  Actually remove an objects. Used internally,
@@ -663,9 +664,7 @@ package body Engines is
          Object.Ip.Oy := Object.Y;
       end loop;
 
-      if Engine.Before_Objects /= null then
-         Engine.Before_Objects (Engine);
-      end if;
+      Engine.Before_Objects (Engine);
 
 --      for Object of Engine.Objects loop
       Object_Cursor := Engine.Objects.First;
@@ -735,9 +734,7 @@ package body Engines is
          end if;
       end loop;
 
-      if Engine.After_Objects /= null then
-         Engine.After_Objects (Engine);
-      end if;
+      Engine.After_Objects (Engine);
 
    end Run_Logic;
 
@@ -1353,7 +1350,7 @@ package body Engines is
 
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Integer) return not null PIG_Object_Access
+                             Id    :        Integer) return PIG_Object_Access
    is
 --  PIG_object *pig_object_find(PIG_object *start, int id)
 --      Pob, Pof : PIG_Object_Access;
@@ -1397,9 +1394,10 @@ package body Engines is
 --           end if;
 --        end loop;
 --      Ada.Text_IO.Put_Line ("ERROR");
---      return null;
-      raise Program_Error;
+      return null;
+--      raise Program_Error;
    end Pig_Object_Find;
 
+   procedure Null_Before_After (Engine : in out PIG_Engine) is null;
 
 end Engines;

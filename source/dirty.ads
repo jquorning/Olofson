@@ -17,16 +17,15 @@ package Dirty is
 
    --  A table of dirtyrects for one display page
    subtype Index_Type     is SDL.C.size_t;
-   type Rect_Array_Access is access all Rectangle_Arrays;
 
    type Table_Type is record
-      Rects : Rect_Array_Access; --  Table of rects
-      Last  : Index_Type;        --  # of rects currently used
-      Best  : Index_Type;        --  Merge testing starts here!
+      Rects : not null access Rectangle_Arrays;  --  Table of rects
+      Last  : Index_Type;                        --  # of rects currently used
+      Best  : Index_Type;                        --  Merge testing starts here!
    end record;
    type Table_Access is access all Table_Type;
 
-   function Create (Size : in Integer) return Table_Access;
+   function Create (Size : in Integer) return not null Table_Access;
    procedure Close (Table : in out Table_Access);
 
    procedure Add (Table : in out Table_Type;

@@ -131,9 +131,14 @@ package Engines is
 
    --  Logic object
    type Timer_Array is array (0 .. PIG_TIMERS - 1) of Integer;
-   type Handler_Access is access
+
+   type Handler_Access is not null access
      procedure (Object : in out PIG_Object;
                 Event  : in     PIG_Event);
+
+   procedure Null_Handler (Object : in out PIG_Object;
+                           Event  : in     PIG_Event) is null;
+
    type PIG_Object is record
       Owner : PIG_Engine_Access;
 --        PIG_object      *next, *prev;
@@ -168,9 +173,7 @@ package Engines is
    --  Level map
    type Tile_Index is range 0 .. 255;
    type Map_Array is array (Natural range <>, Natural range <>) of Tile_Index;
-   type Map_Array_Access is access all Map_Array;
    type Hit_Array is array (Natural range <>, Natural range <>) of Pig_Sides;
-   type Hit_Array_Access is access all Hit_Array;
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
 
    type PIG_Map is new Ada.Finalization.Controlled with record
@@ -178,8 +181,8 @@ package Engines is
 
       Width       : Integer;                     --  Size of map (tiles)
       Height      : Integer;
-      Map         : Map_Array_Access;            --  2D aray of tile indices
-      Hit         : Hit_Array_Access;            --  2D aray of collision flags
+      Map         : not null access Map_Array;   --  2D aray of tile indices
+      Hit         : not null access Hit_Array;   --  2D aray of collision flags
 
       Tile_Width  : Integer;                     --  Size of one tile (pixels)
       Tile_Height : Integer;
@@ -202,7 +205,10 @@ package Engines is
    package Object_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => PIG_Object_Access);
 
-   type Bef_Aft_Access      is access procedure (Pe : in out PIG_Engine);
+   type Bef_Aft_Access is
+     not null access procedure (Engine : in out PIG_Engine);
+   procedure Null_Before_After (Engine : in out PIG_Engine);
+
    type Sprite_Array        is array (Natural range <>) of PIG_Sprite_Access;
    type Sprite_Array_Access is access all Sprite_Array;
    type Dirty_Array         is array (0 .. 1) of Dirty.Table_Access;
@@ -403,7 +409,7 @@ package Engines is
    --  Close all objects.
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Integer) return not null PIG_Object_Access;
+                             Id    :        Integer) return PIG_Object_Access;
    --  Find object by 'id', starting at object 'start'.
    --
    --  The search starts at 'start' and is done in both

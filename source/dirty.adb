@@ -20,15 +20,14 @@ package body Dirty is
    --  accept it as Perfect.
 
 
-   function Create (Size : in Integer) return Table_Access
+   function Create (Size : in Integer) return not null Table_Access
    is
-      Table : Table_Access;
    begin
-      Table       := new Table_Type'(Rects => null, others => 0);
-      Table.Rects := new Rectangle_Arrays'(1 .. Index_Type (Size) => Null_Rectangle);
-      Table.Last  := 0;
-      Table.Best  := 0;
-      return Table;
+      return
+        new Table_Type'(Rects => new Rectangle_Arrays'(1 .. Index_Type (Size)
+                                                         => Null_Rectangle),
+                        Last => 0,
+                        Best => 0);
    end Create;
 
 

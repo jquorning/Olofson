@@ -757,7 +757,7 @@ package body Games is
                                  Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      Target : constant not null PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
+      Target : constant PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
    begin
       case Event.Type_C is
 
