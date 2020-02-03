@@ -339,67 +339,68 @@ package body Engines is
    end Run_Timers;
 
 
-   procedure Test_Offscreen (Pe : in out PIG_Engine;
-                             Po : in out PIG_Object;
-                             S  : in     PIG_Sprite_Access);
-   procedure Test_Offscreen (Pe : in out PIG_Engine;
-                             Po : in out PIG_Object;
-                             S  : in     PIG_Sprite_Access)
+   procedure Test_Offscreen (Engine : in out PIG_Engine;
+                             Object : in out PIG_Object;
+                             Sprite : in     PIG_Sprite_Access);
+
+   procedure Test_Offscreen (Engine : in out PIG_Engine;
+                             Object : in out PIG_Object;
+                             Sprite : in     PIG_Sprite_Access)
    is
       use SDL.C;
       Event : PIG_Event;
       Hx, Hy, W, H : Integer;
    begin
-      if S /= null then
-         Hx := S.Hotx;
-         Hy := S.Hoty;
-         W  := S.Width;
-         H  := S.Height;
+      if Sprite /= null then
+         Hx := Sprite.Hotx;
+         Hy := Sprite.Hoty;
+         W  := Sprite.Width;
+         H  := Sprite.Height;
       else
          Hx := 0; Hy := 0; W := 0; H := 0;
       end if;
 
-      Event.Cinfo.Sides.Top    := Integer (Po.Y) - Hy < -H;
-      Event.Cinfo.Sides.Bottom := Integer (Po.Y) - Hy >= Integer (Pe.View.Height);
-      Event.Cinfo.Sides.Left   := Integer (Po.X) - Hx < -W;
-      Event.Cinfo.Sides.Right  := Integer (Po.X) - Hx >= Integer (Pe.View.Width);
+      Event.Cinfo.Sides.Top    := Integer (Object.Y) - Hy < -H;
+      Event.Cinfo.Sides.Bottom := Integer (Object.Y) - Hy >= Integer (Engine.View.Height);
+      Event.Cinfo.Sides.Left   := Integer (Object.X) - Hx < -W;
+      Event.Cinfo.Sides.Right  := Integer (Object.X) - Hx >= Integer (Engine.View.Width);
 
       if Event.Cinfo.Sides /= PIG_None then
          declare
-            Dx : constant Float := Po.X - Po.Ip.Ox;
-            Dy : constant Float := Po.Y - Po.Ip.Oy;
+            Dx : constant Float := Object.X - Object.Ip.Ox;
+            Dy : constant Float := Object.Y - Object.Ip.Oy;
          begin
 
             if Event.Cinfo.Sides.Top then
                Event.Cinfo.Y := 0;
                if Dy /= 0.0 then
-                  Event.Cinfo.X := Integer (Po.Ip.Ox - Dx * Po.Ip.Oy / Dy);
+                  Event.Cinfo.X := Integer (Object.Ip.Ox - Dx * Object.Ip.Oy / Dy);
                end if;
 
             elsif Event.Cinfo.Sides.Bottom then
-               Event.Cinfo.Y := Integer (Pe.View.Height - 1);
+               Event.Cinfo.Y := Integer (Engine.View.Height - 1);
                if Dy /= 0.0 then
-                  Event.Cinfo.X := Integer (Po.Ip.Ox + Dx *
-                                              (Float (Event.Cinfo.Y) - Po.Ip.Oy) / Dy);
+                  Event.Cinfo.X := Integer (Object.Ip.Ox + Dx *
+                                              (Float (Event.Cinfo.Y) - Object.Ip.Oy) / Dy);
                end if;
             end if;
 
             if Event.Cinfo.Sides.Left then
                Event.Cinfo.X := 0;
                if Dx /= 0.0 then
-                  Event.Cinfo.Y := Integer (Po.Ip.Oy - Dy * Po.Ip.Ox / Dx);
+                  Event.Cinfo.Y := Integer (Object.Ip.Oy - Dy * Object.Ip.Ox / Dx);
                end if;
 
             elsif Event.Cinfo.Sides.Right then
-               Event.Cinfo.X := Integer (Pe.View.Width - 1);
+               Event.Cinfo.X := Integer (Engine.View.Width - 1);
                if Dx not in -0.01 .. 0.01 then
-                  Event.Cinfo.Y := Integer (Po.Ip.Oy + Dy *
-                                              (Float (Event.Cinfo.X) - Po.Ip.Ox) / Dx);
+                  Event.Cinfo.Y := Integer (Object.Ip.Oy + Dy *
+                                              (Float (Event.Cinfo.X) - Object.Ip.Ox) / Dx);
                end if;
             end if;
 
             Event.Type_C := PIG_OFFSCREEN;
-            Po.Handler (Po, Event);
+            Object.Handler (Object, Event);
          end;
       end if;
    end Test_Offscreen;
