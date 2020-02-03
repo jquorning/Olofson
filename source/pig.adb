@@ -2,6 +2,7 @@
 --        Fixed Rate Pig - a fixed logic frame rate demo
 --------------------------------------------------------------
 --  Copyright (C) 2004 David Olofson <david@olofson.net>
+--  Copyright (C) 2020 Jesper Quorning
 --
 --  This software is released under the terms of the GPL.
 --

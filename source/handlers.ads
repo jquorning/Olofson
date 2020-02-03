@@ -1,6 +1,13 @@
+--------------------------------------------------------------
+--        Fixed Rate Pig - a fixed logic frame rate demo
+--------------------------------------------------------------
+--  Copyright (C) 2004 David Olofson <david@olofson.net>
+--  Copyright (C) 2020 Jesper Quorning
 --
+--  This software is released under the terms of the GPL.
 --
---
+--  Contact author for permission if you want to use this
+--  software, or work derived from it, under other terms.
 
 with Ada.Real_Time;
 with Ada.Unchecked_Conversion;
