@@ -966,7 +966,7 @@ package body Engines is
          return;
       end if;
 
-      Engine.Direct := True; --False;
+      Engine.Direct := False;
 
       for I in 0 .. Table.Count - 1 loop
          declare
@@ -1017,7 +1017,7 @@ package body Engines is
       use SDL.Video.Rectangles;
       Table : Dirty.PIG_Dirtytable renames Engine.Workdirty.all;
    begin
---      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
+      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
 
       if Engine.Show_Dirtyrects then
 
