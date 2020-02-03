@@ -124,7 +124,7 @@ package Engines is
 --  );
    type Pig_Sides is record
       Top    : Boolean;
-      Botton : Boolean;
+      Bottom : Boolean;
       Left   : Boolean;
       Right  : Boolean;
    end record;

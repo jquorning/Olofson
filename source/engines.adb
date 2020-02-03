@@ -360,7 +360,7 @@ package body Engines is
       end if;
 
       Event.Cinfo.Sides.Top    := Integer (Po.Y) - Hy < -H;
-      Event.Cinfo.Sides.Botton := Integer (Po.Y) - Hy >= Integer (Pe.View.Height);
+      Event.Cinfo.Sides.Bottom := Integer (Po.Y) - Hy >= Integer (Pe.View.Height);
       Event.Cinfo.Sides.Left   := Integer (Po.X) - Hx < -W;
       Event.Cinfo.Sides.Right  := Integer (Po.X) - Hx >= Integer (Pe.View.Width);
 
@@ -376,7 +376,7 @@ package body Engines is
                   Event.Cinfo.X := Integer (Po.Ip.Ox - Dx * Po.Ip.Oy / Dy);
                end if;
 
-            elsif Event.Cinfo.Sides.Botton then
+            elsif Event.Cinfo.Sides.Bottom then
                Event.Cinfo.Y := Integer (Pe.View.Height - 1);
                if Dy /= 0.0 then
                   Event.Cinfo.X := Integer (Po.Ip.Ox + Dx *
@@ -404,117 +404,133 @@ package body Engines is
       end if;
    end Test_Offscreen;
 
+   function Sqrt (F : Float) return Float renames Ada.Numerics.Elementary_Functions.Sqrt;
 
---  /* Test for stationary sprite/sprite collision */
---  static void sprite_sprite_one(PIG_object *po, PIG_object *po2, float t, float hitdist)
---  {
---      float dx, dy, dsquare;
---      PIG_event ev;
---      int sides;
---      float ix = po->ip.ox * (1 - t) + po->x * t;
---      float iy = po->ip.oy * (1 - t) + po->y * t;
---      float ix2 = po2->ip.ox * (1 - t) + po2->x * t;
---      float iy2 = po2->ip.oy * (1 - t) + po2->y * t;
---      dx = ix - ix2;
---      dy = iy - iy2;
---      dsquare = dx*dx + dy*dy;
---      if(dsquare >= hitdist*hitdist)
---              return;         /* Nothing... --> */
+   --  Test for stationary sprite/sprite collision
+   procedure Sprite_Sprite_One (Object   : in PIG_Object_Access;
+                                Object_2 : in PIG_Object_Access;
+                                T        : in Float;
+                                Hitdist  : in Float);
 
---      if(fabs(dsquare) < 1)
---              sides = PIG_ALL;
---      else
---      {
---              float d = sqrt(dsquare);
---              dx /= d;
---              dy /= d;
---              if(dx < -0.707)
---                      sides = PIG_LEFT;
---              else if((dx > 0.707))
---                      sides = PIG_RIGHT;
---              else
---                      sides = 0;
---              if(dy < -0.707)
---                      sides |= PIG_TOP;
---              else if((dy > 0.707))
---                      sides |= PIG_BOTTOM;
---      }
---      ev.type = PIG_HIT_OBJECT;
---      ev.cinfo.ff = 0.0;
+   procedure Sprite_Sprite_One (Object   : in PIG_Object_Access;
+                                Object_2 : in PIG_Object_Access;
+                                T        : in Float;
+                                Hitdist  : in Float)
+   is
+      Event : PIG_Event;
+      Sides : Pig_Sides;
+      IX    : constant Float := Object.Ip.Ox   * (1.0 - T) + Object.X   * T;
+      IY    : constant Float := Object.Ip.Oy   * (1.0 - T) + Object.Y   * T;
+      IX2   : constant Float := Object_2.Ip.Ox * (1.0 - T) + Object_2.X * T;
+      IY2   : constant Float := Object_2.Ip.Oy * (1.0 - T) + Object_2.Y * T;
+      Dx    : constant Float := IX - IX2;
+      Dy    : constant Float := IY - IY2;
+      D_Square : constant Float := Dx * Dx + Dy * Dy;
+   begin
+      if D_Square >= Hitdist * Hitdist then
+         return;         --  Nothing... -->
+      end if;
 
---      ev.cinfo.x = ix;
---      ev.cinfo.y = iy;
---      ev.cinfo.sides = sides;
---      if(po->hitmask & po2->hitgroup)
---      {
---              ev.obj = po2;
---              po->handler(po, &ev);
---      }
+      if abs D_Square < 1.0 then
+         Sides := PIG_All;
+      else
+         declare
+            D   : constant Float := Sqrt (D_Square);
+            Dx2 : constant Float := Dx / D;
+            Dy2 : constant Float := Dy / D;
+         begin
+            Sides.Left   := Dx2 < -0.707;
+            Sides.Right  := Dx2 >  0.707;
+            Sides.Top    := Dy2 < -0.707;
+            Sides.Bottom := Dy2 >  0.707;
+         end;
+      end if;
+      Event.Type_C   := PIG_HIT_OBJECT;
+      Event.Cinfo.Ff := 0.0;
 
---      if(po2->id && (po2->hitmask & po->hitgroup))
---      {
---              int s;
---              ev.cinfo.x = ix2;
---              ev.cinfo.y = iy2;
---              s = ((sides >> PIG_LEFT_B) & 1) << PIG_RIGHT_B;
---              s |= ((sides >> PIG_RIGHT_B) & 1) << PIG_LEFT_B;
---              s |= ((sides >> PIG_TOP_B) & 1) << PIG_BOTTOM_B;
---              s |= ((sides >> PIG_BOTTOM_B) & 1) << PIG_TOP_B;
---              ev.cinfo.sides = s;
---              ev.obj = po;
---              po2->handler(po2, &ev);
---      }
---  }
+      Event.Cinfo.X     := Integer (IX);
+      Event.Cinfo.Y     := Integer (IY);
+      Event.Cinfo.Sides := Sides;
+
+      if True then --      if Object.Hitmask and Object_2.Hitgroup then
+         Event.Obj := Object_2;
+         Object.Handler (Object.all, Event);
+      end if;
+
+      if True then --      if Object_2.Id and (Object_2.Hitmask and Object.Hitgroup) then
+         Event.Cinfo.X := Integer (IX2);
+         Event.Cinfo.Y := Integer (IY2);
+         Event.Cinfo.Sides := (Right  => Sides.Left,
+                               Left   => Sides.Right,
+                               Bottom => Sides.Top,
+                               Top    => Sides.Bottom);
+         Event.Obj := Object;
+         Object_2.Handler (Object_2.all, Event);
+      end if;
+   end Sprite_Sprite_One;
 
 
---  /*
---   * Check 'po' against all subsequent objects in the list.
---   * The testing is step size limited so that neither object
---   * moves more than 25% of the collision distance between tests.
---   * (25% should be sufficient for correct direction flags.)
---   */
---  static void test_sprite_sprite(PIG_engine *pe, PIG_object *po, PIG_sprite *s)
---  {
---      int image;
---      PIG_object *po2, *next2;
---      for(po2 = po->next; po2; po2 = next2)
---      {
---              float hitdist, d, dmax, t, dt;
---              next2 = po2->next;
---              if(!po->id || !po2->id)
---                      break;
+   --  Check 'po' against all subsequent objects in the list.
+   --  The testing is step size limited so that neither object
+   --  moves more than 25% of the collision distance between tests.
+   --  (25% should be sufficient for correct direction flags.)
+   procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
+                                 Object : in     PIG_Object_Access;
+                                 Sprite : in     PIG_Sprite_Access);
 
---              /* Check collision groups and masks */
---              if(!(po->hitmask & po2->hitgroup) &&
---                              !(po2->hitmask & po->hitgroup))
---                      continue;
+   procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
+                                 Object : in     PIG_Object_Access;
+                                 Sprite : in     PIG_Sprite_Access)
+   is
+      Object_2 : PIG_Object_Access;
+      Next_2   : PIG_Object_Access;
+   begin
+--      Object_2 := Object.Next;
+      while Object_2 /= null loop
+--            Next_2 := Object_2.Next;
+         exit when Object.Id = 0 or Object_2.Id = 0;
 
---              /* Calculate minimum distance */
---              hitdist = s ? s->radius : 0;
---              image = po2->ibase + po2->image;
---              if((image >= 0) && (image < pe->nsprites))
---                      hitdist += pe->sprites[image]->radius;
---              if(hitdist < 1)
---                      hitdist = 1;
+            --  Check collision groups and masks
+         if False
+           --               (Object  .Hitmask and Object_2.Hitgroup) or
+           --               (Object_2.Hitmask and Object  .Hitgroup)
+         then
+            declare
+               --  Calculate minimum distance
+               Image     : constant Integer := Object_2.Ibase + Object_2.Image;
 
---              /* Calculate number of testing steps */
---              dmax = fabs(po->ip.ox - po->x);
---              d = fabs(po->ip.oy - po->y);
---              dmax = d > dmax ? d : dmax;
---              d = fabs(po2->ip.ox - po2->x);
---              dmax = d > dmax ? d : dmax;
---              d = fabs(po2->ip.oy - po2->y);
---              dmax = d > dmax ? d : dmax;
---              if(dmax > 1)
---                      dt = hitdist / (dmax * 4);
---              else
---                      dt = 1;
+               Hitdist_1 : constant Float :=
+                 Float (if Sprite /= null then Sprite.Radius else 0);
 
---              /* Sweep test! */
---              for(t = 0; t < 1; t += dt)
---                      sprite_sprite_one(po, po2, t, hitdist);
---      }
---  }
+               Hitdist_2 : constant Float := Hitdist_1
+                   + (if Image in 0 .. Engine.Nsprites - 1
+                        then Float (Engine.Sprites (Image).Radius)
+                        else 0.0);
+
+               Hit_Dist : constant Float := Float'Max (1.0, Hitdist_2);
+
+               --  Calculate number of testing steps
+               D_Max_1 : constant Float := Float'Max (abs (Object  .Ip.Ox - Object  .X),
+                                                      abs (Object  .Ip.Oy - Object  .Y));
+               D_Max_2 : constant Float := Float'Max (abs (Object_2.Ip.Ox - Object_2.X),
+                                                      abs (Object_2.Ip.Oy - Object_2.Y));
+               D_Max   : constant Float := Float'Max (D_Max_1, D_Max_2);
+               Delta_T : constant Float := (if D_Max > 1.0
+                                              then Hit_Dist / (D_Max * 4.0)
+                                              else 1.0);
+               T : Float;
+            begin
+               --  Sweep test!
+               T := 0.0;
+               while T < 1.0 loop
+                  Sprite_Sprite_One (Object, Object_2, T, Hit_Dist);
+                  T := T + Delta_T;
+               end loop;
+            end;
+         end if;
+         Object_2 := Next_2;
+      end loop;
+   end Test_Sprite_Sprite;
 
 
    --  Returns a non-zero value if the tile at (x, y) is marked for
@@ -546,7 +562,7 @@ package body Engines is
       begin
          return
            (Top    => Hit.Top    and Mask.Top,
-            Botton => Hit.Botton and Mask.Botton,
+            Bottom => Hit.Bottom and Mask.Bottom,
             Left   => Hit.Left   and Mask.Left,
             Right  => Hit.Right  and Mask.Right);
       end;
@@ -582,7 +598,6 @@ package body Engines is
                                  Ci             : in     PIG_Cinfo_Access)
                                 return Pig_Sides
    is
-      use Ada.Numerics.Elementary_Functions;
       Ci2  : PIG_Cinfo_Access := Ci;
       M    : constant PIG_Map_Access := Engine.Map;
       X, Y : Integer;
