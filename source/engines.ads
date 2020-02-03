@@ -413,9 +413,9 @@ package Engines is
 
    function Pig_Object_Open (Engine : in PIG_Engine_Access;
                              X, Y   : in Integer;
-                             Last   : in Integer) return PIG_Object_Access;
+                             Last   : in Boolean) return PIG_Object_Access;
    --  Create an object with the initial position (x, y). If
-   --  'last' is 1, the object will end up last in the
+   --  Last, the object will end up last in the
    --  processing and rendering order, otherwise, first.
    --
    --  Note that relative processing order is very important

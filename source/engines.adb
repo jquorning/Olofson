@@ -1286,36 +1286,20 @@ package body Engines is
 
    function Pig_Object_Open (Engine : in PIG_Engine_Access;
                              X, Y   : in Integer;
-                             Last   : in Integer) return PIG_Object_Access
+                             Last   : in Boolean) return PIG_Object_Access
    is
-      pragma Unreferenced (Last);
       Object : constant PIG_Object_Access := Get_Object (Engine.all);
    begin
---      if(!po)
---              return NULL;
-
       Object.Owner    := Engine;
       Object.Tilemask := PIG_All;
       Object.Hitmask  := 0;
       Object.Hitgroup := 0;
 
-      Engine.Objects.Append (Object);
---      if Last /= 0 and pe->objects) then
---              PIG_object *lo = pe->objects;
---              while(lo->next)
---                      lo = lo->next;
---              end loop;
---              po->prev = lo;
---              po->next = NULL;
---              lo->next = po;
---      else
---              po->prev = NULL;
---              po->next = pe->objects;
---              if(po->next)
---                po->next->prev = po;
---              end if;
---              pe->objects = po;
---      end if;
+      if Last then
+         Engine.Objects.Append (Object);
+      else
+         Engine.Objects.Prepend (Object);
+      end if;
 
       Object.X  := Float (X);
       Object.Y  := Float (Y);

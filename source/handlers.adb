@@ -12,6 +12,7 @@
 with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 with Ada.Numerics.Elementary_Functions;
+with Ada.Characters.Handling;
 
 with SDL;
 
@@ -47,13 +48,12 @@ package body Handlers is
    procedure New_Player (Game   : in out Game_State;
                          Object :    out Engines.PIG_Object_Access)
    is
-      --        PIG_object *po;
-      --        if(!gs->lives)
-      --                return NULL;
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, SCREEN_W / 2, -50, 1);
-      --        if(!po)
-      --                return NULL;
+      if Game.Lives /= 0 then
+         Object := null;
+         return;
+      end if;
+      Object := Engines.Pig_Object_Open (Game.Engine, SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
       Object.Ibase   := Game.Pigframes;
@@ -76,9 +76,7 @@ package body Handlers is
                           Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, 1);
-      --        if(!po)
-      --                return NULL;
+      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Score    := Engines.Power_Ups'Pos (Type_C);
@@ -87,7 +85,6 @@ package body Handlers is
       Object.Handler  := Handlers.Powerup_Handler'Access;
       Object.Tilemask := Engines.PIG_Top;
       Object.Hitgroup := GROUP_POWERUP;
-      --        return po;
    end New_Powerup;
 
 
@@ -108,9 +105,7 @@ package body Handlers is
                        Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X + Vx, Y + Vy, 1);
-      --        if(!po)
-      --                return NULL;
+      Object := Engines.Pig_Object_Open (Game.Engine, X + Vx, Y + Vy, Last => True);
 
       Object.Ibase   := Game.Stars;
       Object.Ax      := -0.3 * Float (Vx);
@@ -139,9 +134,7 @@ package body Handlers is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine,
                                          X * TILE_W,
-                                         Y * TILE_H, 1);
-      --        if(!po)
-      --                return NULL;
+                                         Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Ibase    := Game.Evil;
@@ -160,9 +153,7 @@ package body Handlers is
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine,
-                                        X * TILE_W, Y * TILE_H, 1);
-      --        if(!po)
-      --                return NULL;
+                                         X * TILE_W, Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Ibase    := Game.Slime;
@@ -181,9 +172,7 @@ package body Handlers is
                              Object   :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, 1);
-      --        if(!po)
-      --                return NULL;
+      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Handlers.Chain_Head_Handler'Access;
@@ -198,9 +187,7 @@ package body Handlers is
                              Object :    out Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, 1);
-      --        if(!po)
-      --                return NULL;
+      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Handlers.Chain_Link_Handler'Access;
@@ -243,22 +230,8 @@ package body Handlers is
 
    procedure Message (Game : in out Game_State; Text : in String)
    is
-
-      function To_Upper (C : in Character) return Character;
-      function To_Upper (C : in Character) return Character is
-      begin
-         case C is
-            when 'a' .. 'z' =>
-               return Character'Val (Character'Pos (C)
-                                       - Character'Pos ('a')
-                                       + Character'Pos ('A'));
-            when 'A' .. 'Z' =>
-               return C;
-            when others =>
-               return 'X';
-         end case;
-      end To_Upper;
-
+      use Ada.Characters.Handling;
+      use type Engines.PIG_Object_Access;
       X  : constant Integer := SCREEN_W + FONT_SPACING;
       Y  : constant Integer := MAP_H * TILE_H - 30;
       Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
@@ -270,13 +243,18 @@ package body Handlers is
             C : constant Integer :=
               Character'Pos (To_Upper (Text (I))) - Character'Pos (' ') + Game.Glassfont;
          begin
+            Ada.Text_IO.Put_Line ("C:" & C'Image);
             if I = Text'First then
                New_Chain_Head (Game, X, Y, C, Tx, Object);
             else
+--               Ada.Text_IO.Put_Line ("Object.Id:" & Object.Id'Image);
                New_Chain_Link (Game, X, Y, C, Object.Id, Object);
             end if;
-            --                if(!po)
-            --                        return;
+
+            if Object = null then
+               Ada.Text_IO.Put_Line ("Object = null");
+               return;
+            end if;
          end;
       end loop;
       Game.Messages := Game.Messages + 1;
