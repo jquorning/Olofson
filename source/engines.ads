@@ -329,9 +329,9 @@ package Engines is
    --  Advance logic time by 'frames' logic frames
 
    procedure Pig_Dirty (Engine : in out PIG_Engine;
-                        Rect   : in SDL.Video.Rectangles.Rectangle);
+                        Area   : in     SDL.Video.Rectangles.Rectangle);
    --  Manually add a dirtyrect for pig_refresh().
-   --  'dr' can be outside the engine viewport.
+   --  Area can be outside the engine viewport.
 
    procedure Pig_Flip (Engine : in out PIG_Engine);
    --  Do what's needed to deal with the dirtyrects

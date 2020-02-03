@@ -746,7 +746,7 @@ package body Engines is
 
 
    procedure Pig_Dirty (Engine : in out PIG_Engine;
-                        Rect   : in SDL.Video.Rectangles.Rectangle)
+                        Area   : in SDL.Video.Rectangles.Rectangle)
    is
       use type SDL.C.int;
       use SDL.Video.Rectangles;
@@ -756,8 +756,8 @@ package body Engines is
       R.Y      := 0;
       R.Width  := Engine.Surface.Size.Width;
       R.Height := Engine.Surface.Size.Height;
-      if Rect /= Null_Rectangle then
-         Dirty.Pig_Intersectrect (Rect, R);
+      if Area /= Null_Rectangle then
+         Dirty.Pig_Intersectrect (Area, R);
       end if;
 
       if R.Width /= 0 and R.Height /= 0 then
@@ -928,9 +928,10 @@ package body Engines is
 
 
    procedure Pig_Refresh_All (Engine : in out PIG_Engine) is
+      use SDL.Video.Rectangles;
    begin
       Tile_Area (Engine, Engine.View);
---      Pig_Dirty (Engine, null);
+      Pig_Dirty (Engine, Null_Rectangle);
       Draw_Sprites (Engine);
    end Pig_Refresh_All;
 
