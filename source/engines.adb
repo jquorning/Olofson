@@ -193,6 +193,7 @@ package body Engines is
       --  Disable blending, so we get the alpha channel COPIED!
       Surface_Load.Set_Alpha_Blend (0);               --      SDL_SetAlpha(tmp, 0, 0);
       Surface_Load.Set_Blend_Mode  (SDL.Video.None);  --      SDL_SetAlpha(tmp, 0, 0);
+--      Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0), Enable => True);
 
       Count := 0;
 
@@ -243,7 +244,7 @@ package body Engines is
 --                                          Self_Area   => R,
 --                                          Source      => Surface_Sprite,
 --                                          Source_Area => SA);
-               Surface_Sprite.Set_Alpha_Blend (100); --  (SDL_ALPHA_OPAQUE);
+               Surface_Sprite.Set_Alpha_Blend (0); --  (SDL_ALPHA_OPAQUE);
                Surface_Sprite.Set_Blend_Mode  (SDL.Video.None); --  SDL_SRCALPHA or SDL_RLEACCEL);
                Sprite.Surface := Surface_Sprite;
                --                      s->surface = SDL_DisplayFormatAlpha(tmp2);
@@ -869,7 +870,7 @@ package body Engines is
             --  been removed from the rendering buffer!
             if Object.Id = 0 then
                null;
-               --  Close_Object (Object);
+               Close_Object (Object.all);
             end if;
          end if;
       end loop;

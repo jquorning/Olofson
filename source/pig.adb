@@ -25,6 +25,7 @@ with SDL.Events.Keyboards;
 
 with Engines;
 with Handlers;
+with Signals;
 
 procedure Pig is
    use Handlers;
@@ -368,35 +369,18 @@ procedure Pig is
    end Handle_Keys;
 
 
-   Break_Received : constant Integer := 0;
-
---  #ifndef RETSIGTYPE
---  #define RETSIGTYPE void
---  #endif
---  static RETSIGTYPE breakhandler(int sig)
---  {
---          /* For platforms that drop the handlers on the first signal... */
---          signal(SIGTERM, breakhandler);
---          signal(SIGINT, breakhandler);
---          break_received = 1;
---  #if (RETSIGTYPE != void)
---          return 0;
---  #endif
---  }
-
-
    ----------------------------------------------------------
-   --        main()
+   --        Main
    ----------------------------------------------------------
    use Ada.Real_Time;
-   Window : SDL.Video.Windows.Window;
-   Screen : SDL.Video.Surfaces.Surface;
-   Game   : Game_State_Access;
-   I      : Integer;
-   bpp    : Integer := 0;
+   Window     : SDL.Video.Windows.Window;
+   Screen     : SDL.Video.Surfaces.Surface;
+   Game       : Game_State_Access;
+   I          : Integer;
+   BPP        : Integer := 0;
    Last_Tick  : Ada.Real_Time.Time;
    Start_Time : Ada.Real_Time.Time;
-   End_Time   : Ada.Real_Time.Time; -- Integer;
+   End_Time   : Ada.Real_Time.Time;
    Dashframe  : Integer;
    logic_fps  : constant Float := 20.0;
 --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
@@ -404,9 +388,6 @@ begin
    if not SDL.Initialise (SDL.Enable_Everything) then
       null;
    end if;
---        atexit(SDL_Quit);
---        signal(SIGTERM, breakhandler);
---        signal(SIGINT, breakhandler);
 
 --          for(i = 1; i < argc; ++i)
 --          {
@@ -466,7 +447,7 @@ begin
             Handle_Input (Game.all, Ev);
          end loop;
          Handle_Keys (Game.all);
-         if Break_Received /= 0 then
+         if not Signals.Process_Control.Is_Running then
             Game.Running := False;
          end if;
 
@@ -522,6 +503,8 @@ begin
          end if;
       end;
    end loop;
+
+   SDL.Finalise;
 
    --  Print some statistics
    End_Time := Ada.Real_Time.Clock; -- SDL_GetTicks;
