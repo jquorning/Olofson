@@ -10,7 +10,9 @@
 
 with Ada.Interrupts.Names;
 
-package Signals is
+package Signals
+  with Elaborate_Body
+is
    pragma Unreserve_All_Interrupts;
 
    protected Process_Control is

@@ -14,7 +14,9 @@ with Ada.Unchecked_Conversion;
 
 with Engines;
 
-package Games is
+package Games
+  with Elaborate_Body
+is
 
    --  Graphics defines
    SCREEN_W     : constant := 800;

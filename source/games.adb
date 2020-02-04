@@ -262,7 +262,7 @@ package body Games is
       GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game : Game_State renames GP.all;
    begin
-      case Event.Type_C is
+      case Event.Kind is
 
          when PIG_PREFRAME =>
             case Object.State is
@@ -530,7 +530,7 @@ package body Games is
       GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
       Game : Game_State renames GP.all;
    begin
-      case Event.Type_C is
+      case Event.Kind is
 
          when PIG_PREFRAME =>
             if Object.State /= Dead then
@@ -568,7 +568,7 @@ package body Games is
    is
       use Engines;
    begin
-      case Event.Type_C is
+      case Event.Kind is
 
          when PIG_PREFRAME =>
             if Object.Age >= 8 then
@@ -590,7 +590,7 @@ package body Games is
       Game   : Game_State renames GP.all;
       Look_X : Integer;
    begin
-      case Event.Type_C is
+      case Event.Kind is
 
          when PIG_PREFRAME =>
             if Dead /= Object.State then
@@ -643,7 +643,7 @@ package body Games is
       Game   : Game_State renames GP.all;
       Look_X : Integer;
    begin
-      case Event.Type_C is
+      case Event.Kind is
 
          when PIG_PREFRAME =>
             if Dead /= Object.State then
@@ -728,7 +728,7 @@ package body Games is
       end Do_Timer_1;
 
    begin
-      case Event.Type_C is
+      case Event.Kind is
 
          when PIG_PREFRAME =>
             Object.Vx := (Float (Object.Target) - Object.X) * 0.3;
@@ -759,7 +759,7 @@ package body Games is
       use Engines;
       Target : constant PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
    begin
-      case Event.Type_C is
+      case Event.Kind is
 
          when PIG_PREFRAME =>
             if Target /= null then

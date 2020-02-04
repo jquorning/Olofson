@@ -43,23 +43,11 @@ package body Dirty is
                     To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
-      X1 : int := From.X;
-      Y1 : int := From.Y;
-      X2 : int := From.X + From.Width;
-      Y2 : int := From.Y + From.Height;
+      X1 : constant int := int'Min (From.X, To.X);
+      Y1 : constant int := int'Min (From.Y, To.Y);
+      X2 : constant int := int'Max (From.X + From.Width,  To.X + To.Width);
+      Y2 : constant int := int'Max (From.Y + From.Height, To.Y + To.Height);
    begin
-      if To.X < X1 then
-         X1 := To.X;
-      end if;
-      if To.Y < Y1 then
-         Y1 := To.Y;
-      end if;
-      if To.X + To.Width > X2 then
-         X2 := To.X + To.Width;
-      end if;
-      if To.Y + To.Height > Y2 then
-         Y2 := To.Y + To.Height;
-      end if;
       To.X      := X1;
       To.Y      := Y1;
       To.Width  := X2 - X1;
@@ -71,33 +59,30 @@ package body Dirty is
                         To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
-      Amin, Amax, Bmin, Bmax : Integer;
    begin
-      Amin := Integer (To.X);
-      Amax := Amin + Integer (To.Width);
-      Bmin := Integer (From.X);
-      Bmax := Bmin + Integer (From.Width);
-      if Bmin > Amin then
-         Amin := Bmin;
-      end if;
-      To.X := int (Amin);
-      if Bmax < Amax then
-         Amax := Bmax;
-      end if;
-      To.Width := int (if Amax - Amin > 0 then Amax - Amin else 0);
+      declare
+         From_Low  : constant int := From.X;
+         From_High : constant int := From.X + From.Width;
+         To_Low    : constant int := To.X;
+         To_High   : constant int := To.X + To.Width;
+         New_Low   : constant int := int'Max (From_Low,  To_Low);
+         New_High  : constant int := int'Min (From_High, To_High);
+      begin
+         To.X     := New_Low;
+         To.Width := int'Max (0, New_High - New_Low);
+      end;
 
-      Amin := Integer (To.Y);
-      Amax := Amin + Integer (To.Height);
-      Bmin := Integer (From.Y);
-      Bmax := Bmin + Integer (From.Height);
-      if Bmin > Amin then
-         Amin := Bmin;
-      end if;
-      To.Y := int (Amin);
-      if Bmax < Amax then
-         Amax := Bmax;
-      end if;
-      To.Height := int (if Amax - Amin > 0 then Amax - Amin else 0);
+      declare
+         From_Low  : constant int := From.Y;
+         From_High : constant int := From.Y + From.Height;
+         To_Low    : constant int := To.Y;
+         To_High   : constant int := To.Y + To.Height;
+         New_Low   : constant int := int'Max (From_Low,  To_Low);
+         New_High  : constant int := int'Min (From_High, To_High);
+      begin
+         To.Y      := New_Low;
+         To.Height := int'Max (0, New_High - New_Low);
+      end;
    end Intersect;
 
 
@@ -125,16 +110,15 @@ package body Dirty is
       for J in 1 .. Table.Last loop
          declare
             use SDL.C;
-            A1, A2, Am, Ratio, Loss : Integer;
-            Testr : SDL.Video.Rectangles.Rectangle;
+            A1    : constant Positive  := Positive (Rect.Width * Rect.Height);
+            Testr :          Rectangle := Table.Rects (I);
+            A2    : constant Positive  := Positive (Testr.Width * Testr.Height);
+            Am    : Positive;
+            Ratio : Integer;
+            Loss  : Integer;
          begin
-            A1 := Integer (Rect.Width * Rect.Height);
-
-            Testr := Table.Rects (I);
-            A2    := Integer (Testr.Width * Testr.Height);
-
             Merge (Rect, Testr);
-            Am := Integer (Testr.Width * Testr.Height);
+            Am := Positive (Testr.Width * Testr.Height);
 
             --  Perfect or Instant Pick?
             Ratio := 100 * Am / (if A1 > A2 then A1 else A2);

@@ -11,7 +11,9 @@
 
 with SDL.Video.Rectangles;
 
-package Dirty is
+package Dirty
+  with Elaborate_Body
+is
    use SDL.Video.Rectangles;
    use type SDL.C.size_t;
 

@@ -17,7 +17,9 @@ with SDL.Video.Windows;
 
 with Dirty;
 
-package Engines is
+package Engines
+  with Elaborate_Body
+is
 
    ----------------------------------------------------------
    --        Game Engine
@@ -118,13 +120,13 @@ package Engines is
 
 
    type PIG_Event is record
-      Type_C : PIG_Events;
+      Kind  : PIG_Events;
 
-      --  For HIT_TILE, HIT_OBJECT and OFFSCREEN:
-      Cinfo : PIG_Cinfo;  --  Detailed collision info
+      Cinfo : PIG_Cinfo;           --  Detailed collision info
+      --  For HIT_TILE, HIT_OBJECT and OFFSCREEN
 
-      --  For HIT_OBJECT:
       Obj   : PIG_Object_Access;   --  Which object?
+      --  For HIT_OBJECT
    end record;
 
 

@@ -328,7 +328,7 @@ package body Engines is
                declare
                   Event : PIG_Event;
                begin
-                  Event.Type_C := PIG_Events'Val (PIG_Events'Pos (PIG_TIMER0) + I);
+                  Event.Kind := PIG_Events'Val (PIG_Events'Pos (PIG_TIMER0) + I);
                   Object.Handler (Object, Event);
                   if Object.Id = 0 then
                      return;
@@ -397,7 +397,7 @@ package body Engines is
       end if;
 
       Event.Cinfo.Sides := Sides;
-      Event.Type_C      := PIG_OFFSCREEN;
+      Event.Kind        := PIG_OFFSCREEN;
       Object.Handler (Object, Event);
    end Test_Offscreen;
 
@@ -442,7 +442,7 @@ package body Engines is
             Sides.Bottom := Dy2 >  0.707;
          end;
       end if;
-      Event.Type_C   := PIG_HIT_OBJECT;
+      Event.Kind     := PIG_HIT_OBJECT;
       Event.Cinfo.Ff := 0.0;
 
       Event.Cinfo.X     := Integer (IX);
@@ -642,8 +642,8 @@ package body Engines is
                                           Integer (Object.X), Integer (Object.Y),
                                           Object.Tilemask, Cinfo'Unchecked_Access)
       then
-         Event.Cinfo  := Cinfo;
-         Event.Type_C := PIG_HIT_TILE;
+         Event.Cinfo := Cinfo;
+         Event.Kind  := PIG_HIT_TILE;
          Object.Handler (Object, Event);
       end if;
    end Test_Sprite_Map;
@@ -675,7 +675,7 @@ package body Engines is
             --  may cause objects to remove themselves!
             Next_Cursor := Next (Object_Cursor);
 
-            Event.Type_C := PIG_PREFRAME;
+            Event.Kind := PIG_PREFRAME;
 --            Object.Handler (Object.all, Event);
             Element (Object_Cursor).Handler (Element (Object_Cursor).all, Event);
          end;
@@ -725,7 +725,7 @@ package body Engines is
             declare
                Event : PIG_Event;
             begin
-               Event.Type_C := PIG_POSTFRAME;
+               Event.Kind := PIG_POSTFRAME;
                Object.Handler (Object.all, Event);
                Object.Age := Object.Age + 1;
             end;
