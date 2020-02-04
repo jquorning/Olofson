@@ -51,6 +51,7 @@ procedure Pig is
    procedure Init_All (Game   :    out not null Game_State_Access;
                        Screen : in out SDL.Video.Surfaces.Surface)
    is
+      use type Engines.Sprite_Index;
       Map_Tiles_Result : Integer;
    begin
       Game := new Game_State'(Clean_Game);
@@ -82,21 +83,29 @@ procedure Pig is
       Engines.Pig_Sprites (Game.Engine.all, "evil.png",      48, 48, Game.Evil);
       Engines.Pig_Sprites (Game.Engine.all, "slime.png",     48, 48, Game.Slime);
 
-      for I in Game.Icons .. Game.Icons + 3 * 8 - 1 loop
-         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 45);
-      end loop;
+      declare
+         use Engines;
+         subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
+         subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
+         subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
+         subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
+      begin
+         for I in Icons_Range loop
+            Engines.Pig_Hotspot (Game.Engine.all, Game.Icons + I, Engines.PIG_CENTER, 45);
+         end loop;
 
-      for I in Game.Pigframes .. Game.Pigframes + 12 - 1 loop
-         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 43);
-      end loop;
+         for I in Pig_Range loop
+            Engines.Pig_Hotspot (Game.Engine.all, Game.Pigframes + I, Engines.PIG_CENTER, 43);
+         end loop;
 
-      for I in Game.Evil .. Game.Evil + 16 - 1 loop
-         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
-      end loop;
+         for I in Evil_Range loop
+            Engines.Pig_Hotspot (Game.Engine.all, Game.Evil + I, Engines.PIG_CENTER, 46);
+         end loop;
 
-      for I in Game.Slime .. Game.Slime + 16 - 1 loop
-         Engines.Pig_Hotspot (Game.Engine.all, I, Engines.PIG_CENTER, 46);
-      end loop;
+         for I in Slime_Range loop
+            Engines.Pig_Hotspot (Game.Engine.all, Game.Slime + I, Engines.PIG_CENTER, 46);
+         end loop;
+      end;
 
       declare
          Map : constant Engines.PIG_Map_Access :=
@@ -196,12 +205,13 @@ procedure Pig is
 
       --  Print score
       declare
+         use type Engines.Sprite_Counts;
          X : Float   := Float (SCREEN_W + 5);
          V : Integer := Game.Score;
-         N : Natural;
+         N : Engines.Sprite_Counts;
       begin
          for I in reverse 0 .. 9 loop
-            N := V mod 10;
+            N := Engines.Sprite_Counts (V mod 10);
             X := X - 39.0 - Game.Score_Wobble *
               Sin (Float (Game.Score_Wobble_Time) * 15.0 + Float (I) * 0.5);
             Engines.Pig_Draw_Sprite (Game.Engine.all, Game.Scorefont + N,

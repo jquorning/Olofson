@@ -56,8 +56,8 @@ package body Engines is
    is
    begin
       Engine := new PIG_Engine'(Clean_Engine);
-      Engine.Screen   := Screen;
-      Engine.Nsprites := 0;
+      Engine.Screen      := Screen;
+      Engine.Sprite_Last := 0;
 --      if(!pe->screen)
 --      {
 --              pig_close(pe);
@@ -91,7 +91,7 @@ package body Engines is
       Engine.View.Width    := Engine.Surface.Size.Width;
       Engine.View.Height   := Engine.Surface.Size.Height;
 
-      Engine.Sprites := new Sprite_Array'(0 .. PIG_MAX_SPRITES - 1 => null);
+      Engine.Sprites := new Sprite_Array'(Sprite_Index'First .. PIG_MAX_SPRITES - 1 => null);
 --      pe->sprites = (PIG_sprite **)calloc(PIG_MAX_SPRITES,
 --                      sizeof(PIG_sprite *));
 --      if(!pe->sprites)
@@ -169,7 +169,7 @@ package body Engines is
    procedure Pig_Sprites (Engine        : in out PIG_Engine;
                           Filename      : in     String;
                           Width, Height : in     Integer;
-                          Handle        :    out Integer)
+                          Handle        :    out Sprite_Index)
    is
       Surface_Load : SDL.Video.Surfaces.Surface;
    begin
@@ -180,7 +180,7 @@ package body Engines is
       Surface_Load.Set_Blend_Mode  (SDL.Video.None);  --      SDL_SetAlpha(tmp, 0, 0);
 --      Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0), Enable => True);
 
-      Handle := Engine.Nsprites;
+      Handle := Engine.Sprite_Last + 1;
 
       declare
          use SDL.C;
@@ -243,8 +243,8 @@ package body Engines is
 --                              return -1;
 --                      end if;
                --  Tmp2.Free;  --                      SDL_FreeSurface(tmp2);
-                  Engine.Sprites (Engine.Nsprites) := Sprite;
-                  Engine.Nsprites := Engine.Nsprites + 1;
+                  Engine.Sprite_Last := Engine.Sprite_Last + 1;
+                  Engine.Sprites (Engine.Sprite_Last) := Sprite;
                end;
             end loop;
          end loop;
@@ -253,11 +253,11 @@ package body Engines is
 
 
    procedure Pig_Hotspot (Engine     : in out PIG_Engine;
-                          Frame      : in     Integer;
+                          Frame      : in     Sprite_Index;
                           Hotx, Hoty : in     Integer)
    is
    begin
-      if Frame not in 0 .. Engine.Nsprites - 1 then
+      if Frame > Engine.Sprite_Last then
          Ada.Text_IO.Put_Line ("Frame: " & Frame'Image);
          return;  --              return -1;
       end if;
@@ -285,7 +285,7 @@ package body Engines is
 
 
    procedure Pig_Radius (Engine : in out PIG_Engine;
-                         Frame  : in     Integer;
+                         Frame  : in     Sprite_Index;
                          Radius : in     Integer)
    is
    begin
@@ -494,13 +494,14 @@ package body Engines is
          then
             declare
                --  Calculate minimum distance
-               Image     : constant Integer := Object_2.Ibase + Object_2.Image;
+               Image     : constant Sprite_Index :=
+                 Sprite_Counts (Object_2.Ibase + Object_2.Image);
 
                Hitdist_1 : constant Float :=
                  Float (if Sprite /= null then Sprite.Radius else 0);
 
                Hitdist_2 : constant Float := Hitdist_1
-                   + (if Image in 0 .. Engine.Nsprites - 1
+                   + (if Image in Sprite_Index'First .. Engine.Sprite_Last - 1
                         then Float (Engine.Sprites (Image).Radius)
                         else 0.0);
 
@@ -654,7 +655,7 @@ package body Engines is
    is
       use Object_Lists;
       Object_Cursor, Next_Cursor : Cursor;
-      Image  : Integer;
+      Image  : Sprite_Counts;
    begin
       --  Shift logic coordinates
       for Object of Engine.Objects loop
@@ -687,8 +688,8 @@ package body Engines is
             Sprite : PIG_Sprite_Access;
          begin
             --  next = po->next;
-            Image := Object.Ibase + Object.Image;
-            if (Image >= 0) and (Image < Engine.Nsprites) then
+            Image := Sprite_Counts (Object.Ibase + Object.Image);
+            if Image in Sprite_Index'First .. Engine.Sprite_Last then
                Sprite := Engine.Sprites (Image);
             else
                Sprite := null;
@@ -841,9 +842,10 @@ package body Engines is
       --  to avoid rendering the same tiles multiple times
       --  in the overlapping areas.
       for Object of Engine.Objects loop
-         if Object.Ip.Gimage in 0 .. Engine.Nsprites - 1 then
+         if Sprite_Counts (Object.Ip.Gimage) in Sprite_Index'First .. Engine.Sprite_Last then
             declare
-               Sprite : constant not null PIG_Sprite_Access := Engine.Sprites (Object.Ip.Gimage);
+               Sprite : constant not null PIG_Sprite_Access :=
+                 Engine.Sprites (Sprite_Index (Object.Ip.Gimage));
 
                Area   : SDL.Video.Rectangles.Rectangle :=
                  (X      => int (Object.Ip.Gx) - int (Sprite.Hotx),
@@ -897,12 +899,12 @@ package body Engines is
          Object.Ip.Gimage := Object.Ibase + Object.Image;
 
          --  Render the sprite!
-         if Object.Ip.Gimage >= 0 and Object.Ip.Gimage < Engine.Nsprites then
+         if Sprite_Counts (Object.Ip.Gimage) in Sprite_Index'First .. Engine.Sprite_Last then
             declare
                use SDL.C;
 
                Sprite      : constant not null PIG_Sprite_Access :=
-                 Engine.Sprites (Object.Ip.Gimage);
+                 Engine.Sprites (Sprite_Index (Object.Ip.Gimage));
 
                Source_Area : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
 
@@ -911,7 +913,7 @@ package body Engines is
                   Y => int (Object.Ip.Gy - Float (Sprite.Hoty) + Float (Engine.View.Y)),
                   others => 0);
             begin
-               SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Object.Ip.Gimage).Surface,
+               SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Sprite_Index (Object.Ip.Gimage)).Surface,
                                         Source_Area => Source_Area,
                                         Self        => Engine.Surface,
                                         Self_Area   => Target_Area);
@@ -1081,7 +1083,7 @@ package body Engines is
 
 
    procedure Pig_Draw_Sprite (Engine : in out PIG_Engine;
-                              Frame  : in     Integer;
+                              Frame  : in     Sprite_Index;
                               X, Y   : in     Integer)
    is
       use SDL.C;

@@ -49,14 +49,14 @@ is
       Jump           : Integer;
 
       --  Sprites
-      Lifepig   : Integer;
-      Scorefont : Integer;
-      Glassfont : Integer;
-      Icons     : Integer;
-      Stars     : Integer;
-      Pigframes : Integer;
-      Evil      : Integer;
-      Slime     : Integer;
+      Lifepig   : Engines.Sprite_Index;
+      Scorefont : Engines.Sprite_Index;
+      Glassfont : Engines.Sprite_Index;
+      Icons     : Engines.Sprite_Index;
+      Stars     : Engines.Sprite_Index;
+      Pigframes : Engines.Sprite_Index;
+      Evil      : Engines.Sprite_Index;
+      Slime     : Engines.Sprite_Index;
 
       --  Global game state
       Running           : Boolean;
@@ -89,6 +89,16 @@ is
       Nice              => False,
       Refresh_Screen    => 0,
       Jump              => 0,
+
+      Lifepig   => 1,
+      Scorefont => 1,
+      Glassfont => 1,
+      Icons     => 1,
+      Stars     => 1,
+      Pigframes => 1,
+      Evil      => 1,
+      Slime     => 1,
+
       Running           => False,
       Lives_Wobble      => 0.0,
       Lives_Wobble_Time => 0.0,
@@ -147,13 +157,13 @@ is
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     : in     Integer;
-                             Image    : in     Integer;
+                             Image    : in     Engines.Sprite_Index;
                              Target_X : in     Integer;
                              Object   :    out not null Engines.PIG_Object_Access);
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   : in     Integer;
-                             Image  : in     Integer;
+                             Image  : in     Engines.Sprite_Index;
                              Target : in     Integer;
                              Object :    out not null Engines.PIG_Object_Access);
 

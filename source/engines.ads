@@ -210,11 +210,14 @@ is
      not null access procedure (Engine : in out PIG_Engine);
    procedure Null_Before_After (Engine : in out PIG_Engine);
 
-   type Sprite_Array        is array (Natural range <>) of PIG_Sprite_Access;
-   type Sprite_Array_Access is access all Sprite_Array;
-   type Dirty_Array         is array (0 .. 1) of Dirty.Table_Access;
+   type    Sprite_Counts is new Natural;
+   subtype Sprite_Index  is Sprite_Counts range 1 .. Sprite_Counts'Last;
+   type    Sprite_Array  is array (Sprite_Index range <>) of PIG_Sprite_Access;
+
+   type Dirty_Array  is array (0 .. 1) of Dirty.Table_Access;
 
    type PIG_Engine is record
+
       --  Video stuff
       Screen  : SDL.Video.Surfaces.Surface;
       Buffer  : SDL.Video.Surfaces.Surface;  --  For h/w surface displays
@@ -222,9 +225,10 @@ is
       Pages   : Integer;                     --  # of display VRAM buffers
       View    : SDL.Video.Rectangles.Rectangle; --  Viewport pos & size (pixels)
 
-      Page      : Integer range 0 .. 1;        --  Current page (double buffer)
-      Pagedirty : Dirty_Array;                 --  One table for each page
-      Workdirty : Dirty.Table_Access;          --  The work dirtytable
+      --  Dirty
+      Page      : Integer range 0 .. 1;      --  Current page (double buffer)
+      Pagedirty : Dirty_Array;               --  One table for each page
+      Workdirty : Dirty.Table_Access;        --  The work dirtytable
 
       --  "Live" switches
       Interpolation   : Boolean;
@@ -236,15 +240,15 @@ is
       Frame : Integer;              --  Logic time; integer part
 
       --  Background graphics
-      Map : PIG_Map_Access;
+      Map   : PIG_Map_Access;
 
-      --  Sprites and stuff
-      Objects : Object_Lists.List;
---          PIG_object      *objects;
---          PIG_object      *object_pool;
+      --  Objects
+      Objects           : Object_Lists.List;
       Object_Id_Counter : Integer;
-      Nsprites : Integer;
-      Sprites  : Sprite_Array_Access;
+
+      --  Sprites
+      Sprite_Last       : Sprite_Counts;
+      Sprites           : access Sprite_Array;
 
       --  Logic frame global handlers
       Before_Objects : Bef_Aft_Access;
@@ -273,7 +277,7 @@ is
    procedure Pig_Sprites (Engine        : in out PIG_Engine;
                           Filename      : in     String;
                           Width, Height : in     Integer;
-                          Handle        :    out Integer);
+                          Handle        :    out Sprite_Index);
    --  Load a sprite palette image. The image is chopped up into
    --  sprites, based on Width and Height, and added as new frames
    --  in the sprite bank. Default values:
@@ -287,12 +291,12 @@ is
 
 
    procedure Pig_Hotspot (Engine     : in out PIG_Engine;
-                          Frame      : in     Integer;
+                          Frame      : in     Sprite_Index;
                           Hotx, Hoty : in     Integer);
    --  Set hot-spot of sprite 'frame' to (hotx, hoty)
 
    procedure Pig_Radius (Engine : in out PIG_Engine;
-                         Frame  : in     Integer;
+                         Frame  : in     Sprite_Index;
                          Radius : in     Integer);
    --  Set sprite/sprite collision zone radius of 'frame'
 
@@ -320,7 +324,7 @@ is
    --  Refresh the whole viewport, including sprites.
 
    procedure Pig_Draw_Sprite (Engine : in out PIG_Engine;
-                              Frame  : in     Integer;
+                              Frame  : in     Sprite_Index;
                               X, Y   : in     Integer);
    --  Render a sprite "manually", bypassing the engine
 

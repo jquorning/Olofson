@@ -56,7 +56,7 @@ package body Games is
       Object := Engines.Pig_Object_Open (Game.Engine, SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
-      Object.Ibase   := Game.Pigframes;
+      Object.Ibase   := Integer (Game.Pigframes);
       Object.Handler := Player_Handler'Access;
       Object.Hitmask := GROUP_POWERUP + GROUP_ENEMY;
    end New_Player;
@@ -80,7 +80,7 @@ package body Games is
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Score    := Engines.Power_Ups'Pos (Type_C);
-      Object.Ibase    := Game.Icons + 8 * Object.Score;
+      Object.Ibase    := Integer (Game.Icons) + 8 * Object.Score;
       Object.Target   := Speed;
       Object.Handler  := Powerup_Handler'Access;
       Object.Tilemask := Engines.PIG_Top;
@@ -107,7 +107,7 @@ package body Games is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X + Vx, Y + Vy, Last => True);
 
-      Object.Ibase   := Game.Stars;
+      Object.Ibase   := Integer (Game.Stars);
       Object.Ax      := -0.3 * Float (Vx);
       Object.Vx      := Float (Vx * 3);
       Object.Ay      := -0.3 * Float (Vy);
@@ -137,7 +137,7 @@ package body Games is
                                          Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Game.Evil;
+      Object.Ibase    := Integer (Game.Evil);
       Object.Target   := Speed;
       Object.Handler  := Evil_Handler'Access;
       Object.Score    := 200;
@@ -156,7 +156,7 @@ package body Games is
                                          X * TILE_W, Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Game.Slime;
+      Object.Ibase    := Integer (Game.Slime);
       Object.Target   := Speed;
       Object.Handler  := Slime_Handler'Access;
       Object.Score    := 300;
@@ -167,14 +167,14 @@ package body Games is
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     : in     Integer;
-                             Image    : in     Integer;
+                             Image    : in     Engines.Sprite_Index;
                              Target_X : in     Integer;
                              Object   :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
-      Object.Ibase   := Image;
+      Object.Ibase   := Integer (Image);
       Object.Handler := Chain_Head_Handler'Access;
       Object.Target  := Target_X;
    end New_Chain_Head;
@@ -182,14 +182,14 @@ package body Games is
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   : in     Integer;
-                             Image  : in     Integer;
+                             Image  : in     Engines.Sprite_Index;
                              Target : in     Integer;
                              Object :    out not null Engines.PIG_Object_Access)
    is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
-      Object.Ibase   := Image;
+      Object.Ibase   := Integer (Image);
       Object.Handler := Chain_Link_Handler'Access;
       Object.Target  := Target;
    end New_Chain_Link;
@@ -231,8 +231,9 @@ package body Games is
    procedure Message (Game : in out Game_State; Text : in String)
    is
       use Ada.Characters.Handling;
+      use type Engines.Sprite_Counts;
 
-      function To_Frame (C : Character) return Natural is
+      function To_Frame (C : Character) return Engines.Sprite_Counts is
          (Game.Glassfont + Character'Pos (C) - Character'Pos (' '));
 
       X  : constant Integer := SCREEN_W + FONT_SPACING;
