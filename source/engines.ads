@@ -44,17 +44,22 @@ is
    type PIG_Object_Access is access all PIG_Object;
    type PIG_Engine_Access is access all PIG_Engine;
 
+   type    Sprite_Counts is new Natural;
+   subtype Sprite_Index  is Sprite_Counts range 1 .. Sprite_Counts'Last;
+
+   --
    --  Interpolated point
+   --
    type PIG_Ipoint is record
       --  From the last logic frame:
       Ox, Oy : Float;         --  Position
 
       --  From the last/current rendered frame:
-      Gimage : Integer;       --  Sprite frame index
+      Gimage : Sprite_Counts; --  Sprite frame index
       Gx, Gy : Float;         --  Interpolated position
    end record;
 
-   PIG_TIMERS : constant := 3;
+--   PIG_TIMERS : constant := 3;
 
    --
    --  Game logic events
@@ -129,9 +134,11 @@ is
       --  For HIT_OBJECT
    end record;
 
-
+   --
    --  Logic object
-   type Timer_Array is array (0 .. PIG_TIMERS - 1) of Integer;
+   --
+   type Timer_Id    is range 0 .. 2; --  PIG_TIMERS - 1;
+   type Timer_Array is array (Timer_Id) of Natural;
 
    type Handler_Access is not null access
      procedure (Object : in out PIG_Object;
@@ -146,8 +153,8 @@ is
 
       Id       : Integer;       -- Unique ID. 0 means "free".
 
-      Ibase    : Integer;       -- Sprite frame base index
-      Image    : Integer;       -- Sprite frame offset
+      Ibase    : Sprite_Counts; -- Sprite frame base index
+      Image    : Sprite_Counts; -- Sprite frame offset
       X, Y     : Float;         -- Position
       Vx, Vy   : Float;         -- Speed
       Ax, Ay   : Float;         -- Acceleration
@@ -170,11 +177,12 @@ is
 --        void            *userdata;
    end record;
 
-
+   --
    --  Level map
+   --
    type Tile_Index is range 0 .. 255;
-   type Map_Array is array (Natural range <>, Natural range <>) of Tile_Index;
-   type Hit_Array is array (Natural range <>, Natural range <>) of Pig_Sides;
+   type Map_Array  is array (Natural range <>, Natural range <>) of Tile_Index;
+   type Hit_Array  is array (Natural range <>, Natural range <>) of Pig_Sides;
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
 
    type PIG_Map is record
@@ -201,8 +209,9 @@ is
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
 
+   --
    --  Engine
-
+   --
    package Object_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => PIG_Object_Access);
 
@@ -210,10 +219,7 @@ is
      not null access procedure (Engine : in out PIG_Engine);
    procedure Null_Before_After (Engine : in out PIG_Engine);
 
-   type    Sprite_Counts is new Natural;
-   subtype Sprite_Index  is Sprite_Counts range 1 .. Sprite_Counts'Last;
-   type    Sprite_Array  is array (Sprite_Index range <>) of PIG_Sprite_Access;
-
+   type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
    type Dirty_Array  is array (0 .. 1) of Dirty.Table_Access;
 
    type PIG_Engine is record

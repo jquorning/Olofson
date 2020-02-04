@@ -56,7 +56,7 @@ package body Games is
       Object := Engines.Pig_Object_Open (Game.Engine, SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
-      Object.Ibase   := Integer (Game.Pigframes);
+      Object.Ibase   := Game.Pigframes;
       Object.Handler := Player_Handler'Access;
       Object.Hitmask := GROUP_POWERUP + GROUP_ENEMY;
    end New_Player;
@@ -75,12 +75,13 @@ package body Games is
                           Type_C : in     Engines.Power_Ups;
                           Object :    out not null Engines.PIG_Object_Access)
    is
+      use Engines;
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Score    := Engines.Power_Ups'Pos (Type_C);
-      Object.Ibase    := Integer (Game.Icons) + 8 * Object.Score;
+      Object.Ibase    := Game.Icons + Sprite_Counts (8 * Object.Score);
       Object.Target   := Speed;
       Object.Handler  := Powerup_Handler'Access;
       Object.Tilemask := Engines.PIG_Top;
@@ -107,7 +108,7 @@ package body Games is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X + Vx, Y + Vy, Last => True);
 
-      Object.Ibase   := Integer (Game.Stars);
+      Object.Ibase   := Game.Stars;
       Object.Ax      := -0.3 * Float (Vx);
       Object.Vx      := Float (Vx * 3);
       Object.Ay      := -0.3 * Float (Vy);
@@ -137,7 +138,7 @@ package body Games is
                                          Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Integer (Game.Evil);
+      Object.Ibase    := Game.Evil;
       Object.Target   := Speed;
       Object.Handler  := Evil_Handler'Access;
       Object.Score    := 200;
@@ -156,7 +157,7 @@ package body Games is
                                          X * TILE_W, Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Integer (Game.Slime);
+      Object.Ibase    := Game.Slime;
       Object.Target   := Speed;
       Object.Handler  := Slime_Handler'Access;
       Object.Score    := 300;
@@ -174,7 +175,7 @@ package body Games is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
-      Object.Ibase   := Integer (Image);
+      Object.Ibase   := Image;
       Object.Handler := Chain_Head_Handler'Access;
       Object.Target  := Target_X;
    end New_Chain_Head;
@@ -189,7 +190,7 @@ package body Games is
    begin
       Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
 
-      Object.Ibase   := Integer (Image);
+      Object.Ibase   := Image;
       Object.Handler := Chain_Link_Handler'Access;
       Object.Target  := Target;
    end New_Chain_Link;
@@ -328,7 +329,7 @@ package body Games is
                   if Object.Power /= 0 then
                      Object.Power := Object.Power - 1;
                   end if;
-                  Object.Image := Object.Target mod PIG_FRAMES;
+                  Object.Image := Sprite_Counts (Object.Target mod PIG_FRAMES);
                   if PIG_None = Pig_Test_Map (Game.Engine.all,
                                               Integer (Object.X),
                                               Integer (Object.Y + 1.0))
@@ -349,19 +350,19 @@ package body Games is
                      Object.Power := 3;
                   end if;
                   Object.Ay    := GRAV_ACC;
-                  Object.Image := Object.Target;
+                  Object.Image := Sprite_Counts (Object.Target);
 
                when Knocked =>
                   Object.Power  := 0;
                   Object.Ay     := GRAV_ACC;
                   Object.Target := (Object.Target + 2) mod PIG_FRAMES;
-                  Object.Image  := Object.Target;
+                  Object.Image  := Sprite_Counts (Object.Target);
                   Object.Ax     := -Object.Vx * 0.2;
 
                when Next_Level =>
                   Object.Vx     := (Float (SCREEN_W / 2) - Object.X) * 0.1;
                   Object.Target := (Object.Target + 1) mod PIG_FRAMES;
-                  Object.Image  := Object.Target;
+                  Object.Image  := Sprite_Counts (Object.Target);
 
                when Dead =>
                   Object.Ax := 0.0;
@@ -537,7 +538,7 @@ package body Games is
             if Object.State /= Dead then
                Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.3;
                Object.Ay    := GRAV_ACC;
-               Object.Image := Object.Age mod 8;
+               Object.Image := Sprite_Counts (Object.Age mod 8);
                Object.Power := Object.Power + 1;
             end if;
 
@@ -575,7 +576,7 @@ package body Games is
             if Object.Age >= 8 then
                Pig_Object_Close (Object);
             else
-               Object.Image := Object.Age;
+               Object.Image := Sprite_Counts (Object.Age);
             end if;
 
          when others => null;
@@ -597,7 +598,7 @@ package body Games is
             if Dead /= Object.State then
                Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.5;
                Object.Ay    := Float (GRAV_ACC);
-               Object.Image := Object.Age mod 16;
+               Object.Image := Sprite_Counts (Object.Age mod 16);
             end if;
 
          when PIG_HIT_TILE =>
@@ -650,7 +651,7 @@ package body Games is
             if Dead /= Object.State then
                Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.2;
                Object.Ay    := GRAV_ACC;
-               Object.Image := Object.Age mod 16;
+               Object.Image := Sprite_Counts (Object.Age mod 16);
             end if;
 
          when PIG_HIT_TILE =>

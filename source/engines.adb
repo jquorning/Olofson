@@ -307,7 +307,7 @@ package body Engines is
          Object.Ip.Ox := Object.X;
          Object.Ip.Gy := Object.Y;
          Object.Ip.Oy := Object.Y;
-         Object.Ip.Gimage := Object.Ibase + Object.Image;
+         Object.Ip.Gimage := Sprite_Counts (Object.Ibase + Object.Image);
       end loop;
    end Pig_Start;
 
@@ -320,15 +320,18 @@ package body Engines is
    is
       pragma Unreferenced (Engine);
    begin
-      for I in 0 .. PIG_TIMERS - 1 loop
+      for I in Object.Timer'Range loop
          if Object.Timer (I) /= 0 then
 
             Object.Timer (I) := Object.Timer (I) - 1;
             if Object.Timer (I) = 0 then
                declare
+                  To_Kind : constant array (Timer_Id) of PIG_Events := (0 => PIG_TIMER0,
+                                                                        1 => PIG_TIMER1,
+                                                                        2 => PIG_TIMER2);
                   Event : PIG_Event;
                begin
-                  Event.Kind := PIG_Events'Val (PIG_Events'Pos (PIG_TIMER0) + I);
+                  Event.Kind := To_Kind (I);
                   Object.Handler (Object, Event);
                   if Object.Id = 0 then
                      return;
@@ -842,7 +845,7 @@ package body Engines is
       --  to avoid rendering the same tiles multiple times
       --  in the overlapping areas.
       for Object of Engine.Objects loop
-         if Sprite_Counts (Object.Ip.Gimage) in Sprite_Index'First .. Engine.Sprite_Last then
+         if Object.Ip.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
             declare
                Sprite : constant not null PIG_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Ip.Gimage));
@@ -896,10 +899,10 @@ package body Engines is
             Object.Ip.Gx := Object.X;
             Object.Ip.Gy := Object.Y;
          end if;
-         Object.Ip.Gimage := Object.Ibase + Object.Image;
+         Object.Ip.Gimage := Sprite_Counts (Object.Ibase + Object.Image);
 
          --  Render the sprite!
-         if Sprite_Counts (Object.Ip.Gimage) in Sprite_Index'First .. Engine.Sprite_Last then
+         if Object.Ip.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
             declare
                use SDL.C;
 
@@ -913,7 +916,7 @@ package body Engines is
                   Y => int (Object.Ip.Gy - Float (Sprite.Hoty) + Float (Engine.View.Y)),
                   others => 0);
             begin
-               SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Sprite_Index (Object.Ip.Gimage)).Surface,
+               SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Object.Ip.Gimage).Surface,
                                         Source_Area => Source_Area,
                                         Self        => Engine.Surface,
                                         Self_Area   => Target_Area);
