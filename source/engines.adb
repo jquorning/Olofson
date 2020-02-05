@@ -1370,11 +1370,13 @@ package body Engines is
 
    procedure Pig_Object_Close (Object : in out PIG_Object) is
    begin
+      pragma Warnings (Off);
       if Object.Id = 0 then
          null;
 --         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
 --                               "Object %p closed more than once!"); -- , po);
       end if;
+      pragma Warnings (On);
       Object.Id := 0;     --  Mark for eventual removal and destruction
    end Pig_Object_Close;
 
@@ -1389,7 +1391,7 @@ package body Engines is
 
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Integer) return PIG_Object_Access
+                             Id    :        Object_Id) return PIG_Object_Access
    is
 --  PIG_object *pig_object_find(PIG_object *start, int id)
 --      Pob, Pof : PIG_Object_Access;

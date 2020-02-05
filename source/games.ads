@@ -148,7 +148,7 @@ is
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   :        Pixels;
                              Image  :        Engines.Sprite_Index;
-                             Target :        Integer;
+                             Target :        Object_Id;
                              Object :    out not null Engines.PIG_Object_Access);
 
    overriding

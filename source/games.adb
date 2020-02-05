@@ -289,7 +289,7 @@ package body Games is
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   :        Pixels;
                              Image  :        Engines.Sprite_Index;
-                             Target :        Integer;
+                             Target :        Object_Id;
                              Object :    out not null Engines.PIG_Object_Access)
    is
    begin
@@ -297,7 +297,7 @@ package body Games is
 
       Object.Ibase   := Image;
       Object.Handler := Chain_Link_Handler'Access;
-      Object.Target  := Target;
+      Object.Target  := Integer (Target);
    end New_Chain_Link;
 
 
@@ -854,7 +854,8 @@ package body Games is
    procedure Chain_Link_Handler (Object : in out Engines.PIG_Object;
                                  Event  :        Engines.PIG_Event)
    is
-      Target : constant PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
+      Target : constant PIG_Object_Access := Pig_Object_Find (Object,
+                                                              Object_Id (Object.Target));
    begin
       case Event.Kind is
 

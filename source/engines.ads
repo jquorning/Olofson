@@ -151,12 +151,13 @@ is
    procedure Null_Handler (Object : in out PIG_Object;
                            Event  :        PIG_Event) is null;
    type Engine_Class is access all PIG_Engine'Class;
+   type Object_Id    is new Natural;
 
    type PIG_Object is record
       Owner : Engine_Class;
 --        PIG_object      *next, *prev;
 
-      Id       : Integer;       -- Unique ID. 0 means "free".
+      Id       : Object_Id;     -- Unique ID. 0 means "free".
 
       Ibase    : Sprite_Counts; -- Sprite frame base index
       Image    : Sprite_Counts; -- Sprite frame offset
@@ -256,7 +257,7 @@ is
 
         --  Objects
         Objects           : Object_Lists.List;
-        Object_Id_Counter : Integer;
+        Object_Id_Counter : Object_Id;
 
         --  Sprites
         Sprite_Last       : Sprite_Counts;
@@ -438,7 +439,7 @@ is
    --  Close all objects.
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Integer) return PIG_Object_Access;
+                             Id    :        Object_Id) return PIG_Object_Access;
    --  Find object by 'id', starting at object 'start'.
    --
    --  The search starts at 'start' and is done in both
