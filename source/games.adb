@@ -85,28 +85,28 @@ package body Games is
          subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
       begin
          for I in Icons_Range loop
-            Game.Set_Hotspot (Game.Icons + I, Engines.PIG_CENTER, 45);
+            Game.Set_Hotspot (Game.Icons + I, PIG_CENTER, 45);
          end loop;
 
          for I in Pig_Range loop
-            Game.Set_Hotspot (Game.Pigframes + I, Engines.PIG_CENTER, 43);
+            Game.Set_Hotspot (Game.Pigframes + I, PIG_CENTER, 43);
          end loop;
 
          for I in Evil_Range loop
-            Game.Set_Hotspot (Game.Evil + I, Engines.PIG_CENTER, 46);
+            Game.Set_Hotspot (Game.Evil + I, PIG_CENTER, 46);
          end loop;
 
          for I in Slime_Range loop
-            Game.Set_Hotspot (Game.Slime + I, Engines.PIG_CENTER, 46);
+            Game.Set_Hotspot (Game.Slime + I, PIG_CENTER, 46);
          end loop;
       end;
 
       declare
          Map_Tiles_Result : Integer;
-         Map : constant Engines.PIG_Map_Access :=
-           Engines.Pig_Map_Open (Engines.Engine_Class (Game.Self), MAP_W, MAP_H);
+         Map : constant PIG_Map_Access :=
+           Pig_Map_Open (Engine_Class (Game.Self), MAP_W, MAP_H);
       begin
-         Engines.Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
+         Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
          if Map_Tiles_Result < 0 then
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                   "Could not load background graphics!");
@@ -116,9 +116,9 @@ package body Games is
          end if;
 
          --  Mark tiles for collision detection
-         Engines.Pig_Map_Collisions (Map.all,  0, 12, Engines.PIG_All);   --  Red, green, yellov
-         Engines.Pig_Map_Collisions (Map.all, 12, 17, Engines.PIG_None);  --  Sky
-         Engines.Pig_Map_Collisions (Map.all, 29,  3, Engines.PIG_All);   --  Single R, G, Y
+         Pig_Map_Collisions (Map.all,  0, 12, PIG_All);   --  Red, green, yellov
+         Pig_Map_Collisions (Map.all, 12, 17, PIG_None);  --  Sky
+         Pig_Map_Collisions (Map.all, 29,  3, PIG_All);   --  Single R, G, Y
 
          Game.Load_Level (0);
       end;
@@ -152,14 +152,14 @@ package body Games is
 
 
    procedure New_Player (Game   : in out Game_State;
-                         Object :    out Engines.PIG_Object_Access)
+                         Object :    out PIG_Object_Access)
    is
    begin
       if Game.Lives /= 0 then
          Object := null;
          return;
       end if;
-      Object := Engines.Pig_Object_Open (PIG_Engine (Game), SCREEN_W / 2, -50, Last => True);
+      Object := Pig_Object_Open (PIG_Engine (Game), SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
       Object.Ibase   := Game.Pigframes;
@@ -169,7 +169,7 @@ package body Games is
 
 
    procedure New_Player (Game : in out Game_State) is
-      Dummy : Engines.PIG_Object_Access;
+      Dummy : PIG_Object_Access;
    begin
       New_Player (Game, Dummy);
    end New_Player;
@@ -178,40 +178,40 @@ package body Games is
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   :        Pixels;
                           Speed  :        Integer;
-                          Kind   :        Engines.Power_Ups;
-                          Object :    out not null Engines.PIG_Object_Access)
+                          Kind   :        Power_Ups;
+                          Object :    out not null PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (PIG_Engine (Game.Self.all), X, Y, Last => True);
+      Object := Pig_Object_Open (PIG_Engine (Game.Self.all), X, Y, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
-      Object.Score    := Engines.Power_Ups'Pos (Kind);
+      Object.Score    := Power_Ups'Pos (Kind);
       Object.Ibase    := Game.Icons + Sprite_Counts (8 * Object.Score);
       Object.Target   := Speed;
       Object.Handler  := Powerup_Handler'Access;
-      Object.Tilemask := Engines.PIG_Top;
+      Object.Tilemask := PIG_Top;
       Object.Hitgroup := GROUP_POWERUP;
    end New_Powerup;
 
 
-   procedure New_Powerup (Game   : in out Game_State;
-                          X, Y   :        Pixels;
-                          Speed  :        Integer;
-                          Type_C :        Engines.Power_Ups)
+   procedure New_Powerup (Game  : in out Game_State;
+                          X, Y  :        Pixels;
+                          Speed :        Integer;
+                          Kind  :        Power_Ups)
    is
-      Dummy : Engines.PIG_Object_Access;
+      Dummy : PIG_Object_Access;
    begin
-      New_Powerup (Game, X, Y, Speed, Type_C, Dummy);
+      New_Powerup (Game, X, Y, Speed, Kind, Dummy);
    end New_Powerup;
 
 
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Vx, Vy :        Pixels;
-                       Object :    out not null Engines.PIG_Object_Access)
+                       Object :    out not null PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game, X + Vx, Y + Vy, Last => True);
+      Object := Pig_Object_Open (Game, X + Vx, Y + Vy, Last => True);
 
       Object.Ibase   := Game.Stars;
       Object.Ax      := -0.3 * Float (Vx);
@@ -226,7 +226,7 @@ package body Games is
                        X, Y   :        Pixels;
                        Vx, Vy :        Pixels)
    is
-      Dummy : Engines.PIG_Object_Access;
+      Dummy : PIG_Object_Access;
    begin
       New_Star (Game, X, Y, Vx, Vy, Dummy);
    end New_Star;
@@ -235,19 +235,19 @@ package body Games is
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Speed  :        Integer;
-                       Object :    out not null Engines.PIG_Object_Access)
+                       Object :    out not null PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game,
-                                         X * TILE_W,
-                                         Y * TILE_H, Last => True);
+      Object := Pig_Object_Open (Game,
+                                 X * TILE_W,
+                                 Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Ibase    := Game.Evil;
       Object.Target   := Speed;
       Object.Handler  := Evil_Handler'Access;
       Object.Score    := 200;
-      Object.Tilemask := Engines.PIG_Top;
+      Object.Tilemask := PIG_Top;
       Object.Hitgroup := GROUP_ENEMY;
    end New_Evil;
 
@@ -255,30 +255,30 @@ package body Games is
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Pixels;
                         Speed  :        Integer;
-                        Object :    out not null Engines.PIG_Object_Access)
+                        Object :    out not null PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game,
-                                         X * TILE_W, Y * TILE_H, Last => True);
+      Object := Pig_Object_Open (Game,
+                                 X * TILE_W, Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Ibase    := Game.Slime;
       Object.Target   := Speed;
       Object.Handler  := Slime_Handler'Access;
       Object.Score    := 300;
-      Object.Tilemask := Engines.PIG_Top;
+      Object.Tilemask := PIG_Top;
       Object.Hitgroup := GROUP_ENEMY;
    end New_Slime;
 
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     :        Pixels;
-                             Image    :        Engines.Sprite_Index;
+                             Image    :        Sprite_Index;
                              Target_X :        Integer;
-                             Object   :    out not null Engines.PIG_Object_Access)
+                             Object   :    out not null PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game, X, Y, Last => True);
+      Object := Pig_Object_Open (Game, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Chain_Head_Handler'Access;
@@ -288,12 +288,12 @@ package body Games is
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   :        Pixels;
-                             Image  :        Engines.Sprite_Index;
+                             Image  :        Sprite_Index;
                              Target :        Object_Id;
-                             Object :    out not null Engines.PIG_Object_Access)
+                             Object :    out not null PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game, X, Y, Last => True);
+      Object := Pig_Object_Open (Game, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Chain_Link_Handler'Access;
@@ -317,7 +317,7 @@ package body Games is
       end if;
       Game.Score_Wobble_Time := 0.0;
       if Os / 10000 /= Game.Score / 10000 then
-         New_Powerup (Game, SCREEN_W / 2, -20, -4, Engines.Power_Life);
+         New_Powerup (Game, SCREEN_W / 2, -20, -4, Power_Life);
       end if;
    end Inc_Score_Nobonus;
 
@@ -329,9 +329,9 @@ package body Games is
    begin
       Inc_Score_Nobonus (Game, V);
       if Os / 5000 /= Game.Score / 5000 then
-         New_Powerup (Game, SCREEN_W / 2, -20, 8, Engines.Power_Bonus_1);
+         New_Powerup (Game, SCREEN_W / 2, -20, 8, Power_Bonus_1);
       elsif Os / 1000 /= Game.Score / 1000 then
-         New_Powerup (Game, SCREEN_W / 2, -20, -6, Engines.Power_Bonus_2);
+         New_Powerup (Game, SCREEN_W / 2, -20, -6, Power_Bonus_2);
       end if;
    end Inc_Score;
 
@@ -341,14 +341,14 @@ package body Games is
    is
       use Ada.Characters.Handling;
 
-      function To_Frame (C : Character) return Engines.Sprite_Counts is
+      function To_Frame (C : Character) return Sprite_Counts is
          (Game.Glassfont + Character'Pos (C) - Character'Pos (' '));
 
       X  : constant Pixels := SCREEN_W + FONT_SPACING;
       Y  : constant Pixels := MAP_H * TILE_H - 30;
       Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
       First  : Boolean := True;
-      Object : Engines.PIG_Object_Access := null;
+      Object : PIG_Object_Access := null;
    begin
       Ada.Text_IO.Put_Line ("Message : " & Text);
       for C of To_Upper (Text) loop
@@ -363,8 +363,8 @@ package body Games is
    end Message;
 
 
-   procedure Player_Handler (Object : in out Engines.PIG_Object;
-                             Event  :        Engines.PIG_Event)
+   procedure Player_Handler (Object : in out PIG_Object;
+                             Event  :        PIG_Event)
    is
       use type SDL.C.int;
       Game : Game_State renames Game_Access (Object.Owner).all;
@@ -630,8 +630,8 @@ package body Games is
    end Player_Handler;
 
 
-   procedure Powerup_Handler (Object : in out Engines.PIG_Object;
-                              Event  :        Engines.PIG_Event)
+   procedure Powerup_Handler (Object : in out PIG_Object;
+                              Event  :        PIG_Event)
    is
       Game : Game_State renames Game_Access (Object.Owner).all;
    begin
@@ -668,8 +668,8 @@ package body Games is
    end Powerup_Handler;
 
 
-   procedure Star_Handler (Object : in out Engines.PIG_Object;
-                           Event  :        Engines.PIG_Event)
+   procedure Star_Handler (Object : in out PIG_Object;
+                           Event  :        PIG_Event)
    is
    begin
       case Event.Kind is
@@ -686,8 +686,8 @@ package body Games is
    end Star_Handler;
 
 
-   procedure Evil_Handler (Object : in out Engines.PIG_Object;
-                           Event  :        Engines.PIG_Event)
+   procedure Evil_Handler (Object : in out PIG_Object;
+                           Event  :        PIG_Event)
    is
       Game   : Game_State renames Game_Access (Object.Owner).all;
       Look_X : Pixels;
@@ -737,8 +737,8 @@ package body Games is
    end Evil_Handler;
 
 
-   procedure Slime_Handler (Object : in out Engines.PIG_Object;
-                            Event  :        Engines.PIG_Event)
+   procedure Slime_Handler (Object : in out PIG_Object;
+                            Event  :        PIG_Event)
    is
       Game   : Game_State renames Game_Access (Object.Owner).all;
       Look_X : Pixels;
@@ -795,8 +795,8 @@ package body Games is
    end Slime_Handler;
 
 
-   procedure Chain_Head_Handler (Object : in out Engines.PIG_Object;
-                                 Event  :        Engines.PIG_Event)
+   procedure Chain_Head_Handler (Object : in out PIG_Object;
+                                 Event  :        PIG_Event)
    is
       use Ada.Numerics.Elementary_Functions;
       Game : Game_State renames Game_Access (Object.Owner).all;
@@ -809,12 +809,12 @@ package body Games is
 
             when Waiting =>
                Object.Timer (2) := 35;
-               Object.State := Engines.Object_States'Succ (Object.State);
+               Object.State     := Object_States'Succ (Object.State);
 
             when Walking =>
                Object.Target    := -SCREEN_W;
                Object.Timer (2) := 50;
-               Object.State := Engines.Object_States'Succ (Object.State);
+               Object.State     := Object_States'Succ (Object.State);
                if Game.Messages > 0 then
                   Game.Messages := Game.Messages - 1;
                end if;
@@ -851,8 +851,8 @@ package body Games is
    end Chain_Head_Handler;
 
 
-   procedure Chain_Link_Handler (Object : in out Engines.PIG_Object;
-                                 Event  :        Engines.PIG_Event)
+   procedure Chain_Link_Handler (Object : in out PIG_Object;
+                                 Event  :        PIG_Event)
    is
       Target : constant PIG_Object_Access := Pig_Object_Find (Object,
                                                               Object_Id (Object.Target));
@@ -878,7 +878,7 @@ package body Games is
    is
       use Ada.Strings.Unbounded;
       M, K  : Unbounded_String;
-      Dummy : Engines.PIG_Object_Access;
+      Dummy : PIG_Object_Access;
    begin
       Game.Level := Integer (Map);
       Game.Pig_Object_Close_All;
@@ -1026,7 +1026,7 @@ package body Games is
             New_Slime (Game,  1, 0,  16, Dummy);
             New_Slime (Game, 24, 0, -14, Dummy);
       end case;
-      Engines.Pig_Map_From_String (Game.Map.all, To_String (K), To_String (M));
+      Pig_Map_From_String (Game.Map.all, To_String (K), To_String (M));
       Game.Refresh_Screen := Game.Pages;
    end Load_Level;
 

@@ -40,7 +40,7 @@ is
    type Key_Array is array (Key_Used) of Boolean;
 
    type Game_State is
-     new Engines.PIG_Engine
+     new PIG_Engine
      with record
 
         --  I/O
@@ -50,14 +50,14 @@ is
         Jump           : Integer;
 
         --  Sprites
-        Lifepig   : Engines.Sprite_Index;
-        Scorefont : Engines.Sprite_Index;
-        Glassfont : Engines.Sprite_Index;
-        Icons     : Engines.Sprite_Index;
-        Stars     : Engines.Sprite_Index;
-        Pigframes : Engines.Sprite_Index;
-        Evil      : Engines.Sprite_Index;
-        Slime     : Engines.Sprite_Index;
+        Lifepig   : Sprite_Index;
+        Scorefont : Sprite_Index;
+        Glassfont : Sprite_Index;
+        Icons     : Sprite_Index;
+        Stars     : Sprite_Index;
+        Pigframes : Sprite_Index;
+        Evil      : Sprite_Index;
+        Slime     : Sprite_Index;
 
         --  Global game state
         Running           : Boolean;
@@ -74,7 +74,7 @@ is
         Messages          : Integer;
 
         --  Objects
-        Player            : Engines.PIG_Object_Access;
+        Player            : PIG_Object_Access;
 
         --  Statistics
         Logic_Frames      : Integer;
@@ -107,18 +107,18 @@ is
    procedure New_Player (Game : in out Game_State);
 
    procedure New_Player (Game   : in out Game_State;
-                         Object :    out Engines.PIG_Object_Access);
+                         Object :    out PIG_Object_Access);
 
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   :        Pixels;
                           Speed  :        Integer;
-                          kind   :        Engines.Power_Ups;
-                          Object :    out not null Engines.PIG_Object_Access);
+                          kind   :        Power_Ups;
+                          Object :    out not null PIG_Object_Access);
 
-   procedure New_Powerup (Game   : in out Game_State;
-                          X, Y   :        Pixels;
-                          Speed  :        Integer;
-                          Type_C :        Engines.Power_Ups);
+   procedure New_Powerup (Game  : in out Game_State;
+                          X, Y  :        Pixels;
+                          Speed :        Integer;
+                          Kind  :        Power_Ups);
 
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
@@ -127,29 +127,29 @@ is
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Vx, Vy :        Pixels;
-                       Object :    out not null Engines.PIG_Object_Access);
+                       Object :    out not null PIG_Object_Access);
 
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Speed  :        Integer;
-                       Object :    out not null Engines.PIG_Object_Access);
+                       Object :    out not null PIG_Object_Access);
 
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Pixels;
                         Speed  :        Integer;
-                        Object :    out not null Engines.PIG_Object_Access);
+                        Object :    out not null PIG_Object_Access);
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     :        Pixels;
-                             Image    :        Engines.Sprite_Index;
+                             Image    :        Sprite_Index;
                              Target_X :        Integer;
-                             Object   :    out not null Engines.PIG_Object_Access);
+                             Object   :    out not null PIG_Object_Access);
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   :        Pixels;
-                             Image  :        Engines.Sprite_Index;
+                             Image  :        Sprite_Index;
                              Target :        Object_Id;
-                             Object :    out not null Engines.PIG_Object_Access);
+                             Object :    out not null PIG_Object_Access);
 
    overriding
    procedure Before_Objects (Game : in out Game_State);
@@ -159,25 +159,25 @@ is
                          Map  :        Map_Type);
 
 
-   procedure Player_Handler (Object : in out Engines.PIG_Object;
-                             Event  :        Engines.PIG_Event);
+   procedure Player_Handler (Object : in out PIG_Object;
+                             Event  :        PIG_Event);
 
-   procedure Powerup_Handler (Object : in out Engines.PIG_Object;
-                              Event  :        Engines.PIG_Event);
+   procedure Powerup_Handler (Object : in out PIG_Object;
+                              Event  :        PIG_Event);
 
-   procedure Star_Handler (Object : in out Engines.PIG_Object;
-                           Event  :        Engines.PIG_Event);
+   procedure Star_Handler (Object : in out PIG_Object;
+                           Event  :        PIG_Event);
 
-   procedure Evil_Handler (Object : in out Engines.PIG_Object;
-                           Event  :        Engines.PIG_Event);
+   procedure Evil_Handler (Object : in out PIG_Object;
+                           Event  :        PIG_Event);
 
-   procedure Slime_Handler (Object : in out Engines.PIG_Object;
-                            Event  :        Engines.PIG_Event);
+   procedure Slime_Handler (Object : in out PIG_Object;
+                            Event  :        PIG_Event);
 
-   procedure Chain_Head_Handler (Object : in out Engines.PIG_Object;
-                                 Event  :        Engines.PIG_Event);
+   procedure Chain_Head_Handler (Object : in out PIG_Object;
+                                 Event  :        PIG_Event);
 
-   procedure Chain_Link_Handler (Object : in out Engines.PIG_Object;
-                                 Event  :        Engines.PIG_Event);
+   procedure Chain_Link_Handler (Object : in out PIG_Object;
+                                 Event  :        PIG_Event);
 
 end Games;
