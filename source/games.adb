@@ -21,33 +21,31 @@ package body Games is
    overriding
    procedure Initialize (Game : in out Game_State)
    is
-      use type Engines.Sprite_Index;
+      use Engines;
    begin
-      Engines.Initialize (Engines.PIG_Engine (Game));
-      Ada.Text_IO.Put_Line ("Games.Initialize");
+      Engines.Initialize (PIG_Engine (Game));
 
       Game.Keys              := (others => False);
-      Game.Nice              := True; --  JQ
+      Game.Nice              := True;
       Game.Refresh_Screen    := 0;
       Game.Jump              := 0;
 
-      Game.Lifepig   := 1;
-      Game.Scorefont := 1;
-      Game.Glassfont := 1;
-      Game.Icons     := 1;
-      Game.Stars     := 1;
-      Game.Pigframes := 1;
-      Game.Evil      := 1;
-      Game.Slime     := 1;
+      Game.Lifepig   := 1;      Game.Scorefont := 1;
+      Game.Glassfont := 1;      Game.Icons     := 1;
+      Game.Stars     := 1;      Game.Pigframes := 1;
+      Game.Evil      := 1;      Game.Slime     := 1;
 
       Game.Running           := True;
       Game.Level             := 0;
+
       Game.Lives             := 0;
       Game.Lives_Wobble      := 0.0;
       Game.Lives_Wobble_Time := 0.0;
+
       Game.Score             := 0;
       Game.Score_Wobble      := 0.0;
       Game.Score_Wobble_Time := 0.0;
+
       Game.Dashboard_Time    := 0.0;
       Game.Fun_Count         := 0;
       Game.Enemycount        := 0;
@@ -59,14 +57,15 @@ package body Games is
       Game.Start_Time        := Ada.Real_Time.Clock;
    end Initialize;
 
+
    overriding
    procedure Finalize (Game : in out Game_State)
    is
       use Engines;
    begin
-      Ada.Text_IO.Put_Line ("Games.Finalize");
       Engines.Finalize (PIG_Engine (Game));
    end Finalize;
+
 
    procedure Create (Game : in out Game_State) is
    begin

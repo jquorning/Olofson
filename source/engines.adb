@@ -24,6 +24,63 @@ package body Engines is
    PIG_MAX_SPRITES : constant := 1024;
    --  Size of sprite frame table
 
+   procedure Close_Object (Object : in out PIG_Object);
+   --  Actually remove an objects. Used internally,
+   --  to remove objects that have been marked for
+   --  destruction.
+
+   procedure Run_Timers (Engine : in out PIG_Engine'Class;
+                         Object : in out PIG_Object);
+
+   procedure Test_Offscreen (Engine : in out PIG_Engine;
+                             Object : in out PIG_Object;
+                             Sprite : in     PIG_Sprite_Access);
+
+   function Sqrt (F : Float) return Float
+     renames Ada.Numerics.Elementary_Functions.Sqrt;
+
+   procedure Sprite_Sprite_One (Object   : in not null PIG_Object_Access;
+                                Object_2 : in not null PIG_Object_Access;
+                                T        : in Float;
+                                Hitdist  : in Float);
+   --  Test for stationary sprite/sprite collision
+
+   procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
+                                 Object : in     not null PIG_Object_Access;
+                                 Sprite : in     PIG_Sprite_Access);
+   --  Check Object against all subsequent objects in the list.
+   --  The testing is step size limited so that neither object
+   --  moves more than 25% of the collision distance between tests.
+   --  (25% should be sufficient for correct direction flags.)
+
+   function Check_Tile (Map  : in not null PIG_Map_Access;
+                        X, Y : in Integer;
+                        Mask : in Pig_Sides) return Pig_Sides;
+   --  Returns a non-zero value if the tile at (x, y) is marked for
+   --  collisions on the side indicated by 'mask'.
+
+   procedure Test_Sprite_Map (Engine : in out PIG_Engine;
+                              Object : in out PIG_Object;
+                              Sprite : in     PIG_Sprite_Access);
+
+   procedure Run_Logic (Engine : in out PIG_Engine'Class);
+
+   procedure Tile_Area (Engine : in out PIG_Engine;
+                        Area   : in SDL.Video.Rectangles.Rectangle);
+
+   procedure Remove_Sprites (Engine : in out PIG_Engine);
+
+   procedure Draw_Sprites (Engine : in out PIG_Engine);
+
+   procedure Show_Rects (Engine : in out PIG_Engine;
+                         Table  : in     Dirty.Table_Type);
+
+   function Get_Object (Engine : in out PIG_Engine)
+                       return not null PIG_Object_Access;
+
+   procedure Free_Object (Object : in out PIG_Object);
+
+
    Clean_Object : constant PIG_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
       Ip    => (Gimage => 0, others => 0.0),
@@ -34,10 +91,6 @@ package body Engines is
       State    => Object_States'First,
       Handler  => Null_Handler'Access, others => 0.0);
 
-   procedure Close_Object (Object : in out PIG_Object);
-   --  Actually remove an objects. Used internally,
-   --  to remove objects that have been marked for
-   --  destruction.
 
    ------------------------------------------------------------
    --      Engine
@@ -46,7 +99,6 @@ package body Engines is
    procedure Initialize (Engine : in out PIG_Engine)
    is
    begin
-      Ada.Text_IO.Put_Line ("Engines.Initialize");
       Engine.Self    := null;
 
       --  Video stuff
@@ -117,92 +169,10 @@ package body Engines is
    end Initialize; -- Clean_Engine;
 
 
---     function Create_Engine (Screen : in SDL.Video.Surfaces.Surface)
---                            return Engine_Class
---     is
---        Engine : Engine_Class;
---     begin
---        Engine := new PIG_Engine; --  '(Clean_Engine);
---        Engine.all := Clean_Engine (Screen);
---        return Engine;
---     end Create_Engine;
-
---     --  obsolete
---     procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
---                         Screen : in     SDL.Video.Surfaces.Surface);
---     procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
---                         Screen : in     SDL.Video.Surfaces.Surface)
---     is
---     begin
---        --  Engine := new PIG_Engine'(Clean_Engine);
---        Engine.Screen      := Screen;
---        Engine.Sprite_Last := 0;
---  --      if(!pe->screen)
---  --      {
---  --              pig_close(pe);
---  --              return NULL;
---  --      }
---        if False then
---        --      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
---        --      {
---           null;
---  --              pe->buffer = SDL_CreateRGBSurface(SDL_SWSURFACE,
---  --                              screen->w, screen->h,
---  --                              screen->format->BitsPerPixel,
---  --                              screen->format->Rmask,
---  --                              screen->format->Gmask,
---  --                              screen->format->Bmask,
---  --                              screen->format->Amask);
---  --              if(!pe->buffer)
---  --              {
---  --                      pig_close(pe);
---  --                      return NULL;
---  --              }
---  --              pe->surface = pe->buffer;
---  --      }
---        else
---           Engine.Surface := Screen;
---        end if;
---        Engine.Pages := 1; --  + ((screen->flags & SDL_DOUBLEBUF) == SDL_DOUBLEBUF);
-
---        Engine.Interpolation := True;
---        Engine.Time          := 0.0;
---        Engine.View.Width    := Engine.Surface.Size.Width;
---        Engine.View.Height   := Engine.Surface.Size.Height;
-
---        Engine.Sprites := new Sprite_Array'(Sprite_Index'First .. PIG_MAX_SPRITES - 1 => null);
---  --      pe->sprites = (PIG_sprite **)calloc(PIG_MAX_SPRITES,
---  --                      sizeof(PIG_sprite *));
---  --      if(!pe->sprites)
---  --      {
---  --              pig_close(pe);
---  --              return NULL;
---  --      }
-
---        Engine.Pagedirty (0) := Dirty.Create (Size => 128);
---        Engine.Workdirty     := Dirty.Create (Size => 256);
---  --      if(!pe->pagedirty[0] || !pe->workdirty)
---  --      {
---  --              pig_close(pe);
---  --              return NULL;
---  --      }
---        if Engine.Pages > 1 then
---           Engine.Pagedirty (1) := Dirty.Create (Size => 128);
---  --              if(!pe->pagedirty[1] then
---  --                      pig_close(pe);
---  --                      return NULL;
---  --              end if;
---        end if;
-
---        --      return pe;
---     end Pig_Open;
-
---   procedure Pig_Close (Engine : in out PIG_Engine) is
    overriding
    procedure Finalize (Engine : in out PIG_Engine) is
       use Dirty;
    begin
-      Ada.Text_IO.Put_Line ("Engines.Finalize");
 --  {
 --      if(pe->sprites)
 --      {
@@ -410,9 +380,6 @@ package body Engines is
 
 
    procedure Run_Timers (Engine : in out PIG_Engine'Class;
-                         Object : in out PIG_Object);
-
-   procedure Run_Timers (Engine : in out PIG_Engine'Class;
                          Object : in out PIG_Object)
    is
       pragma Unreferenced (Engine);
@@ -439,10 +406,6 @@ package body Engines is
       end loop;
    end Run_Timers;
 
-
-   procedure Test_Offscreen (Engine : in out PIG_Engine;
-                             Object : in out PIG_Object;
-                             Sprite : in     PIG_Sprite_Access);
 
    procedure Test_Offscreen (Engine : in out PIG_Engine;
                              Object : in out PIG_Object;
@@ -501,13 +464,6 @@ package body Engines is
       Object.Handler (Object, Event);
    end Test_Offscreen;
 
-   function Sqrt (F : Float) return Float renames Ada.Numerics.Elementary_Functions.Sqrt;
-
-   --  Test for stationary sprite/sprite collision
-   procedure Sprite_Sprite_One (Object   : in not null PIG_Object_Access;
-                                Object_2 : in not null PIG_Object_Access;
-                                T        : in Float;
-                                Hitdist  : in Float);
 
    procedure Sprite_Sprite_One (Object   : in not null PIG_Object_Access;
                                 Object_2 : in not null PIG_Object_Access;
@@ -567,14 +523,6 @@ package body Engines is
    end Sprite_Sprite_One;
 
 
-   --  Check 'po' against all subsequent objects in the list.
-   --  The testing is step size limited so that neither object
-   --  moves more than 25% of the collision distance between tests.
-   --  (25% should be sufficient for correct direction flags.)
-   procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
-                                 Object : in     not null PIG_Object_Access;
-                                 Sprite : in     PIG_Sprite_Access);
-
    procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
                                  Object : in     not null PIG_Object_Access;
                                  Sprite : in     PIG_Sprite_Access)
@@ -631,12 +579,6 @@ package body Engines is
    end Test_Sprite_Sprite;
 
 
-   --  Returns a non-zero value if the tile at (x, y) is marked for
-   --  collisions on the side indicated by 'mask'.
-   function Check_Tile (Map  : in not null PIG_Map_Access;
-                        X, Y : in Integer;
-                        Mask : in Pig_Sides) return Pig_Sides;
-
    function Check_Tile (Map  : in not null PIG_Map_Access;
                         X, Y : in Integer;
                         Mask : in Pig_Sides) return Pig_Sides
@@ -669,7 +611,7 @@ package body Engines is
 
    function Pig_Test_Map (Engine : in PIG_Engine;
                           X, Y   :    Integer) return Pig_Sides
-   is -- Boolean is
+   is
       Mx, My : Integer;
    begin
       if X < 0 or Y < 0 then
@@ -684,17 +626,17 @@ package body Engines is
    end Pig_Test_Map;
 
 
-   --  Simple implementation that checks only for top edge collisions.
-   --  (Full top/bottom/left/right checks with proper handling of
-   --  corners and rows of tiles is a lot more complicated, so I'll
-   --  leave that out for now, rather than hacking something simple
-   --  but incorrect.)
    Lci : aliased PIG_Cinfo;
    function Pig_Test_Map_Vector (Engine         : in out PIG_Engine;
                                  X1, Y1, X2, Y2 : in     Integer;
                                  Mask           : in     Pig_Sides;
                                  Ci             : in     PIG_Cinfo_Access)
                                 return Pig_Sides
+     --  Simple implementation that checks only for top edge collisions.
+     --  (Full top/bottom/left/right checks with proper handling of
+     --  corners and rows of tiles is a lot more complicated, so I'll
+     --  leave that out for now, rather than hacking something simple
+     --  but incorrect.)
    is
       Ci2  : constant not null PIG_Cinfo_Access := (if Ci /= null then Ci else Lci'Access);
       Map  : constant not null PIG_Map_Access   := Engine.Map;
@@ -729,10 +671,6 @@ package body Engines is
 
    procedure Test_Sprite_Map (Engine : in out PIG_Engine;
                               Object : in out PIG_Object;
-                              Sprite : in     PIG_Sprite_Access);
-
-   procedure Test_Sprite_Map (Engine : in out PIG_Engine;
-                              Object : in out PIG_Object;
                               Sprite : in     PIG_Sprite_Access)
    is
       pragma Unreferenced (Sprite);
@@ -750,7 +688,6 @@ package body Engines is
    end Test_Sprite_Map;
 
 
-   procedure Run_Logic (Engine : in out PIG_Engine'Class);
    procedure Run_Logic (Engine : in out PIG_Engine'Class)
    is
       use Object_Lists;
@@ -875,9 +812,6 @@ package body Engines is
 
 
    procedure Tile_Area (Engine : in out PIG_Engine;
-                        Area   : in SDL.Video.Rectangles.Rectangle);
-
-   procedure Tile_Area (Engine : in out PIG_Engine;
                         Area   : in     SDL.Video.Rectangles.Rectangle)
    is
       use type SDL.C.int;
@@ -926,20 +860,19 @@ package body Engines is
    end Tile_Area;
 
 
-   procedure Remove_Sprites (Engine : in out PIG_Engine);
    procedure Remove_Sprites (Engine : in out PIG_Engine)
+     --  Remove all objects, using the information that
+     --  remains from the last frame. The actual removal
+     --  is done by drawing over the sprites with tiles
+     --  from the map.
+     --
+     --  We assume that most objects don't overlap. If
+     --  they do that a lot, we could use a "dirty map"
+     --  to avoid rendering the same tiles multiple times
+     --  in the overlapping areas.
    is
       use SDL.C;
    begin
-      --  Remove all objects, using the information that
-      --  remains from the last frame. The actual removal
-      --  is done by drawing over the sprites with tiles
-      --  from the map.
-      --
-      --  We assume that most objects don't overlap. If
-      --  they do that a lot, we could use a "dirty map"
-      --  to avoid rendering the same tiles multiple times
-      --  in the overlapping areas.
       for Object of Engine.Objects loop
          if Object.Ip.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
             declare
@@ -967,8 +900,6 @@ package body Engines is
       end loop;
    end Remove_Sprites;
 
-
-   procedure Draw_Sprites (Engine : in out PIG_Engine);
 
    procedure Draw_Sprites (Engine : in out PIG_Engine)
    is
@@ -1047,8 +978,6 @@ package body Engines is
    end Pig_Refresh_All;
 
 
-   procedure Show_Rects (Engine : in out PIG_Engine;
-                         Table  : in     Dirty.Table_Type);
    procedure Show_Rects (Engine : in out PIG_Engine;
                          Table  : in     Dirty.Table_Type)
    is
@@ -1355,7 +1284,6 @@ package body Engines is
    --      Object
    ------------------------------------------------------------
 
-   function Get_Object (Engine : in out PIG_Engine) return not null PIG_Object_Access;
    function Get_Object (Engine : in out PIG_Engine) return not null PIG_Object_Access
    is
       Object : constant not null PIG_Object_Access := new PIG_Object'(Clean_Object);
@@ -1378,8 +1306,6 @@ package body Engines is
       return Object;
    end Get_Object;
 
-
-   procedure Free_Object (Object : in out PIG_Object);
 
    procedure Free_Object (Object : in out PIG_Object) is
    begin

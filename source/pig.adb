@@ -32,15 +32,6 @@ with Signals;
 procedure Pig is
    use Games;
 
-   ----------------------------------------------------------
-   --        Init, load stuff etc
-   ----------------------------------------------------------
-
---   function Create_Game (Screen : in SDL.Video.Surfaces.Surface)
---                        return Game_Access;
---   procedure Init_All (Game   :    out not null Game_State_Access;
---                       Screen : in out SDL.Video.Surfaces.Surface);
-
    procedure Dashboard (Game : in out Game_State);
    --  Render the dashboard
 
@@ -50,9 +41,6 @@ procedure Pig is
                            Event : in out SDL.Events.Events.Events);
    procedure Handle_Keys (Game : in out Game_State);
 
-   ----------------------------------------------------------
-   --        Render the dashboard
-   ----------------------------------------------------------
 
    procedure Dashboard (Game : in out Game_State)
    is
