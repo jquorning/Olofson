@@ -1332,9 +1332,10 @@ package body Engines is
    end Free_Object;
 
 
-   function Pig_Object_Open (Engine : in out Game_Engine'Class;
-                             X, Y   :        Pixels;
-                             Last   :        Boolean) return not null Object_Access
+   function Open_Object (Engine : in out Game_Engine'Class;
+                         X, Y   :        Pixels;
+                         Last   :        Boolean)
+                        return not null Object_Access
    is
       Object : constant not null Object_Access := Get_Object (Engine.Self.all);
    begin
@@ -1355,7 +1356,7 @@ package body Engines is
       Object.Ay := Float (Y);
 
       return Object;
-   end Pig_Object_Open;
+   end Open_Object;
 
 
    procedure Close_Object (Object : in out PIG_Object)
@@ -1393,8 +1394,8 @@ package body Engines is
    end Unlink_All_Objects;
 
 
-   function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Object_Id) return Object_Access
+   function Find_Object (Start : in out PIG_Object;
+                         Id    :        Object_Id) return Object_Access
    is
 --  PIG_object *pig_object_find(PIG_object *start, int id)
 --      Pob, Pof : Object_Access;
@@ -1440,6 +1441,6 @@ package body Engines is
 --      Ada.Text_IO.Put_Line ("ERROR");
       return null;
 --      raise Program_Error;
-   end Pig_Object_Find;
+   end Find_Object;
 
 end Engines;

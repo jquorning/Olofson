@@ -159,7 +159,7 @@ package body Games is
          Object := null;
          return;
       end if;
-      Object := Pig_Object_Open (Game_Engine (Game), SCREEN_W / 2, -50, Last => True);
+      Object := Open_Object (Game_Engine (Game), SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
       Object.Ibase   := Game.Pigframes;
@@ -182,7 +182,7 @@ package body Games is
                           Object :    out not null Object_Access)
    is
    begin
-      Object := Pig_Object_Open (Game_Engine (Game.Self.all), X, Y, Last => True);
+      Object := Open_Object (Game_Engine (Game.Self.all), X, Y, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Score    := Power_Ups'Pos (Kind);
@@ -211,7 +211,7 @@ package body Games is
                        Object :    out not null Object_Access)
    is
    begin
-      Object := Pig_Object_Open (Game, X + Vx, Y + Vy, Last => True);
+      Object := Open_Object (Game, X + Vx, Y + Vy, Last => True);
 
       Object.Ibase   := Game.Stars;
       Object.Ax      := -0.3 * Float (Vx);
@@ -238,7 +238,7 @@ package body Games is
                        Object :    out not null Object_Access)
    is
    begin
-      Object := Pig_Object_Open (Game,
+      Object := Open_Object (Game,
                                  X * TILE_W,
                                  Y * TILE_H, Last => True);
 
@@ -258,7 +258,7 @@ package body Games is
                         Object :    out not null Object_Access)
    is
    begin
-      Object := Pig_Object_Open (Game,
+      Object := Open_Object (Game,
                                  X * TILE_W, Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
@@ -278,7 +278,7 @@ package body Games is
                              Object   :    out not null Object_Access)
    is
    begin
-      Object := Pig_Object_Open (Game, X, Y, Last => True);
+      Object := Open_Object (Game, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Chain_Head_Handler'Access;
@@ -293,7 +293,7 @@ package body Games is
                              Object :    out not null Object_Access)
    is
    begin
-      Object := Pig_Object_Open (Game, X, Y, Last => True);
+      Object := Open_Object (Game, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Chain_Link_Handler'Access;
@@ -854,8 +854,8 @@ package body Games is
    procedure Chain_Link_Handler (Object : in out PIG_Object;
                                  Event  :        PIG_Event)
    is
-      Target : constant Object_Access := Pig_Object_Find (Object,
-                                                              Object_Id (Object.Target));
+      Target : constant Object_Access := Find_Object (Object,
+                                                      Object_Id (Object.Target));
    begin
       case Event.Kind is
 

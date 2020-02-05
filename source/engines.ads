@@ -409,9 +409,10 @@ is
    --
    --  Object
    --
-   function Pig_Object_Open (Engine : in out Game_Engine'Class;
-                             X, Y   :        Pixels;
-                             Last   :        Boolean) return not null Object_Access;
+   function Open_Object (Engine : in out Game_Engine'Class;
+                         X, Y   :        Pixels;
+                         Last   :        Boolean)
+                        return not null Object_Access;
    --  Create an object with the initial position (X, Y). If
    --  Last, the object will end up last in the
    --  processing and rendering order, otherwise, first.
@@ -436,8 +437,8 @@ is
    procedure Unlink_All_Objects (Engine : in out Game_Engine);
    --  Unlink all objects.
 
-   function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Object_Id) return Object_Access;
+   function Find_Object (Start : in out PIG_Object;
+                         Id    :        Object_Id) return Object_Access;
    --  Find object by 'id', starting at object 'start'.
    --
    --  The search starts at 'start' and is done in both
