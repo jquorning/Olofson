@@ -24,16 +24,16 @@ package body Engines is
    PIG_MAX_SPRITES : constant := 1024;
    --  Size of sprite frame table
 
-   procedure Close_Object (Object : in out PIG_Object);
+   procedure Close_Object (Object : in out Game_Object);
    --  Actually remove an objects. Used internally,
    --  to remove objects that have been marked for
    --  destruction.
 
    procedure Run_Timers (Engine : in out Game_Engine'Class;
-                         Object : in out PIG_Object);
+                         Object : in out Game_Object);
 
    procedure Test_Offscreen (Engine : in out Game_Engine;
-                             Object : in out PIG_Object;
+                             Object : in out Game_Object;
                              Sprite :        PIG_Sprite_Access);
 
    function Sqrt (F : Float) return Float
@@ -60,7 +60,7 @@ package body Engines is
    --  collisions on the side indicated by 'mask'.
 
    procedure Test_Sprite_Map (Engine : in out Game_Engine;
-                              Object : in out PIG_Object;
+                              Object : in out Game_Object;
                               Sprite :        PIG_Sprite_Access);
 
    procedure Run_Logic (Engine : in out Game_Engine'Class);
@@ -78,10 +78,10 @@ package body Engines is
    function Get_Object (Engine : in out Game_Engine)
                        return not null Object_Access;
 
-   procedure Free_Object (Object : in out PIG_Object);
+   procedure Free_Object (Object : in out Game_Object);
 
 
-   Clean_Object : constant PIG_Object :=
+   Clean_Object : constant Game_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
       Ip    => (Gimage => 0, others => 0.0),
       Tilemask => PIG_None,
@@ -384,7 +384,7 @@ package body Engines is
 
 
    procedure Run_Timers (Engine : in out Game_Engine'Class;
-                         Object : in out PIG_Object)
+                         Object : in out Game_Object)
    is
       pragma Unreferenced (Engine);
    begin
@@ -412,7 +412,7 @@ package body Engines is
 
 
    procedure Test_Offscreen (Engine : in out Game_Engine;
-                             Object : in out PIG_Object;
+                             Object : in out Game_Object;
                              Sprite :        PIG_Sprite_Access)
    is
       use SDL.C;
@@ -678,7 +678,7 @@ package body Engines is
 
 
    procedure Test_Sprite_Map (Engine : in out Game_Engine;
-                              Object : in out PIG_Object;
+                              Object : in out Game_Object;
                               Sprite :        PIG_Sprite_Access)
    is
       pragma Unreferenced (Sprite);
@@ -1301,7 +1301,7 @@ package body Engines is
 
    function Get_Object (Engine : in out Game_Engine) return not null Object_Access
    is
-      Object : constant not null Object_Access := new PIG_Object'(Clean_Object);
+      Object : constant not null Object_Access := new Game_Object'(Clean_Object);
    begin
       --      if(pe->object_pool)
 --      {
@@ -1322,7 +1322,7 @@ package body Engines is
    end Get_Object;
 
 
-   procedure Free_Object (Object : in out PIG_Object) is
+   procedure Free_Object (Object : in out Game_Object) is
    begin
 --      Object.Owner.Objects.Delete (Object);
 --      po->prev = NULL;
@@ -1359,7 +1359,7 @@ package body Engines is
    end Open_Object;
 
 
-   procedure Close_Object (Object : in out PIG_Object)
+   procedure Close_Object (Object : in out Game_Object)
    is
    begin
 --      if(po == po->owner->objects)
@@ -1372,7 +1372,7 @@ package body Engines is
    end Close_Object;
 
 
-   procedure Unlink_Object (Object : in out PIG_Object) is
+   procedure Unlink_Object (Object : in out Game_Object) is
    begin
       pragma Warnings (Off);
       if Object.Id = 0 then
@@ -1394,7 +1394,7 @@ package body Engines is
    end Unlink_All_Objects;
 
 
-   function Find_Object (Start : in out PIG_Object;
+   function Find_Object (Start : in out Game_Object;
                          Id    :        Object_Id) return Object_Access
    is
 --  PIG_object *pig_object_find(PIG_object *start, int id)

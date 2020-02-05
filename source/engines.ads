@@ -43,9 +43,9 @@ is
    type Tiles  is new Integer;
 
 
-   type PIG_Object;
+   type Game_Object;
    type Game_Engine;
-   type Object_Access is access all PIG_Object;
+   type Object_Access is access all Game_Object;
    type Engine_Access is access all Game_Engine;
 
    type    Sprite_Counts is new Natural;
@@ -143,15 +143,15 @@ is
    type Timer_Array is array (Timer_Id) of Natural;
 
    type Handler_Access is not null access
-     procedure (Object : in out PIG_Object;
+     procedure (Object : in out Game_Object;
                 Event  :        PIG_Event);
 
-   procedure Null_Handler (Object : in out PIG_Object;
+   procedure Null_Handler (Object : in out Game_Object;
                            Event  :        PIG_Event) is null;
    type Game_Engine_Class is access all Game_Engine'Class;
    type Object_Id    is new Natural;
 
-   type PIG_Object is record
+   type Game_Object is record
       Owner : Game_Engine_Class;
 --        PIG_object      *next, *prev;
 
@@ -423,7 +423,7 @@ is
    --  objects get an extra frame of reaction time, which is
    --  annoying if it's not what you intend.
 
-   procedure Unlink_Object (Object : in out PIG_Object);
+   procedure Unlink_Object (Object : in out Game_Object);
    --  Unlink an object.
    --
    --  Note that objects are never actually deleted. Instead,
@@ -437,7 +437,7 @@ is
    procedure Unlink_All_Objects (Engine : in out Game_Engine);
    --  Unlink all objects.
 
-   function Find_Object (Start : in out PIG_Object;
+   function Find_Object (Start : in out Game_Object;
                          Id    :        Object_Id) return Object_Access;
    --  Find object by 'id', starting at object 'start'.
    --

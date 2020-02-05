@@ -363,7 +363,7 @@ package body Games is
    end Message;
 
 
-   procedure Player_Handler (Object : in out PIG_Object;
+   procedure Player_Handler (Object : in out Game_Object;
                              Event  :        PIG_Event)
    is
       use type SDL.C.int;
@@ -630,7 +630,7 @@ package body Games is
    end Player_Handler;
 
 
-   procedure Powerup_Handler (Object : in out PIG_Object;
+   procedure Powerup_Handler (Object : in out Game_Object;
                               Event  :        PIG_Event)
    is
       Game : Game_State renames Game_Access (Object.Owner).all;
@@ -668,7 +668,7 @@ package body Games is
    end Powerup_Handler;
 
 
-   procedure Star_Handler (Object : in out PIG_Object;
+   procedure Star_Handler (Object : in out Game_Object;
                            Event  :        PIG_Event)
    is
    begin
@@ -686,7 +686,7 @@ package body Games is
    end Star_Handler;
 
 
-   procedure Evil_Handler (Object : in out PIG_Object;
+   procedure Evil_Handler (Object : in out Game_Object;
                            Event  :        PIG_Event)
    is
       Game   : Game_State renames Game_Access (Object.Owner).all;
@@ -737,7 +737,7 @@ package body Games is
    end Evil_Handler;
 
 
-   procedure Slime_Handler (Object : in out PIG_Object;
+   procedure Slime_Handler (Object : in out Game_Object;
                             Event  :        PIG_Event)
    is
       Game   : Game_State renames Game_Access (Object.Owner).all;
@@ -795,7 +795,7 @@ package body Games is
    end Slime_Handler;
 
 
-   procedure Chain_Head_Handler (Object : in out PIG_Object;
+   procedure Chain_Head_Handler (Object : in out Game_Object;
                                  Event  :        PIG_Event)
    is
       use Ada.Numerics.Elementary_Functions;
@@ -851,7 +851,7 @@ package body Games is
    end Chain_Head_Handler;
 
 
-   procedure Chain_Link_Handler (Object : in out PIG_Object;
+   procedure Chain_Link_Handler (Object : in out Game_Object;
                                  Event  :        PIG_Event)
    is
       Target : constant Object_Access := Find_Object (Object,

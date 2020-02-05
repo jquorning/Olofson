@@ -159,25 +159,25 @@ is
                          Map  :        Map_Type);
 
 
-   procedure Player_Handler (Object : in out PIG_Object;
+   procedure Player_Handler (Object : in out Game_Object;
                              Event  :        PIG_Event);
 
-   procedure Powerup_Handler (Object : in out PIG_Object;
+   procedure Powerup_Handler (Object : in out Game_Object;
                               Event  :        PIG_Event);
 
-   procedure Star_Handler (Object : in out PIG_Object;
+   procedure Star_Handler (Object : in out Game_Object;
                            Event  :        PIG_Event);
 
-   procedure Evil_Handler (Object : in out PIG_Object;
+   procedure Evil_Handler (Object : in out Game_Object;
                            Event  :        PIG_Event);
 
-   procedure Slime_Handler (Object : in out PIG_Object;
+   procedure Slime_Handler (Object : in out Game_Object;
                             Event  :        PIG_Event);
 
-   procedure Chain_Head_Handler (Object : in out PIG_Object;
+   procedure Chain_Head_Handler (Object : in out Game_Object;
                                  Event  :        PIG_Event);
 
-   procedure Chain_Link_Handler (Object : in out PIG_Object;
+   procedure Chain_Link_Handler (Object : in out Game_Object;
                                  Event  :        PIG_Event);
 
 end Games;
