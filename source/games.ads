@@ -16,6 +16,7 @@ with Engines;
 package Games
   with Elaborate_Body
 is
+   use Engines;
 
    --  Graphics defines
    SCREEN_W     : constant := 800;
@@ -96,7 +97,8 @@ is
 
    procedure Inc_Score_Nobonus (Game : in out Game_State; V : Integer);
 
-   procedure Message (Game : in out Game_State; Text : in String);
+   procedure Message (Game : in out Game_State;
+                      Text :        String);
 
    procedure Add_Life (Game : in out Game_State);
 
@@ -108,73 +110,74 @@ is
                          Object :    out Engines.PIG_Object_Access);
 
    procedure New_Powerup (Game   : in out Game_State;
-                          X, Y   : in     Integer;
-                          Speed  : in     Integer;
-                          Type_C : in     Engines.Power_Ups;
+                          X, Y   :        Pixels;
+                          Speed  :        Integer;
+                          kind   :        Engines.Power_Ups;
                           Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Powerup (Game   : in out Game_State;
-                          X, Y   : in     Integer;
-                          Speed  : in     Integer;
-                          Type_C : in     Engines.Power_Ups);
+                          X, Y   :        Pixels;
+                          Speed  :        Integer;
+                          Type_C :        Engines.Power_Ups);
 
    procedure New_Star (Game   : in out Game_State;
-                       X, Y   : in     Integer;
-                       Vx, Vy : in     Integer);
+                       X, Y   :        Pixels;
+                       Vx, Vy :        Pixels);
 
    procedure New_Star (Game   : in out Game_State;
-                       X, Y   : in     Integer;
-                       Vx, Vy : in     Integer;
+                       X, Y   :        Pixels;
+                       Vx, Vy :        Pixels;
                        Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Evil (Game   : in out Game_State;
-                       X, Y   : in     Integer;
-                       Speed  : in     Integer;
+                       X, Y   :        Pixels;
+                       Speed  :        Integer;
                        Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Slime (Game   : in out Game_State;
-                        X, Y   :        Integer;
-                        Speed  : in     Integer;
+                        X, Y   :        Pixels;
+                        Speed  :        Integer;
                         Object :    out not null Engines.PIG_Object_Access);
 
    procedure New_Chain_Head (Game     : in out Game_State;
-                             X, Y     : in     Integer;
-                             Image    : in     Engines.Sprite_Index;
-                             Target_X : in     Integer;
+                             X, Y     :        Pixels;
+                             Image    :        Engines.Sprite_Index;
+                             Target_X :        Integer;
                              Object   :    out not null Engines.PIG_Object_Access);
 
    procedure New_Chain_Link (Game   : in out Game_State;
-                             X, Y   : in     Integer;
-                             Image  : in     Engines.Sprite_Index;
-                             Target : in     Integer;
+                             X, Y   :        Pixels;
+                             Image  :        Engines.Sprite_Index;
+                             Target :        Integer;
                              Object :    out not null Engines.PIG_Object_Access);
 
    overriding
    procedure Before_Objects (Game : in out Game_State);
 
    type Map_Type is range 0 .. 4;
-   procedure Load_Level (Game : in out Game_State; Map : in Map_Type);
+   procedure Load_Level (Game : in out Game_State;
+                         Map  :        Map_Type);
 
 
    procedure Player_Handler (Object : in out Engines.PIG_Object;
-                             Event  : in     Engines.PIG_Event);
+                             Event  :        Engines.PIG_Event);
 
    procedure Powerup_Handler (Object : in out Engines.PIG_Object;
-                              Event  : in     Engines.PIG_Event);
+                              Event  :        Engines.PIG_Event);
 
    procedure Star_Handler (Object : in out Engines.PIG_Object;
-                           Event  : in     Engines.PIG_Event);
+                           Event  :        Engines.PIG_Event);
 
    procedure Evil_Handler (Object : in out Engines.PIG_Object;
-                           Event  : in     Engines.PIG_Event);
+                           Event  :        Engines.PIG_Event);
 
    procedure Slime_Handler (Object : in out Engines.PIG_Object;
-                            Event  : in     Engines.PIG_Event);
+                            Event  :        Engines.PIG_Event);
 
    procedure Chain_Head_Handler (Object : in out Engines.PIG_Object;
-                                 Event  : in     Engines.PIG_Event);
+                                 Event  :        Engines.PIG_Event);
 
    procedure Chain_Link_Handler (Object : in out Engines.PIG_Object;
-                                 Event  : in     Engines.PIG_Event);
+                                 Event  :        Engines.PIG_Event);
 
 end Games;

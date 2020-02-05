@@ -40,6 +40,10 @@ is
       Power_Bonus_2);
    --  Moved from pig.adb
 
+   type Pixels is new Integer;
+   type Tiles is new Integer;
+
+
    type PIG_Object;
    type PIG_Engine;
    type PIG_Object_Access is access all PIG_Object;
@@ -119,7 +123,7 @@ is
    --  Collision info
    type PIG_Cinfo is record
       Ff    : Float;      --  Fractional frame
-      X, Y  : Integer;    --  Exact position
+      X, Y  : Pixels;     --  Exact position
       Sides : Pig_Sides;  --  Side of tile hit
    end record;
 
@@ -142,10 +146,10 @@ is
 
    type Handler_Access is not null access
      procedure (Object : in out PIG_Object;
-                Event  : in     PIG_Event);
+                Event  :        PIG_Event);
 
    procedure Null_Handler (Object : in out PIG_Object;
-                           Event  : in     PIG_Event) is null;
+                           Event  :        PIG_Event) is null;
    type Engine_Class is access all PIG_Engine'Class;
 
    type PIG_Object is record
@@ -180,30 +184,30 @@ is
    --  Level map
    --
    type Tile_Index is range 0 .. 255;
-   type Map_Array  is array (Natural range <>, Natural range <>) of Tile_Index;
-   type Hit_Array  is array (Natural range <>, Natural range <>) of Pig_Sides;
+   type Map_Array  is array (Tiles range <>, Tiles range <>) of Tile_Index;
+   type Hit_Array  is array (Tiles range <>, Tiles range <>) of Pig_Sides;
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
 
    type PIG_Map is record
       Owner       : Engine_Class;
 
-      Width       : Integer;                     --  Size of map (tiles)
-      Height      : Integer;
+      Width       : Tiles;                        --  Size of map (tiles)
+      Height      : Tiles;
       Map         : not null access Map_Array;   --  2D aray of tile indices
       Hit         : not null access Hit_Array;   --  2D aray of collision flags
 
-      Tile_Width  : Integer;                     --  Size of one tile (pixels)
-      Tile_Height : Integer;
-      Tiles       : SDL.Video.Surfaces.Surface;  --  Tile palette image
+      Tile_Width  : Pixels;                      --  Size of one tile (pixels)
+      Tile_Height : Pixels;
+      Tile        : SDL.Video.Surfaces.Surface;  --  Tile palette image
       Hitinfo     : Hitinfo_Array;               --  Collision info for the tiles
    end record;
    type PIG_Map_Access is access all PIG_Map;
 
    --  Sprite frame
    type PIG_Sprite is record
-      Width, Height : Integer;     --  Size of sprite (pixels)
-      Hotx, Hoty    : Integer;     --  Hot-spot offset (pixels)
-      Radius        : Integer;     --  Collision zone radius (pixels)
+      Width, Height : Pixels;     --  Size of sprite (pixels)
+      Hot_X, Hot_Y  : Pixels;     --  Hot-spot offset (pixels)
+      Radius        : Pixels;     --  Collision zone radius (pixels)
       Surface       : SDL.Video.Surfaces.Surface; --  Access
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
@@ -280,19 +284,21 @@ is
                     Screen :        SDL.Video.Surfaces.Surface;
                     Pages  :        Positive);
 
-   procedure Set_Viewport (Engine        : in out PIG_Engine'Class;
-                           X, Y          : in     Integer;
-                           Width, Height : in     Positive);
+   procedure Set_Viewport (Engine : in out PIG_Engine'Class;
+                           X, Y   :        Pixels;
+                           Width  :        Pixels;
+                           Height :        Pixels);
    --  Set viewport size and position
 
    procedure Pig_Start (Engine : in out PIG_Engine;
-                        Frame  : in     Integer);
+                        Frame  :        Integer);
    --  Start engine at logic time 'frame'
 
-   procedure Create_Sprites (Engine        : in out PIG_Engine'Class;
-                             Filename      : in     String;
-                             Width, Height : in     Integer;
-                             Handle        :    out Sprite_Index);
+   procedure Create_Sprites (Engine   : in out PIG_Engine'Class;
+                             Filename :        String;
+                             Width    :        Pixels;
+                             Height   :        Pixels;
+                             Handle   :    out Sprite_Index);
    --  Load a sprite palette image. The image is chopped up into
    --  sprites, based on Width and Height, and added as new frames
    --  in the sprite bank. Default values:
@@ -304,22 +310,23 @@ is
    --
    --  Returns the index of the first frame loaded.
 
-   procedure Set_Hotspot (Engine     : in out PIG_Engine'Class;
-                          Frame      : in     Sprite_Index;
-                          Hotx, Hoty : in     Integer);
+   procedure Set_Hotspot (Engine : in out PIG_Engine'Class;
+                          Frame  :        Sprite_Index;
+                          Hot_X  :        Pixels;
+                          Hot_Y  :        Pixels);
    --  Set hot-spot of sprite 'frame' to (hotx, hoty)
 
    procedure Pig_Radius (Engine : in out PIG_Engine;
-                         Frame  : in     Sprite_Index;
-                         Radius : in     Integer);
+                         Frame  :        Sprite_Index;
+                         Radius :        Pixels);
    --  Set sprite/sprite collision zone radius of 'frame'
 
    procedure Pig_Animate (Engine : in out PIG_Engine'Class;
-                          Frames : in     Float);
+                          Frames :        Float);
    --  Advance logic time by 'frames' logic frames
 
    procedure Pig_Dirty (Engine : in out PIG_Engine;
-                        Area   : in     SDL.Video.Rectangles.Rectangle);
+                        Area   :        SDL.Video.Rectangles.Rectangle);
    --  Manually add a dirtyrect for pig_refresh().
    --  Area can be outside the engine viewport.
 
@@ -338,22 +345,23 @@ is
    --  Refresh the whole viewport, including sprites.
 
    procedure Pig_Draw_Sprite (Engine : in out PIG_Engine;
-                              Frame  : in     Sprite_Index;
-                              X, Y   : in     Integer);
+                              Frame  :        Sprite_Index;
+                              X, Y   :        Pixels);
    --  Render a sprite "manually", bypassing the engine
 
-   function Pig_Test_Map (Engine : in PIG_Engine;
-                          X, Y   :    Integer) return Pig_Sides;
+   function Pig_Test_Map (Engine : PIG_Engine;
+                          X, Y   : Pixels) return Pig_Sides;
    --  Get the collision flags for the tile at (x, y),
    --  where the unit of x and y is pixels. The return
    --  is the PIG_sides flags for the tile, or PIG_NONE
    --  if (x, y) is outside the map.
 
    type PIG_Cinfo_Access is access all PIG_Cinfo;
-   function Pig_Test_Map_Vector (Engine         : in out PIG_Engine;
-                                 X1, Y1, X2, Y2 : in     Integer;
-                                 Mask           : in     Pig_Sides;
-                                 Ci             : in     PIG_Cinfo_Access)
+   function Pig_Test_Map_Vector (Engine : in out PIG_Engine;
+                                 X1, Y1 :        Pixels;
+                                 X2, Y2 :        Pixels;
+                                 Mask   :        Pig_Sides;
+                                 Ci     :        PIG_Cinfo_Access)
                                 return Pig_Sides;
    --  Find the first "collidable" tile side when going from
    --  (x1, y1) to (x2, y2). 'mask' determines which tile sides
@@ -367,30 +375,32 @@ is
    --
    --  Map
    --
-   function Pig_Map_Open (Engine        : in Engine_Class;
-                          Width, Height : in Integer)
+   function Pig_Map_Open (Engine : Engine_Class;
+                          Width  : Tiles;
+                          Height : Tiles)
                          return not null PIG_Map_Access;
 
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
-   procedure Pig_Map_Tiles (Map           : in out PIG_Map;
-                            Filename      : in     String;
-                            Width, Height : in     Integer;
-                            Result        :    out Integer);
+   procedure Pig_Map_Tiles (Map      : in out PIG_Map;
+                            Filename :        String;
+                            Width    :        Pixels;
+                            Height   :        Pixels;
+                            Result   :    out Integer);
    --  Load a tile palette image
 
    procedure Pig_Map_Collisions (Map   : in out PIG_Map;
-                                 First : in     Natural;
-                                 Count : in     Natural;
-                                 Sides : in     Pig_Sides);
+                                 First :        Natural;
+                                 Count :        Natural;
+                                 Sides :        Pig_Sides);
    --  Set tile collision info for 'count' tiles, starting at
    --  'first'. Each tile in the tile palette has a set of
    --  PIG_sides flags that determine which sides the tile are
    --  considered for sprite/map collisions.
 
    procedure Pig_Map_From_String (Map   : in out PIG_Map;
-                                  Trans : in     String;
-                                  Data  : in     String);
+                                  Trans :        String;
+                                  Data  :        String);
    --  Load a map from a string (one byte/tile). 'trans'
    --  is a string used for translating 'data' into integer
    --  tile indices. Each position in 'trans' corresponds
@@ -401,8 +411,8 @@ is
    --  Object
    --
    function Pig_Object_Open (Engine : in out PIG_Engine'Class;
-                             X, Y   : in     Integer;
-                             Last   : in     Boolean) return not null PIG_Object_Access;
+                             X, Y   :        Pixels;
+                             Last   :        Boolean) return not null PIG_Object_Access;
    --  Create an object with the initial position (X, Y). If
    --  Last, the object will end up last in the
    --  processing and rendering order, otherwise, first.

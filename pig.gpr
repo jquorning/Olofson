@@ -18,15 +18,15 @@ project Pig is
      for Default_Switches ("Ada") use
        ("-g",
 --        "-O2",
-        "-gnatf",
+--        "-gnatf",
         "-gnatVa",
         "-gnata",
         "-gnatwa",
         "-gnatwj",
         "-gnatw.x",
         "-gnat2012",
-        "-gnaty",
-        "-gnatyM99"
+        "-gnatydIxM99"
+--        "-gnatyM99"
        );
 
   end Builder;

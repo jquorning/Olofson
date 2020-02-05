@@ -51,6 +51,7 @@ procedure Pig is
 
    procedure Dashboard (Game : in out Game_State)
    is
+      use Engines;
       use Ada.Numerics.Elementary_Functions;
       use Ada.Real_Time;
       Pi   : constant       := Ada.Numerics.Pi;
@@ -108,16 +109,15 @@ procedure Pig is
               Sin (Float (Game.Lives_Wobble_Time) * 12.0) * 0.2;
             Game.Pig_Draw_Sprite
               (Game.Lifepig,
-               Integer (X) + Integer (Game.Lives_Wobble *
-                                        Sin (Float (Game.Lives_Wobble_Time) * 20.0
-                                               + Float (I) * 1.7)),
+               Pixels (X) + Pixels (Game.Lives_Wobble *
+                                      Sin (Float (Game.Lives_Wobble_Time) * 20.0
+                                             + Float (I) * 1.7)),
                SCREEN_H - 56 / 2);
          end loop;
       end;
 
       --  Print score
       declare
-         use type Engines.Sprite_Counts;
          X : Float   := Float (SCREEN_W + 5);
          V : Integer := Game.Score;
          N : Engines.Sprite_Counts;
@@ -127,7 +127,7 @@ procedure Pig is
             X := X - 39.0 - Game.Score_Wobble *
               Sin (Float (Game.Score_Wobble_Time) * 15.0 + Float (I) * 0.5);
             Game.Pig_Draw_Sprite (Game.Scorefont + N,
-                                  Integer (X),
+                                  Pixels (X),
                                   SCREEN_H - 56 / 2);
             V := V / 10;
             exit when V = 0;

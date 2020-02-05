@@ -20,7 +20,7 @@ package body Dirty is
    --  accept it as Perfect.
 
 
-   function Create (Size : in Integer) return not null Table_Access
+   function Create (Size : Integer) return not null Table_Access
    is
    begin
       return
@@ -39,7 +39,7 @@ package body Dirty is
    end Close;
 
 
-   procedure Merge (From : in     SDL.Video.Rectangles.Rectangle;
+   procedure Merge (From :        SDL.Video.Rectangles.Rectangle;
                     To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
@@ -55,7 +55,7 @@ package body Dirty is
    end Merge;
 
 
-   procedure Intersect (From : in     SDL.Video.Rectangles.Rectangle;
+   procedure Intersect (From :        SDL.Video.Rectangles.Rectangle;
                         To   : in out SDL.Video.Rectangles.Rectangle)
    is
       use SDL.C;
@@ -87,7 +87,7 @@ package body Dirty is
 
 
    procedure Add (Table : in out Table_Type;
-                  Rect  : in     SDL.Video.Rectangles.Rectangle)
+                  Rect  :        SDL.Video.Rectangles.Rectangle)
    is
       I         : Index_Type := 0;
       Best_I    : Index_Type;
@@ -159,7 +159,7 @@ package body Dirty is
 
 
    procedure Merge_Tables (Table : in out Table_Type;
-                           From  : in     Table_Type)
+                           From  :        Table_Type)
    is
    begin
       for I in 1 .. From.Last loop

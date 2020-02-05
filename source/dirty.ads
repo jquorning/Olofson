@@ -27,22 +27,22 @@ is
    end record;
    type Table_Access is access all Table_Type;
 
-   function Create (Size : in Integer) return not null Table_Access;
+   function Create (Size : Integer) return not null Table_Access;
    procedure Close (Table : in out Table_Access);
 
    procedure Add (Table : in out Table_Type;
-                  Rect  : in     Rectangle);
+                  Rect  :        Rectangle);
    --  Add rectangle Rect to Table.
 
    procedure Merge_Tables (Table : in out Table_Type;
-                           From  : in     Table_Type);
+                           From  :        Table_Type);
    --  Merge From into Table.
 
-   procedure Merge (From : in     Rectangle;
+   procedure Merge (From :        Rectangle;
                     To   : in out Rectangle);
    --  Extend To to a new rect that includes both From and To.
 
-   procedure Intersect (From : in     Rectangle;
+   procedure Intersect (From :        Rectangle;
                         To   : in out Rectangle);
    --  Clip To into a rect that is the intersection of From and To.
 

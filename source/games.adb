@@ -21,7 +21,6 @@ package body Games is
    overriding
    procedure Initialize (Game : in out Game_State)
    is
-      use Engines;
    begin
       Engines.Initialize (PIG_Engine (Game));
 
@@ -61,7 +60,6 @@ package body Games is
    overriding
    procedure Finalize (Game : in out Game_State)
    is
-      use Engines;
    begin
       Engines.Finalize (PIG_Engine (Game));
    end Finalize;
@@ -81,7 +79,6 @@ package body Games is
       Game.Create_Sprites ("slime.png",     48, 48, Game.Slime);
 
       declare
-         use Engines;
          subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
          subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
          subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
@@ -157,7 +154,6 @@ package body Games is
    procedure New_Player (Game   : in out Game_State;
                          Object :    out Engines.PIG_Object_Access)
    is
-      use Engines;
    begin
       if Game.Lives /= 0 then
          Object := null;
@@ -180,17 +176,16 @@ package body Games is
 
 
    procedure New_Powerup (Game   : in out Game_State;
-                          X, Y   : in     Integer;
-                          Speed  : in     Integer;
-                          Type_C : in     Engines.Power_Ups;
+                          X, Y   :        Pixels;
+                          Speed  :        Integer;
+                          Kind   :        Engines.Power_Ups;
                           Object :    out not null Engines.PIG_Object_Access)
    is
-      use Engines;
    begin
       Object := Engines.Pig_Object_Open (PIG_Engine (Game.Self.all), X, Y, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
-      Object.Score    := Engines.Power_Ups'Pos (Type_C);
+      Object.Score    := Engines.Power_Ups'Pos (Kind);
       Object.Ibase    := Game.Icons + Sprite_Counts (8 * Object.Score);
       Object.Target   := Speed;
       Object.Handler  := Powerup_Handler'Access;
@@ -200,9 +195,9 @@ package body Games is
 
 
    procedure New_Powerup (Game   : in out Game_State;
-                          X, Y   : in     Integer;
-                          Speed  : in     Integer;
-                          Type_C : in     Engines.Power_Ups)
+                          X, Y   :        Pixels;
+                          Speed  :        Integer;
+                          Type_C :        Engines.Power_Ups)
    is
       Dummy : Engines.PIG_Object_Access;
    begin
@@ -211,8 +206,8 @@ package body Games is
 
 
    procedure New_Star (Game   : in out Game_State;
-                       X, Y   : in     Integer;
-                       Vx, Vy : in     Integer;
+                       X, Y   :        Pixels;
+                       Vx, Vy :        Pixels;
                        Object :    out not null Engines.PIG_Object_Access)
    is
    begin
@@ -228,8 +223,8 @@ package body Games is
 
 
    procedure New_Star (Game   : in out Game_State;
-                       X, Y   : in     Integer;
-                       Vx, Vy : in     Integer)
+                       X, Y   :        Pixels;
+                       Vx, Vy :        Pixels)
    is
       Dummy : Engines.PIG_Object_Access;
    begin
@@ -238,8 +233,8 @@ package body Games is
 
 
    procedure New_Evil (Game   : in out Game_State;
-                       X, Y   : in     Integer;
-                       Speed  : in     Integer;
+                       X, Y   :        Pixels;
+                       Speed  :        Integer;
                        Object :    out not null Engines.PIG_Object_Access)
    is
    begin
@@ -258,8 +253,8 @@ package body Games is
 
 
    procedure New_Slime (Game   : in out Game_State;
-                        X, Y   : in     Integer;
-                        Speed  : in     Integer;
+                        X, Y   :        Pixels;
+                        Speed  :        Integer;
                         Object :    out not null Engines.PIG_Object_Access)
    is
    begin
@@ -277,9 +272,9 @@ package body Games is
 
 
    procedure New_Chain_Head (Game     : in out Game_State;
-                             X, Y     : in     Integer;
-                             Image    : in     Engines.Sprite_Index;
-                             Target_X : in     Integer;
+                             X, Y     :        Pixels;
+                             Image    :        Engines.Sprite_Index;
+                             Target_X :        Integer;
                              Object   :    out not null Engines.PIG_Object_Access)
    is
    begin
@@ -292,9 +287,9 @@ package body Games is
 
 
    procedure New_Chain_Link (Game   : in out Game_State;
-                             X, Y   : in     Integer;
-                             Image  : in     Engines.Sprite_Index;
-                             Target : in     Integer;
+                             X, Y   :        Pixels;
+                             Image  :        Engines.Sprite_Index;
+                             Target :        Integer;
                              Object :    out not null Engines.PIG_Object_Access)
    is
    begin
@@ -306,7 +301,8 @@ package body Games is
    end New_Chain_Link;
 
 
-   procedure Inc_Score_Nobonus (Game : in out Game_State; V : in Integer)
+   procedure Inc_Score_Nobonus (Game : in out Game_State;
+                                V    :        Integer)
    is
       Vc : Integer := V;
       Os : constant Integer := Game.Score;
@@ -326,7 +322,8 @@ package body Games is
    end Inc_Score_Nobonus;
 
 
-   procedure Inc_Score (Game : in out Game_State; V : in Integer)
+   procedure Inc_Score (Game : in out Game_State;
+                        V    :        Integer)
    is
       Os : constant Integer := Game.Score;
    begin
@@ -339,16 +336,16 @@ package body Games is
    end Inc_Score;
 
 
-   procedure Message (Game : in out Game_State; Text : in String)
+   procedure Message (Game : in out Game_State;
+                      Text :        String)
    is
       use Ada.Characters.Handling;
-      use type Engines.Sprite_Counts;
 
       function To_Frame (C : Character) return Engines.Sprite_Counts is
          (Game.Glassfont + Character'Pos (C) - Character'Pos (' '));
 
-      X  : constant Integer := SCREEN_W + FONT_SPACING;
-      Y  : constant Integer := MAP_H * TILE_H - 30;
+      X  : constant Pixels := SCREEN_W + FONT_SPACING;
+      Y  : constant Pixels := MAP_H * TILE_H - 30;
       Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
       First  : Boolean := True;
       Object : Engines.PIG_Object_Access := null;
@@ -367,9 +364,8 @@ package body Games is
 
 
    procedure Player_Handler (Object : in out Engines.PIG_Object;
-                             Event  : in     Engines.PIG_Event)
+                             Event  :        Engines.PIG_Event)
    is
-      use Engines;
       use type SDL.C.int;
       Game : Game_State renames Game_Access (Object.Owner).all;
    begin
@@ -440,8 +436,8 @@ package body Games is
                   end if;
                   Object.Image := Sprite_Counts (Object.Target mod PIG_FRAMES);
                   if PIG_None = Pig_Test_Map (Game,
-                                              Integer (Object.X),
-                                              Integer (Object.Y + 1.0))
+                                              Pixels (Object.X),
+                                              Pixels (Object.Y + 1.0))
                   then
                      Object.State := Falling;
                      Object.Ay    := Float (GRAV_ACC);
@@ -571,9 +567,9 @@ package body Games is
                         Object.Ay        := GRAV_ACC;
                         Object.State     := Knocked;
                         Object.Timer (1) := 11;
-                        New_Star (Game, Integer (Object.X), Integer (Object.Y) - 20, -5,  3);
-                        New_Star (Game, Integer (Object.X), Integer (Object.Y) - 20,  2, -6);
-                        New_Star (Game, Integer (Object.X), Integer (Object.Y) - 20,  4,  4);
+                        New_Star (Game, Pixels (Object.X), Pixels (Object.Y) - 20, -5,  3);
+                        New_Star (Game, Pixels (Object.X), Pixels (Object.Y) - 20,  2, -6);
+                        New_Star (Game, Pixels (Object.X), Pixels (Object.Y) - 20,  4,  4);
                      end if;
 
                   when GROUP_POWERUP =>
@@ -635,9 +631,8 @@ package body Games is
 
 
    procedure Powerup_Handler (Object : in out Engines.PIG_Object;
-                              Event  : in     Engines.PIG_Event)
+                              Event  :        Engines.PIG_Event)
    is
-      use Engines;
       Game : Game_State renames Game_Access (Object.Owner).all;
    begin
       case Event.Kind is
@@ -674,9 +669,8 @@ package body Games is
 
 
    procedure Star_Handler (Object : in out Engines.PIG_Object;
-                           Event  : in     Engines.PIG_Event)
+                           Event  :        Engines.PIG_Event)
    is
-      use Engines;
    begin
       case Event.Kind is
 
@@ -693,11 +687,10 @@ package body Games is
 
 
    procedure Evil_Handler (Object : in out Engines.PIG_Object;
-                           Event  : in     Engines.PIG_Event)
+                           Event  :        Engines.PIG_Event)
    is
-      use Engines;
-      Game : Game_State renames Game_Access (Object.Owner).all;
-      Look_X : Integer;
+      Game   : Game_State renames Game_Access (Object.Owner).all;
+      Look_X : Pixels;
    begin
       case Event.Kind is
 
@@ -724,14 +717,14 @@ package body Games is
 
          when PIG_POSTFRAME =>
             if Dead /= Object.State then
-               Look_X := 10 + Integer (abs (Object.Vx * 2.0));
+               Look_X := 10 + Pixels (abs (Object.Vx * 2.0));
                if Object.Target < 0 then
                   Look_X := -Look_X;
                end if;
                if
                  PIG_None = Pig_Test_Map (Object.Owner.all,
-                                          Integer (Object.X) + Look_X,
-                                          Integer (Object.Y) + 1)
+                                          Pixels (Object.X) + Look_X,
+                                          Pixels (Object.Y) + 1)
                then
                   Object.Target := -Object.Target;
                end if;
@@ -745,11 +738,10 @@ package body Games is
 
 
    procedure Slime_Handler (Object : in out Engines.PIG_Object;
-                            Event  : in     Engines.PIG_Event)
+                            Event  :        Engines.PIG_Event)
    is
-      use Engines;
-      Game : Game_State renames Game_Access (Object.Owner).all;
-      Look_X : Integer;
+      Game   : Game_State renames Game_Access (Object.Owner).all;
+      Look_X : Pixels;
    begin
       case Event.Kind is
 
@@ -775,21 +767,21 @@ package body Games is
             if Dead /= Object.State then
                --  Don't bother looking if we're close to a floor.
                if PIG_None = Pig_Test_Map_Vector (Object.Owner.all,
-                                                  Integer (Object.X),
-                                                  Integer (Object.Y),
-                                                  Integer (Object.X),
-                                                  Integer (Object.Y + 48.0),
+                                                  Pixels (Object.X),
+                                                  Pixels (Object.Y),
+                                                  Pixels (Object.X),
+                                                  Pixels (Object.Y + 48.0),
                                                   PIG_Top, null)
                then
                   --  Turn around if there's no floor!
-                  Look_X := 10 + Integer (abs (Object.Vx * 4.0));
+                  Look_X := 10 + Pixels (abs (Object.Vx * 4.0));
                   if Object.Target < 0 then
                      Look_X := -Look_X;
                   end if;
                   if PIG_None = Pig_Test_Map_Vector (Object.Owner.all,
-                                                     Integer (Object.X) + Look_X,
-                                                     Integer (Object.Y),
-                                                     Integer (Object.X) + Look_X, SCREEN_H,
+                                                     Pixels (Object.X) + Look_X,
+                                                     Pixels (Object.Y),
+                                                     Pixels (Object.X) + Look_X, SCREEN_H,
                                                      PIG_Top, null)
                   then
                      Object.Target := -Object.Target;
@@ -804,10 +796,9 @@ package body Games is
 
 
    procedure Chain_Head_Handler (Object : in out Engines.PIG_Object;
-                                 Event  : in     Engines.PIG_Event)
+                                 Event  :        Engines.PIG_Event)
    is
       use Ada.Numerics.Elementary_Functions;
-      use Engines;
       Game : Game_State renames Game_Access (Object.Owner).all;
 
       procedure Do_Timer_2;
@@ -861,9 +852,8 @@ package body Games is
 
 
    procedure Chain_Link_Handler (Object : in out Engines.PIG_Object;
-                                 Event  : in     Engines.PIG_Event)
+                                 Event  :        Engines.PIG_Event)
    is
-      use Engines;
       Target : constant PIG_Object_Access := Pig_Object_Find (Object, Object.Target);
    begin
       case Event.Kind is
@@ -882,7 +872,8 @@ package body Games is
    end Chain_Link_Handler;
 
 
-   procedure Load_Level (Game : in out Game_State; Map : in Map_Type)
+   procedure Load_Level (Game : in out Game_State;
+                         Map  :        Map_Type)
    is
       use Ada.Strings.Unbounded;
       M, K  : Unbounded_String;
@@ -1041,7 +1032,6 @@ package body Games is
 
    procedure Before_Objects (Game : in out Game_State)
    is
-      use Engines;
    begin
       if Game.Lives_Wobble > 0.0 then
          Game.Lives_Wobble := Game.Lives_Wobble * 0.95;
