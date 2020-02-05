@@ -1371,7 +1371,7 @@ package body Engines is
    end Close_Object;
 
 
-   procedure Pig_Object_Close (Object : in out PIG_Object) is
+   procedure Unlink_Object (Object : in out PIG_Object) is
    begin
       pragma Warnings (Off);
       if Object.Id = 0 then
@@ -1381,16 +1381,16 @@ package body Engines is
       end if;
       pragma Warnings (On);
       Object.Id := 0;     --  Mark for eventual removal and destruction
-   end Pig_Object_Close;
+   end Unlink_Object;
 
 
-   procedure Pig_Object_Close_All (Engine : in out Game_Engine) is
+   procedure Unlink_All_Objects (Engine : in out Game_Engine) is
    begin
 --        while not Engine.Objects.Is_Empty loop
 --           Close_Object (Engine.Objects);
 --        end loop;
       null;
-   end Pig_Object_Close_All;
+   end Unlink_All_Objects;
 
 
    function Pig_Object_Find (Start : in out PIG_Object;

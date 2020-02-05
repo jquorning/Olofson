@@ -501,12 +501,12 @@ package body Games is
 
                when Next_Level =>
                   Add_Life (Game);
-                  Pig_Object_Close (Object);
+                  Unlink_Object (Object);
                   Load_Level (Game, Map_Type (Game.Level + 1));
                   New_Player (Game);
 
                when others =>
-                  Pig_Object_Close (Object);
+                  Unlink_Object (Object);
                   declare
                      Object : Object_Access;
                   begin
@@ -659,7 +659,7 @@ package body Games is
 
          when PIG_OFFSCREEN =>
             if Object.Y > Float (SCREEN_H) or Object.Y < -100.0 then
-               Pig_Object_Close (Object);
+               Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
          when others => null;
@@ -676,7 +676,7 @@ package body Games is
 
          when PIG_PREFRAME =>
             if Object.Age >= 8 then
-               Pig_Object_Close (Object);
+               Unlink_Object (Object);
             else
                Object.Image := Sprite_Counts (Object.Age);
             end if;
@@ -711,7 +711,7 @@ package body Games is
 
          when PIG_OFFSCREEN =>
             if Object.Y > Float (SCREEN_H) then
-               Pig_Object_Close (Object);
+               Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
 
@@ -759,7 +759,7 @@ package body Games is
 
          when PIG_OFFSCREEN =>
             if Object.Y > Float (SCREEN_H) then
-               Pig_Object_Close (Object);
+               Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
 
@@ -820,7 +820,7 @@ package body Games is
                end if;
 
             when Falling =>
-               Pig_Object_Close (Object);
+               Unlink_Object (Object);
 
          end case;
       end Do_Timer_2;
@@ -864,7 +864,7 @@ package body Games is
                Object.Vx := ((Target.X + Float (FONT_SPACING)) - Object.X) * 0.6;
                Object.Vy := (Target.Y - Object.Y) * 0.6 - 9.0;
             else
-               Pig_Object_Close (Object);
+               Unlink_Object (Object);
             end if;
 
          when others =>
@@ -881,7 +881,7 @@ package body Games is
       Dummy : Object_Access;
    begin
       Game.Level := Integer (Map);
-      Game.Pig_Object_Close_All;
+      Game.Unlink_All_Objects;
       Game.Enemycount := 0;
       Game.Messages   := 0;
 

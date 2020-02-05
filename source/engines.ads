@@ -422,8 +422,8 @@ is
    --  objects get an extra frame of reaction time, which is
    --  annoying if it's not what you intend.
 
-   procedure Pig_Object_Close (Object : in out PIG_Object);
-   --  Delete an object.
+   procedure Unlink_Object (Object : in out PIG_Object);
+   --  Unlink an object.
    --
    --  Note that objects are never actually deleted. Instead,
    --  they are placed in a free pool, where pig_object_open()
@@ -433,8 +433,8 @@ is
    --  but rather kept around until the next rendered frame,
    --  so they can be removed from the screen correctly.
 
-   procedure Pig_Object_Close_All (Engine : in out Game_Engine);
-   --  Close all objects.
+   procedure Unlink_All_Objects (Engine : in out Game_Engine);
+   --  Unlink all objects.
 
    function Pig_Object_Find (Start : in out PIG_Object;
                              Id    :        Object_Id) return Object_Access;
