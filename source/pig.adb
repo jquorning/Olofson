@@ -42,8 +42,12 @@ procedure Pig is
 
    procedure Handle_Keys (Game : in out Game_State);
 
+   procedure Play_Game (Double_Buffer : Boolean;
+                        Full_Screen   : Boolean;
+                        BPP           : Positive);
 
-   procedure Play_Game;
+   procedure Put_Usage;
+
 
    procedure Dashboard (Game : in out Game_State)
    is
@@ -222,8 +226,11 @@ procedure Pig is
    end Handle_Keys;
 
 
-   procedure Play_Game
+   procedure Play_Game (Double_Buffer : Boolean;
+                        Full_Screen   : Boolean;
+                        BPP           : Positive)
    is
+      pragma Unreferenced (Double_Buffer, Full_Screen, BPP);
       use Ada.Real_Time;
       Window     : SDL.Video.Windows.Window;
       Screen     : SDL.Video.Surfaces.Surface;
@@ -242,7 +249,7 @@ procedure Pig is
 
       begin
          SDL.Video.Windows.Makers.Create (Window, Width => SCREEN_W, Height => SCREEN_H,
-                                          X => 10, Y => 10, Title => "Pig");
+                                          X => 10, Y => 10, Title => "Fixed Rate Pig Game");
          --  bpp, Flags);
          --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
          Screen := Window.Get_Surface;
@@ -358,40 +365,66 @@ procedure Pig is
          --  Print some statistics
          Print_Some_Statistics :
          declare
-            use Ada.Text_IO;
+            package Float_IO is new Ada.Text_IO.Float_IO (Float);
+            use Ada.Text_IO, Float_IO;
             End_Time      : constant Time      := Ada.Real_Time.Clock;
             Game_Span     : constant Time_Span := End_Time - Start_Time;
             Game_Duration : constant Duration  := To_Duration (Game_Span);
-            Duration_MS   : constant Integer   := 1000 * Integer (Game_Duration);
-            Denominator   : constant Integer   := Integer'Max (0, Duration_MS);
-            Rendered_FPS  : constant Float := Float (Game.Rendered_Frames * 1000 / Denominator);
-            Logical_FPS   : constant Float := Float (Game.Logic_Frames    * 1000 / Denominator);
+            Duration_MS   : constant Float     := 1000.0 * Float (Game_Duration);
+            Duration_S    : constant Float     := 0.001  * Float'Max (1.0, Duration_MS);
+            Rendered_FPS  : constant Float     := Float (Game.Rendered_Frames) / Duration_S;
+            Logical_FPS   : constant Float     := Float (Game.Logic_Frames)    / Duration_S;
          begin
-            Put_Line ("          Total time running: " & Duration_MS'Image & " ms");
-            Put_Line ("Average rendering frame rate: " & Rendered_FPS'Image & " fps");
-            Put_Line ("    Average logic frame rate: " & Logical_FPS'Image & " fps");
+            Default_Exp := 0;
+            Default_Aft := 0;
+            Put ("          Total time running: "); Put (Duration_MS);  Put_Line (" ms");
+            Default_Aft := 2;
+            Put ("Average rendering frame rate: "); Put (Rendered_FPS); Put_Line (" fps");
+            Put ("    Average logic frame rate: "); Put (Logical_FPS);  Put_Line (" fps");
          end Print_Some_Statistics;
       end;
    end Play_Game;
 
-   BPP           : Integer := 0;
-   Double_Buffer : Boolean := False;
-   Full_Screen   : Boolean := False;
-   pragma Unreferenced (BPP, Double_Buffer, Full_Screen);
+   procedure Put_Usage is
+      use Ada.Text_IO;
+   begin
+      Put_Line ("The Fixed Rate Pig Game 0.1.0");
+      New_Line;
+      Put_Line ("Usage: pig [-s] [-f] [BPP] [--help|--version]");
+      Put_Line ("       -s  : Double buffer        ");
+      Put_Line ("       -f  : Full screen          ");
+      Put_Line ("       BPP : Bit per pixel (ex 16)");
+   end Put_Usage;
+
+   BPP           : Positive := 1;
+   Double_Buffer : Boolean  := False;
+   Full_Screen   : Boolean  := False;
 begin
 
    Process_Command_Line :
-   for Index in 1 .. Ada.Command_Line.Argument_Count loop
-      declare
-         Argument : String renames Ada.Command_Line.Argument (Index);
-      begin
-         if    Argument = "-s" then  Double_Buffer := False;
-         elsif Argument = "-f" then  Full_Screen   := True;
-         else                        BPP := Integer'Value (Argument);
-         end if;
-      end;
-   end loop Process_Command_Line;
+   declare
+      use Ada.Command_Line;
+   begin
+      for Index in 1 .. Argument_Count loop
+         declare
+            Switch : String renames Argument (Index);
+         begin
+            if    Switch = "-s" then  Double_Buffer := False;
+            elsif Switch = "-f" then  Full_Screen   := True;
+            elsif Switch = "--help"
+              or  Switch = "--version"
+            then
+               Put_Usage;
+               return;
+            else
+               BPP := Integer'Value (Switch);
+            end if;
+         end;
+      end loop;
+   exception
+      when Constraint_Error =>  Put_Usage;  return;
+   end Process_Command_Line;
 
-   Play_Game;
+   Play_Game (Double_Buffer, Full_Screen, BPP);
 
 end Pig;
