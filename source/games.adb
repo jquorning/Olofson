@@ -18,6 +18,116 @@ with SDL;
 
 package body Games is
 
+   overriding
+   procedure Initialize (Game : in out Game_State)
+   is
+      use type Engines.Sprite_Index;
+   begin
+      Engines.Initialize (Engines.PIG_Engine (Game));
+      Ada.Text_IO.Put_Line ("Games.Initialize");
+
+      Game.Keys              := (others => False);
+      Game.Nice              := True; --  JQ
+      Game.Refresh_Screen    := 0;
+      Game.Jump              := 0;
+
+      Game.Lifepig   := 1;
+      Game.Scorefont := 1;
+      Game.Glassfont := 1;
+      Game.Icons     := 1;
+      Game.Stars     := 1;
+      Game.Pigframes := 1;
+      Game.Evil      := 1;
+      Game.Slime     := 1;
+
+      Game.Running           := True;
+      Game.Level             := 0;
+      Game.Lives             := 0;
+      Game.Lives_Wobble      := 0.0;
+      Game.Lives_Wobble_Time := 0.0;
+      Game.Score             := 0;
+      Game.Score_Wobble      := 0.0;
+      Game.Score_Wobble_Time := 0.0;
+      Game.Dashboard_Time    := 0.0;
+      Game.Fun_Count         := 0;
+      Game.Enemycount        := 0;
+      Game.Messages          := 0;
+      Game.Player            := null;
+
+      Game.Logic_Frames      := 0;
+      Game.Rendered_Frames   := 0;
+      Game.Start_Time        := Ada.Real_Time.Clock;
+   end Initialize;
+
+   overriding
+   procedure Finalize (Game : in out Game_State)
+   is
+      use Engines;
+   begin
+      Ada.Text_IO.Put_Line ("Games.Finalize");
+      Engines.Finalize (PIG_Engine (Game));
+   end Finalize;
+
+   procedure Create (Game : in out Game_State) is
+   begin
+      Game.Set_Viewport (0, 0, SCREEN_W, MAP_H * TILE_H);
+
+      Game.Create_Sprites ("lifepig.png",    0,  0, Game.Lifepig);
+      Game.Create_Sprites ("font.png",      44, 56, Game.Scorefont);
+      Game.Create_Sprites ("glassfont.png", 60, 60, Game.Glassfont);
+      Game.Create_Sprites ("icons.png",     48, 48, Game.Icons);
+      Game.Create_Sprites ("stars.png",     32, 32, Game.Stars);
+      Game.Create_Sprites ("pigframes.png", 64, 48, Game.Pigframes);
+      Game.Create_Sprites ("evil.png",      48, 48, Game.Evil);
+      Game.Create_Sprites ("slime.png",     48, 48, Game.Slime);
+
+      declare
+         use Engines;
+         subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
+         subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
+         subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
+         subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
+      begin
+         for I in Icons_Range loop
+            Game.Set_Hotspot (Game.Icons + I, Engines.PIG_CENTER, 45);
+         end loop;
+
+         for I in Pig_Range loop
+            Game.Set_Hotspot (Game.Pigframes + I, Engines.PIG_CENTER, 43);
+         end loop;
+
+         for I in Evil_Range loop
+            Game.Set_Hotspot (Game.Evil + I, Engines.PIG_CENTER, 46);
+         end loop;
+
+         for I in Slime_Range loop
+            Game.Set_Hotspot (Game.Slime + I, Engines.PIG_CENTER, 46);
+         end loop;
+      end;
+
+      declare
+         Map_Tiles_Result : Integer;
+         Map : constant Engines.PIG_Map_Access :=
+           Engines.Pig_Map_Open (Engines.Engine_Class (Game.Self), MAP_W, MAP_H);
+      begin
+         Engines.Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
+         if Map_Tiles_Result < 0 then
+            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
+                                  "Could not load background graphics!");
+            --  Game.Pig_Close; -- (Game.Engine.all);
+            --  Free (gs);
+            raise Storage_Error with "Could not load background graphics.";
+         end if;
+
+         --  Mark tiles for collision detection
+         Engines.Pig_Map_Collisions (Map.all,  0, 12, Engines.PIG_All);   --  Red, green, yellov
+         Engines.Pig_Map_Collisions (Map.all, 12, 17, Engines.PIG_None);  --  Sky
+         Engines.Pig_Map_Collisions (Map.all, 29,  3, Engines.PIG_All);   --  Single R, G, Y
+
+         Game.Load_Level (0);
+      end;
+   end Create;
+
    ----------------------------------------------------------
    --        Accounting (score, lives etc)
    ----------------------------------------------------------
@@ -48,12 +158,13 @@ package body Games is
    procedure New_Player (Game   : in out Game_State;
                          Object :    out Engines.PIG_Object_Access)
    is
+      use Engines;
    begin
       if Game.Lives /= 0 then
          Object := null;
          return;
       end if;
-      Object := Engines.Pig_Object_Open (Game.Engine, SCREEN_W / 2, -50, Last => True);
+      Object := Engines.Pig_Object_Open (PIG_Engine (Game), SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
       Object.Ibase   := Game.Pigframes;
@@ -77,7 +188,7 @@ package body Games is
    is
       use Engines;
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
+      Object := Engines.Pig_Object_Open (PIG_Engine (Game.Self.all), X, Y, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Score    := Engines.Power_Ups'Pos (Type_C);
@@ -106,7 +217,7 @@ package body Games is
                        Object :    out not null Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X + Vx, Y + Vy, Last => True);
+      Object := Engines.Pig_Object_Open (Game, X + Vx, Y + Vy, Last => True);
 
       Object.Ibase   := Game.Stars;
       Object.Ax      := -0.3 * Float (Vx);
@@ -133,7 +244,7 @@ package body Games is
                        Object :    out not null Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine,
+      Object := Engines.Pig_Object_Open (Game,
                                          X * TILE_W,
                                          Y * TILE_H, Last => True);
 
@@ -153,7 +264,7 @@ package body Games is
                         Object :    out not null Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine,
+      Object := Engines.Pig_Object_Open (Game,
                                          X * TILE_W, Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
@@ -173,7 +284,7 @@ package body Games is
                              Object   :    out not null Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
+      Object := Engines.Pig_Object_Open (Game, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Chain_Head_Handler'Access;
@@ -188,7 +299,7 @@ package body Games is
                              Object :    out not null Engines.PIG_Object_Access)
    is
    begin
-      Object := Engines.Pig_Object_Open (Game.Engine, X, Y, Last => True);
+      Object := Engines.Pig_Object_Open (Game, X, Y, Last => True);
 
       Object.Ibase   := Image;
       Object.Handler := Chain_Link_Handler'Access;
@@ -261,8 +372,7 @@ package body Games is
    is
       use Engines;
       use type SDL.C.int;
-      GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Game : Game_State renames GP.all;
+      Game : Game_State renames Game_Access (Object.Owner).all;
    begin
       case Event.Kind is
 
@@ -313,9 +423,9 @@ package body Games is
                   Object.Target := (Object.Target + 1) mod PIG_FRAMES;
             end case;
 
-            Object.Timer (0) := 1;
+            Object.Timer (1) := 1;
 
-         when PIG_TIMER0 =>
+         when PIG_TIMER_1 =>
             if Object.X < 0.0 then
                Object.X := 0.0;
             elsif Object.X > Float (Object.Owner.View.Width - 1) then
@@ -330,7 +440,7 @@ package body Games is
                      Object.Power := Object.Power - 1;
                   end if;
                   Object.Image := Sprite_Counts (Object.Target mod PIG_FRAMES);
-                  if PIG_None = Pig_Test_Map (Game.Engine.all,
+                  if PIG_None = Pig_Test_Map (Game,
                                               Integer (Object.X),
                                               Integer (Object.Y + 1.0))
                   then
@@ -381,17 +491,17 @@ package body Games is
                   Object.State := Next_Level;
                   Object.Vy :=  0.0;
                   Object.Ay := -1.0;
-                  Object.Tilemask  := PIG_None; -- 0;
+                  Object.Tilemask  := PIG_None;
                   Object.Hitgroup  := 0;
                   Object.Timer (2) := 50;
                end if;
             end if;
 
-         when PIG_TIMER1 =>
+         when PIG_TIMER_2 =>
             --  Snap out of KNOCKED mode
             Object.State := Falling;
 
-         when PIG_TIMER2 =>
+         when PIG_TIMER_3 =>
             case Object.State is
 
                when Next_Level =>
@@ -491,7 +601,7 @@ package body Games is
                         when others => null;
                      end case;
                      Event.Obj.State    := Dead;
-                     Event.Obj.Tilemask := PIG_None; -- 0;
+                     Event.Obj.Tilemask := PIG_None;
                      Event.Obj.Hitgroup := 0;
                      Event.Obj.Vy       := -20.0;
                      Event.Obj.Ay       := -2.0;
@@ -529,8 +639,7 @@ package body Games is
                               Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Game : Game_State renames GP.all;
+      Game : Game_State renames Game_Access (Object.Owner).all;
    begin
       case Event.Kind is
 
@@ -588,8 +697,7 @@ package body Games is
                            Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      GP     : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Game   : Game_State renames GP.all;
+      Game : Game_State renames Game_Access (Object.Owner).all;
       Look_X : Integer;
    begin
       case Event.Kind is
@@ -641,8 +749,7 @@ package body Games is
                             Event  : in     Engines.PIG_Event)
    is
       use Engines;
-      GP     : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Game   : Game_State renames GP.all;
+      Game : Game_State renames Game_Access (Object.Owner).all;
       Look_X : Integer;
    begin
       case Event.Kind is
@@ -702,32 +809,31 @@ package body Games is
    is
       use Ada.Numerics.Elementary_Functions;
       use Engines;
-      GP   : constant not null Game_State_Access := To_Game_State (Object.Owner.Userdata);
-      Game : Game_State renames GP.all;
+      Game : Game_State renames Game_Access (Object.Owner).all;
 
-      procedure Do_Timer_1;
-      procedure Do_Timer_1 is
+      procedure Do_Timer_2;
+      procedure Do_Timer_2 is
       begin
          case Object.State is
             when Knocked | Dead | Next_Level => null;
 
-            when Waiting =>  -- 0 =>
-               Object.Timer (1) := 35;
-               Object.State := Engines.Object_States'Succ (Object.State); --  + 1;
+            when Waiting =>
+               Object.Timer (2) := 35;
+               Object.State := Engines.Object_States'Succ (Object.State);
 
-            when Walking => -- 1 =>
+            when Walking =>
                Object.Target    := -SCREEN_W;
-               Object.Timer (1) := 50;
-               Object.State := Engines.Object_States'Succ (Object.State); --  + 1;
+               Object.Timer (2) := 50;
+               Object.State := Engines.Object_States'Succ (Object.State);
                if Game.Messages > 0 then
                   Game.Messages := Game.Messages - 1;
                end if;
 
-            when Falling => -- 2 =>
+            when Falling =>
                Pig_Object_Close (Object);
 
          end case;
-      end Do_Timer_1;
+      end Do_Timer_2;
 
    begin
       case Event.Kind is
@@ -737,17 +843,17 @@ package body Games is
             Object.Vy := 15.0 * Cos (Float (Object.Age) * 0.3) - 9.0;
             if
               Game.Messages > 1 and
-              Object.State = Walking  -- 1
+              Object.State = Walking
             then
                Object.Timer (1) := 0;
             end if;
 
             if Object.Timer (1) = 0 then
-               Do_Timer_1;
+               Do_Timer_2;
             end if;
 
-         when PIG_TIMER1 =>
-            Do_Timer_1;
+         when PIG_TIMER_2 =>
+            Do_Timer_2;
 
          when others => null;
 
@@ -784,22 +890,22 @@ package body Games is
       Dummy : Engines.PIG_Object_Access;
    begin
       Game.Level := Integer (Map);
-      Engines.Pig_Object_Close_All (Game.Engine.all);
+      Game.Pig_Object_Close_All;
       Game.Enemycount := 0;
       Game.Messages   := 0;
 
       case Map is
          when 1 | 2 | 4 =>
             K := To_Unbounded_String
-              ("abcd" & "efgh" & "ijkl" &   --  Red, green, yellov
-                 "0123456789ABCDEFG"  &   --  Sky
+              ("abcd" & "efgh" & "ijkl" &  --  Red, green, yellov
+                 "0123456789ABCDEFG"  &    --  Sky
                  "xyz");                   --  Single R, G, Y
 
          when 0 | 3 =>
             K := To_Unbounded_String
-              ("abcd" & "efgh" & "ijkl" &   --  Red, green, yellov
+              ("abcd" & "efgh" & "ijkl" &  --  Red, green, yellov
                  "................."  &
-                 "xyz"                &   --  Single R, G, Y
+                 "xyz"                &    --  Single R, G, Y
                  "-+012345..ABCDEF");      --  Night sky
       end case;
 
@@ -929,15 +1035,14 @@ package body Games is
             New_Slime (Game,  1, 0,  16, Dummy);
             New_Slime (Game, 24, 0, -14, Dummy);
       end case;
-      Engines.Pig_Map_From_String (Game.Engine.Map.all, To_String (K), To_String (M));
-      Game.Refresh_Screen := Game.Engine.Pages;
+      Engines.Pig_Map_From_String (Game.Map.all, To_String (K), To_String (M));
+      Game.Refresh_Screen := Game.Pages;
    end Load_Level;
 
 
-   procedure Before_Objects (Engine : in out Engines.PIG_Engine)
+   procedure Before_Objects (Game : in out Game_State)
    is
       use Engines;
-      Game : constant not null Game_State_Access := To_Game_State (Engine.Userdata);
    begin
       if Game.Lives_Wobble > 0.0 then
          Game.Lives_Wobble := Game.Lives_Wobble * 0.95;
@@ -959,18 +1064,14 @@ package body Games is
       if 0 = Game.Level then
          case Game.Fun_Count mod 60 is
 
-            when 17 =>
-               New_Powerup (Game.all, 250, -20, -10, Power_Life);
-            when 29 =>
-               New_Powerup (Game.all, 550, -20, 10, Power_Life);
-            when 37 =>
-               New_Powerup (Game.all, 250, -20, 10, Power_Bonus_2);
-            when 51 =>
-               New_Powerup (Game.all, 550, -20, -10, Power_Bonus_1);
+            when 17 =>  New_Powerup (Game, 250, -20, -10, Power_Life);
+            when 29 =>  New_Powerup (Game, 550, -20,  10, Power_Life);
+            when 37 =>  New_Powerup (Game, 250, -20,  10, Power_Bonus_2);
+            when 51 =>  New_Powerup (Game, 550, -20, -10, Power_Bonus_1);
             when others => null;
          end case;
          if 150 = Game.Fun_Count mod 300 then
-            Message (Game.all, "Press Space!");
+            Message (Game, "Press Space!");
          end if;
          Game.Fun_Count := Game.Fun_Count + 1;
       end if;

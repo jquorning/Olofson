@@ -10,6 +10,7 @@
 --  software, or work derived from it, under other terms.
 
 with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Finalization;
 
 with SDL.Video.Rectangles;
 with SDL.Video.Surfaces;
@@ -43,6 +44,7 @@ is
    type PIG_Engine;
    type PIG_Object_Access is access all PIG_Object;
    type PIG_Engine_Access is access all PIG_Engine;
+--   type Engine_Class      is access all PIG_Engine'Class;
 
    type    Sprite_Counts is new Natural;
    subtype Sprite_Index  is Sprite_Counts range 1 .. Sprite_Counts'Last;
@@ -59,8 +61,6 @@ is
       Gx, Gy : Float;         --  Interpolated position
    end record;
 
---   PIG_TIMERS : constant := 3;
-
    --
    --  Game logic events
    --
@@ -70,9 +70,9 @@ is
       --  Occurs once per logic frame, before collision and
       --  off-screen detection, and before timer handlers.
 
-      PIG_TIMER0,
-      PIG_TIMER1,
-      PIG_TIMER2,
+      PIG_TIMER_1,
+      PIG_TIMER_2,
+      PIG_TIMER_3,
       --  Occurs whenever timer x expires. Timers are one-
       --  shot, but can be reloaded by the handler for
       --  periodic action. Timer events are handled before
@@ -137,7 +137,7 @@ is
    --
    --  Logic object
    --
-   type Timer_Id    is range 0 .. 2; --  PIG_TIMERS - 1;
+   type Timer_Id    is range 1 .. 3;
    type Timer_Array is array (Timer_Id) of Natural;
 
    type Handler_Access is not null access
@@ -146,9 +146,10 @@ is
 
    procedure Null_Handler (Object : in out PIG_Object;
                            Event  : in     PIG_Event) is null;
+   type Engine_Class is access all PIG_Engine'Class;
 
    type PIG_Object is record
-      Owner : PIG_Engine_Access;
+      Owner : Engine_Class;
 --        PIG_object      *next, *prev;
 
       Id       : Integer;       -- Unique ID. 0 means "free".
@@ -173,8 +174,6 @@ is
       State    : Object_States;
 
       Handler  : Handler_Access;
-
---        void            *userdata;
    end record;
 
    --
@@ -186,7 +185,7 @@ is
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
 
    type PIG_Map is record
-      Owner       : PIG_Engine_Access;
+      Owner       : Engine_Class;
 
       Width       : Integer;                     --  Size of map (tiles)
       Height      : Integer;
@@ -215,63 +214,73 @@ is
    package Object_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => PIG_Object_Access);
 
-   type Bef_Aft_Access is
-     not null access procedure (Engine : in out PIG_Engine);
-   procedure Null_Before_After (Engine : in out PIG_Engine);
+--   type Bef_Aft_Access is
+--     not null access procedure (Engine : in PIG_Engine_Access);
+--   procedure Null_Before_After (Engine : in PIG_Engine_Access);
 
    type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
    type Dirty_Array  is array (0 .. 1) of Dirty.Table_Access;
 
-   type PIG_Engine is record
+   type PIG_Engine is
+     new Ada.Finalization.Limited_Controlled
+     with record
+        Self    : PIG_Engine_Access;
 
-      --  Video stuff
-      Screen  : SDL.Video.Surfaces.Surface;
-      Buffer  : SDL.Video.Surfaces.Surface;  --  For h/w surface displays
-      Surface : SDL.Video.Surfaces.Surface;  --  Where to render to
-      Pages   : Integer;                     --  # of display VRAM buffers
-      View    : SDL.Video.Rectangles.Rectangle; --  Viewport pos & size (pixels)
+        --  Video stuff
+        Screen  : SDL.Video.Surfaces.Surface;
+        Buffer  : SDL.Video.Surfaces.Surface;  --  For h/w surface displays
+        Surface : SDL.Video.Surfaces.Surface;  --  Where to render to
+        Pages   : Integer;                     --  # of display VRAM buffers
+        View    : SDL.Video.Rectangles.Rectangle; --  Viewport pos & size (pixels)
 
-      --  Dirty
-      Page      : Integer range 0 .. 1;      --  Current page (double buffer)
-      Pagedirty : Dirty_Array;               --  One table for each page
-      Workdirty : Dirty.Table_Access;        --  The work dirtytable
+        --  Dirty
+        Page      : Integer range 0 .. 1;      --  Current page (double buffer)
+        Pagedirty : Dirty_Array;               --  One table for each page
+        Workdirty : Dirty.Table_Access;        --  The work dirtytable
 
-      --  "Live" switches
-      Interpolation   : Boolean;
-      Direct          : Boolean;    --  True: Render directly to screen
-      Show_Dirtyrects : Boolean;
+        --  "Live" switches
+        Interpolation   : Boolean;
+        Direct          : Boolean;    --  True: Render directly to screen
+        Show_Dirtyrects : Boolean;
 
-      --  Time
-      Time  : Long_Float;           --  Logic time (frames)
-      Frame : Integer;              --  Logic time; integer part
+        --  Time
+        Time  : Long_Float;           --  Logic time (frames)
+        Frame : Integer;              --  Logic time; integer part
 
-      --  Background graphics
-      Map   : PIG_Map_Access;
+        --  Background graphics
+        Map   : PIG_Map_Access;
 
-      --  Objects
-      Objects           : Object_Lists.List;
-      Object_Id_Counter : Integer;
+        --  Objects
+        Objects           : Object_Lists.List;
+        Object_Id_Counter : Integer;
 
-      --  Sprites
-      Sprite_Last       : Sprite_Counts;
-      Sprites           : access Sprite_Array;
+        --  Sprites
+        Sprite_Last       : Sprite_Counts;
+        Sprites           : access Sprite_Array;
 
-      --  Logic frame global handlers
-      Before_Objects : Bef_Aft_Access;
-      After_Objects  : Bef_Aft_Access;
-
-      --  Space for user data
-      Userdata : Long_Integer;
+        --  Space for user data
+        --      Userdata : Long_Integer;
    end record;
 
    --
    --  Engine
    --
-   procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
-                       Screen : in     SDL.Video.Surfaces.Surface);
-   procedure Pig_Close (Engine : in out PIG_Engine);
+   overriding
+   procedure Initialize (Engine : in out PIG_Engine);
 
-   procedure Pig_Viewport (Engine        : in out PIG_Engine;
+   overriding
+   procedure Finalize (Engine : in out PIG_Engine);
+
+   procedure Before_Objects (Engine : in out PIG_Engine) is null;
+   procedure After_Objects  (Engine : in out PIG_Engine) is null;
+   --  Logic frame global handlers
+
+   procedure Setup (Engine : in out PIG_Engine;
+                    Self   :        PIG_Engine_Access;
+                    Screen :        SDL.Video.Surfaces.Surface;
+                    Pages  :        Positive);
+
+   procedure Set_Viewport (Engine        : in out PIG_Engine'Class;
                            X, Y          : in     Integer;
                            Width, Height : in     Positive);
    --  Set viewport size and position
@@ -280,10 +289,10 @@ is
                         Frame  : in     Integer);
    --  Start engine at logic time 'frame'
 
-   procedure Pig_Sprites (Engine        : in out PIG_Engine;
-                          Filename      : in     String;
-                          Width, Height : in     Integer;
-                          Handle        :    out Sprite_Index);
+   procedure Create_Sprites (Engine        : in out PIG_Engine'Class;
+                             Filename      : in     String;
+                             Width, Height : in     Integer;
+                             Handle        :    out Sprite_Index);
    --  Load a sprite palette image. The image is chopped up into
    --  sprites, based on Width and Height, and added as new frames
    --  in the sprite bank. Default values:
@@ -295,8 +304,7 @@ is
    --
    --  Returns the index of the first frame loaded.
 
-
-   procedure Pig_Hotspot (Engine     : in out PIG_Engine;
+   procedure Set_Hotspot (Engine     : in out PIG_Engine'Class;
                           Frame      : in     Sprite_Index;
                           Hotx, Hoty : in     Integer);
    --  Set hot-spot of sprite 'frame' to (hotx, hoty)
@@ -306,7 +314,7 @@ is
                          Radius : in     Integer);
    --  Set sprite/sprite collision zone radius of 'frame'
 
-   procedure Pig_Animate (Engine : in out PIG_Engine;
+   procedure Pig_Animate (Engine : in out PIG_Engine'Class;
                           Frames : in     Float);
    --  Advance logic time by 'frames' logic frames
 
@@ -359,7 +367,7 @@ is
    --
    --  Map
    --
-   function Pig_Map_Open (Engine        : in not null PIG_Engine_Access;
+   function Pig_Map_Open (Engine        : in Engine_Class;
                           Width, Height : in Integer)
                          return not null PIG_Map_Access;
 
@@ -392,11 +400,10 @@ is
    --
    --  Object
    --
-
-   function Pig_Object_Open (Engine : in not null PIG_Engine_Access;
-                             X, Y   : in Integer;
-                             Last   : in Boolean) return not null PIG_Object_Access;
-   --  Create an object with the initial position (x, y). If
+   function Pig_Object_Open (Engine : in out PIG_Engine'Class;
+                             X, Y   : in     Integer;
+                             Last   : in     Boolean) return not null PIG_Object_Access;
+   --  Create an object with the initial position (X, Y). If
    --  Last, the object will end up last in the
    --  processing and rendering order, otherwise, first.
    --

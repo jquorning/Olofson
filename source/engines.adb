@@ -24,14 +24,6 @@ package body Engines is
    PIG_MAX_SPRITES : constant := 1024;
    --  Size of sprite frame table
 
-   Clean_Engine : constant PIG_Engine :=
-     (SDL.Video.Surfaces.Null_Surface,
-      SDL.Video.Surfaces.Null_Surface,
-      SDL.Video.Surfaces.Null_Surface,
-      0, SDL.Video.Rectangles.Null_Rectangle, 0, (null, null),
-      null, False, False, False, 0.0, 0, null, Object_Lists.Empty_List, 0, 0, null,
-      Null_Before_After'Access, Null_Before_After'Access, 0);
-
    Clean_Object : constant PIG_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
       Ip    => (Gimage => 0, others => 0.0),
@@ -50,22 +42,52 @@ package body Engines is
    ------------------------------------------------------------
    --      Engine
    ------------------------------------------------------------
-
-   procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
-                       Screen : in     SDL.Video.Surfaces.Surface)
+   overriding
+   procedure Initialize (Engine : in out PIG_Engine)
    is
    begin
-      Engine := new PIG_Engine'(Clean_Engine);
-      Engine.Screen      := Screen;
-      Engine.Sprite_Last := 0;
---      if(!pe->screen)
---      {
---              pig_close(pe);
---              return NULL;
---      }
+      Ada.Text_IO.Put_Line ("Engines.Initialize");
+      Engine.Self    := null;
+
+      --  Video stuff
+      Engine.Screen  := SDL.Video.Surfaces.Null_Surface;
+      Engine.Buffer  := SDL.Video.Surfaces.Null_Surface;     --  For h/w surface displays
+      Engine.Surface := SDL.Video.Surfaces.Null_Surface;     --  Where to render to
+      Engine.Pages   := 1;                                   --  # of display VRAM buffers
+      Engine.View    := SDL.Video.Rectangles.Null_Rectangle; --  Viewport pos & size (pixels)
+
+      --  Dirty
+      Engine.Page      := 0;                                --  Current page (double buffer)
+      Engine.Pagedirty := (0 => Dirty.Create (Size => 128),
+                           1 => null);                      --  One table for each page
+      Engine.Workdirty := Dirty.Create (Size => 256);       --  The work dirtytable
+
+      --  "Live" switches
+      Engine.Interpolation   := True;
+      Engine.Direct          := False;    --  True: Render directly to screen
+      Engine.Show_Dirtyrects := False;
+
+      --  Time
+      Engine.Time  := 0.0;  --  Logic time (frames)
+      Engine.Frame := 0;    --  Logic time; integer part
+
+      --  Background graphics
+      Engine.Map   := null;
+
+      --  Objects
+      Engine.Objects           := Object_Lists.Empty_List;
+      Engine.Object_Id_Counter := 0;
+
+      --  Sprites
+      Engine.Sprite_Last       := 0;
+      Engine.Sprites           := null;
+      Engine.Sprites           := new Sprite_Array'(Sprite_Index'First
+                                                      .. PIG_MAX_SPRITES - 1 => null);
+      --      Engine.Screen            := Screen;
+
       if False then
-      --      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
-      --      {
+         --      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
+         --      {
          null;
 --              pe->buffer = SDL_CreateRGBSurface(SDL_SWSURFACE,
 --                              screen->w, screen->h,
@@ -82,46 +104,105 @@ package body Engines is
 --              pe->surface = pe->buffer;
 --      }
       else
-         Engine.Surface := Screen;
+         null;
+         --         Engine.Surface := Screen;
       end if;
-      Engine.Pages := 1; --  + ((screen->flags & SDL_DOUBLEBUF) == SDL_DOUBLEBUF);
+      --  Engine.Pages := 1;
+      --  + ((screen->flags & SDL_DOUBLEBUF) == SDL_DOUBLEBUF);
 
-      Engine.Interpolation := True;
-      Engine.Time          := 0.0;
-      Engine.View.Width    := Engine.Surface.Size.Width;
-      Engine.View.Height   := Engine.Surface.Size.Height;
+--      Engine.View.Width    := Engine.Surface.Size.Width;
+--      Engine.View.Height   := Engine.Surface.Size.Height;
 
-      Engine.Sprites := new Sprite_Array'(Sprite_Index'First .. PIG_MAX_SPRITES - 1 => null);
---      pe->sprites = (PIG_sprite **)calloc(PIG_MAX_SPRITES,
---                      sizeof(PIG_sprite *));
---      if(!pe->sprites)
---      {
---              pig_close(pe);
---              return NULL;
---      }
-
-      Engine.Pagedirty (0) := Dirty.Create (Size => 128);
-      Engine.Workdirty     := Dirty.Create (Size => 256);
---      if(!pe->pagedirty[0] || !pe->workdirty)
---      {
---              pig_close(pe);
---              return NULL;
---      }
-      if Engine.Pages > 1 then
-         Engine.Pagedirty (1) := Dirty.Create (Size => 128);
---              if(!pe->pagedirty[1] then
---                      pig_close(pe);
---                      return NULL;
---              end if;
-      end if;
-
-      --      return pe;
-   end Pig_Open;
+      --      return Engine;
+   end Initialize; -- Clean_Engine;
 
 
-   procedure Pig_Close (Engine : in out PIG_Engine) is
+--     function Create_Engine (Screen : in SDL.Video.Surfaces.Surface)
+--                            return Engine_Class
+--     is
+--        Engine : Engine_Class;
+--     begin
+--        Engine := new PIG_Engine; --  '(Clean_Engine);
+--        Engine.all := Clean_Engine (Screen);
+--        return Engine;
+--     end Create_Engine;
+
+--     --  obsolete
+--     procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
+--                         Screen : in     SDL.Video.Surfaces.Surface);
+--     procedure Pig_Open (Engine :    out not null PIG_Engine_Access;
+--                         Screen : in     SDL.Video.Surfaces.Surface)
+--     is
+--     begin
+--        --  Engine := new PIG_Engine'(Clean_Engine);
+--        Engine.Screen      := Screen;
+--        Engine.Sprite_Last := 0;
+--  --      if(!pe->screen)
+--  --      {
+--  --              pig_close(pe);
+--  --              return NULL;
+--  --      }
+--        if False then
+--        --      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
+--        --      {
+--           null;
+--  --              pe->buffer = SDL_CreateRGBSurface(SDL_SWSURFACE,
+--  --                              screen->w, screen->h,
+--  --                              screen->format->BitsPerPixel,
+--  --                              screen->format->Rmask,
+--  --                              screen->format->Gmask,
+--  --                              screen->format->Bmask,
+--  --                              screen->format->Amask);
+--  --              if(!pe->buffer)
+--  --              {
+--  --                      pig_close(pe);
+--  --                      return NULL;
+--  --              }
+--  --              pe->surface = pe->buffer;
+--  --      }
+--        else
+--           Engine.Surface := Screen;
+--        end if;
+--        Engine.Pages := 1; --  + ((screen->flags & SDL_DOUBLEBUF) == SDL_DOUBLEBUF);
+
+--        Engine.Interpolation := True;
+--        Engine.Time          := 0.0;
+--        Engine.View.Width    := Engine.Surface.Size.Width;
+--        Engine.View.Height   := Engine.Surface.Size.Height;
+
+--        Engine.Sprites := new Sprite_Array'(Sprite_Index'First .. PIG_MAX_SPRITES - 1 => null);
+--  --      pe->sprites = (PIG_sprite **)calloc(PIG_MAX_SPRITES,
+--  --                      sizeof(PIG_sprite *));
+--  --      if(!pe->sprites)
+--  --      {
+--  --              pig_close(pe);
+--  --              return NULL;
+--  --      }
+
+--        Engine.Pagedirty (0) := Dirty.Create (Size => 128);
+--        Engine.Workdirty     := Dirty.Create (Size => 256);
+--  --      if(!pe->pagedirty[0] || !pe->workdirty)
+--  --      {
+--  --              pig_close(pe);
+--  --              return NULL;
+--  --      }
+--        if Engine.Pages > 1 then
+--           Engine.Pagedirty (1) := Dirty.Create (Size => 128);
+--  --              if(!pe->pagedirty[1] then
+--  --                      pig_close(pe);
+--  --                      return NULL;
+--  --              end if;
+--        end if;
+
+--        --      return pe;
+--     end Pig_Open;
+
+--   procedure Pig_Close (Engine : in out PIG_Engine) is
+   overriding
+   procedure Finalize (Engine : in out PIG_Engine) is
       use Dirty;
    begin
+      Ada.Text_IO.Put_Line ("Engines.Finalize");
 --  {
 --      if(pe->sprites)
 --      {
@@ -151,9 +232,25 @@ package body Engines is
          Dirty.Close (Engine.Workdirty);
       end if;
 --      free(pe);
-   end Pig_Close;
+--   end Pig_Close;
+   end Finalize;
 
-   procedure Pig_Viewport (Engine        : in out PIG_Engine;
+   procedure Setup (Engine : in out PIG_Engine;
+                    Self   :        PIG_Engine_Access;
+                    Screen :        SDL.Video.Surfaces.Surface;
+                    Pages  :        Positive)
+   is
+   begin
+      Engine.Self    := Self;
+      Engine.Screen  := Screen;
+      Engine.Surface := Screen;  -- JQ ???
+
+      if Pages > 1 then
+         Engine.Pagedirty (1) := Dirty.Create (Size => 128);
+      end if;
+   end Setup;
+
+   procedure Set_Viewport (Engine        : in out PIG_Engine'Class;
                            X, Y          : in     Integer;
                            Width, Height : in     Positive)
    is
@@ -163,13 +260,13 @@ package body Engines is
                       Y      => int (Y),
                       Width  => int (Width),
                       Height => int (Height));
-   end Pig_Viewport;
+   end Set_Viewport;
 
 
-   procedure Pig_Sprites (Engine        : in out PIG_Engine;
-                          Filename      : in     String;
-                          Width, Height : in     Integer;
-                          Handle        :    out Sprite_Index)
+   procedure Create_Sprites (Engine        : in out PIG_Engine'Class;
+                             Filename      : in     String;
+                             Width, Height : in     Integer;
+                             Handle        :    out Sprite_Index)
    is
       Surface_Load : SDL.Video.Surfaces.Surface;
    begin
@@ -249,10 +346,10 @@ package body Engines is
             end loop;
          end loop;
       end;
-   end Pig_Sprites;
+   end Create_Sprites;
 
 
-   procedure Pig_Hotspot (Engine     : in out PIG_Engine;
+   procedure Set_Hotspot (Engine     : in out PIG_Engine'Class;
                           Frame      : in     Sprite_Index;
                           Hotx, Hoty : in     Integer)
    is
@@ -281,7 +378,7 @@ package body Engines is
             when others        =>  Sprite.Hoty := Hoty;
          end case;
       end;
-   end Pig_Hotspot;
+   end Set_Hotspot;
 
 
    procedure Pig_Radius (Engine : in out PIG_Engine;
@@ -312,10 +409,10 @@ package body Engines is
    end Pig_Start;
 
 
-   procedure Run_Timers (Engine : in out PIG_Engine;
+   procedure Run_Timers (Engine : in out PIG_Engine'Class;
                          Object : in out PIG_Object);
 
-   procedure Run_Timers (Engine : in out PIG_Engine;
+   procedure Run_Timers (Engine : in out PIG_Engine'Class;
                          Object : in out PIG_Object)
    is
       pragma Unreferenced (Engine);
@@ -326,9 +423,9 @@ package body Engines is
             Object.Timer (I) := Object.Timer (I) - 1;
             if Object.Timer (I) = 0 then
                declare
-                  To_Kind : constant array (Timer_Id) of PIG_Events := (0 => PIG_TIMER0,
-                                                                        1 => PIG_TIMER1,
-                                                                        2 => PIG_TIMER2);
+                  To_Kind : constant array (Timer_Id) of PIG_Events := (1 => PIG_TIMER_1,
+                                                                        2 => PIG_TIMER_2,
+                                                                        3 => PIG_TIMER_3);
                   Event : PIG_Event;
                begin
                   Event.Kind := To_Kind (I);
@@ -653,8 +750,8 @@ package body Engines is
    end Test_Sprite_Map;
 
 
-   procedure Run_Logic (Engine : in out PIG_Engine);
-   procedure Run_Logic (Engine : in out PIG_Engine)
+   procedure Run_Logic (Engine : in out PIG_Engine'Class);
+   procedure Run_Logic (Engine : in out PIG_Engine'Class)
    is
       use Object_Lists;
       Object_Cursor, Next_Cursor : Cursor;
@@ -666,7 +763,7 @@ package body Engines is
          Object.Ip.Oy := Object.Y;
       end loop;
 
-      Engine.Before_Objects (Engine);
+      Before_Objects (Engine);
 
 --      for Object of Engine.Objects loop
       Object_Cursor := Engine.Objects.First;
@@ -709,7 +806,7 @@ package body Engines is
                Run_Timers (Engine, Object.all);
 
                if Object.Id /= 0 then
-                  Test_Offscreen (Engine, Object.all, Sprite);
+                  Test_Offscreen (PIG_Engine (Engine), Object.all, Sprite);
                end if;
 
 --                 if Object.Id /= 0 and (Object.Hitmask or Object.Hitgroup) then
@@ -717,14 +814,13 @@ package body Engines is
 --                 end if;
 
                if Object.Id /= 0 and Object.Tilemask /= PIG_None then
-                  Test_Sprite_Map (Engine, Object.all, Sprite);
+                  Test_Sprite_Map (PIG_Engine (Engine), Object.all, Sprite);
                end if;
             end if;
          end;
       end loop;
 
       for Object of Engine.Objects loop
---            next = po->next;
          if Object.Id /= 0 then
             declare
                Event : PIG_Event;
@@ -736,12 +832,12 @@ package body Engines is
          end if;
       end loop;
 
-      Engine.After_Objects (Engine);
+      After_Objects (Engine);
 
    end Run_Logic;
 
 
-   procedure Pig_Animate (Engine : in out PIG_Engine;
+   procedure Pig_Animate (Engine : in out PIG_Engine'Class;
                           Frames : in     Float)
    is
       --  Advance logic time
@@ -1112,7 +1208,7 @@ package body Engines is
    --    Map
    ------------------------------------------------------------
 
-   function Pig_Map_Open (Engine        : in not null PIG_Engine_Access;
+   function Pig_Map_Open (Engine        : in Engine_Class;
                           Width, Height : in Integer)
                          return not null PIG_Map_Access
    is
@@ -1295,13 +1391,13 @@ package body Engines is
    end Free_Object;
 
 
-   function Pig_Object_Open (Engine : in not null PIG_Engine_Access;
-                             X, Y   : in Integer;
-                             Last   : in Boolean) return not null PIG_Object_Access
+   function Pig_Object_Open (Engine : in out PIG_Engine'Class;
+                             X, Y   : in     Integer;
+                             Last   : in     Boolean) return not null PIG_Object_Access
    is
-      Object : constant not null PIG_Object_Access := Get_Object (Engine.all);
+      Object : constant not null PIG_Object_Access := Get_Object (Engine.Self.all);
    begin
-      Object.Owner    := Engine;
+      Object.Owner    := Engine_Class (Engine.Self);
       Object.Tilemask := PIG_All;
       Object.Hitmask  := 0;
       Object.Hitgroup := 0;
@@ -1402,7 +1498,5 @@ package body Engines is
       return null;
 --      raise Program_Error;
    end Pig_Object_Find;
-
-   procedure Null_Before_After (Engine : in out PIG_Engine) is null;
 
 end Engines;

@@ -10,7 +10,6 @@
 --  software, or work derived from it, under other terms.
 
 with Ada.Real_Time;
-with Ada.Unchecked_Conversion;
 
 with Engines;
 
@@ -39,76 +38,59 @@ is
    type Key_Used  is (Up, Down, Left, Right);
    type Key_Array is array (Key_Used) of Boolean;
 
-   type Game_State is record
+   type Game_State is
+     new Engines.PIG_Engine
+     with record
 
-      --  I/O
-      Engine         : Engines.PIG_Engine_Access;
-      Keys           : Key_Array;
-      Nice           : Boolean;
-      Refresh_Screen : Integer;
-      Jump           : Integer;
+        --  I/O
+        Keys           : Key_Array;
+        Nice           : Boolean;
+        Refresh_Screen : Integer;
+        Jump           : Integer;
 
-      --  Sprites
-      Lifepig   : Engines.Sprite_Index;
-      Scorefont : Engines.Sprite_Index;
-      Glassfont : Engines.Sprite_Index;
-      Icons     : Engines.Sprite_Index;
-      Stars     : Engines.Sprite_Index;
-      Pigframes : Engines.Sprite_Index;
-      Evil      : Engines.Sprite_Index;
-      Slime     : Engines.Sprite_Index;
+        --  Sprites
+        Lifepig   : Engines.Sprite_Index;
+        Scorefont : Engines.Sprite_Index;
+        Glassfont : Engines.Sprite_Index;
+        Icons     : Engines.Sprite_Index;
+        Stars     : Engines.Sprite_Index;
+        Pigframes : Engines.Sprite_Index;
+        Evil      : Engines.Sprite_Index;
+        Slime     : Engines.Sprite_Index;
 
-      --  Global game state
-      Running           : Boolean;
-      Level             : Integer;
-      Lives             : Integer;
-      Lives_Wobble      : Float;
-      Lives_Wobble_Time : Duration;
-      Score             : Integer;
-      Score_Wobble      : Float;
-      Score_Wobble_Time : Duration;
-      Dashboard_Time    : Duration;
-      Fun_Count         : Integer;
-      Enemycount        : Integer;
-      Messages          : Integer;
+        --  Global game state
+        Running           : Boolean;
+        Level             : Integer;
+        Lives             : Integer;
+        Lives_Wobble      : Float;
+        Lives_Wobble_Time : Duration;
+        Score             : Integer;
+        Score_Wobble      : Float;
+        Score_Wobble_Time : Duration;
+        Dashboard_Time    : Duration;
+        Fun_Count         : Integer;
+        Enemycount        : Integer;
+        Messages          : Integer;
 
-      --  Objects
-      Player            : Engines.PIG_Object_Access;
+        --  Objects
+        Player            : Engines.PIG_Object_Access;
 
-      --  Statistics
-      Logic_Frames      : Integer;
-      Rendered_Frames   : Integer;
+        --  Statistics
+        Logic_Frames      : Integer;
+        Rendered_Frames   : Integer;
 
-      Start_Time        : Ada.Real_Time.Time;
+        Start_Time        : Ada.Real_Time.Time;
    end record;
-   type Game_State_Access is access all Game_State;
+   type Game_Access is access all Game_State;
+   type Game_Class  is access all Game_State'Class;
 
-   Clean_Game : constant Game_State :=
-     (Engine            => null,
-      Keys              => (others => False),
-      Nice              => False,
-      Refresh_Screen    => 0,
-      Jump              => 0,
+   overriding
+   procedure Initialize (Game : in out Game_State);
 
-      Lifepig   => 1,
-      Scorefont => 1,
-      Glassfont => 1,
-      Icons     => 1,
-      Stars     => 1,
-      Pigframes => 1,
-      Evil      => 1,
-      Slime     => 1,
+   overriding
+   procedure Finalize (Game : in out Game_State);
 
-      Running           => False,
-      Lives_Wobble      => 0.0,
-      Lives_Wobble_Time => 0.0,
-      Score_Wobble      => 0.0,
-      Score_Wobble_Time => 0.0,
-      Dashboard_Time    => 0.0,
-      Player            => null,
-      Start_Time        => Ada.Real_Time.Time_First,
-      others            => 0);
-
+   procedure Create (Game : in out Game_State);
 
    procedure Inc_Score (Game : in out Game_State; V : Integer);
 
@@ -167,9 +149,12 @@ is
                              Target : in     Integer;
                              Object :    out not null Engines.PIG_Object_Access);
 
+   overriding
+   procedure Before_Objects (Game : in out Game_State);
 
    type Map_Type is range 0 .. 4;
    procedure Load_Level (Game : in out Game_State; Map : in Map_Type);
+
 
    procedure Player_Handler (Object : in out Engines.PIG_Object;
                              Event  : in     Engines.PIG_Event);
@@ -191,13 +176,5 @@ is
 
    procedure Chain_Link_Handler (Object : in out Engines.PIG_Object;
                                  Event  : in     Engines.PIG_Event);
-
-   function To_Game_State is
-      new Ada.Unchecked_Conversion (Long_Integer, Game_State_Access);
-
-   function From_Game_State is
-      new Ada.Unchecked_Conversion (Game_State_Access, Long_Integer);
-
-   procedure Before_Objects (Engine : in out Engines.PIG_Engine);
 
 end Games;

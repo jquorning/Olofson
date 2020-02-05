@@ -17,9 +17,9 @@ project Pig is
 
      for Default_Switches ("Ada") use
        ("-g",
-        "-O2",
+--        "-O2",
         "-gnatf",
---        "-gnatVa",
+        "-gnatVa",
         "-gnata",
         "-gnatwa",
         "-gnatwj",
