@@ -35,8 +35,8 @@ procedure Pig is
    procedure Dashboard (Game : in out Game_State);
    --  Render the dashboard
 
-   procedure Start_Game (Game   : in out Game_State;
-                         Result :    out Integer);
+   procedure Start_Game (Game : in out Game_State);
+
    procedure Handle_Input (Game  : in out Game_State;
                            Event : in out SDL.Events.Events.Events);
    procedure Handle_Keys (Game : in out Game_State);
@@ -135,14 +135,12 @@ procedure Pig is
    --        Game logic event handlers
    ----------------------------------------------------------
 
-   procedure Start_Game (Game   : in out Game_State;
-                         Result :    out Integer)
+   procedure Start_Game (Game : in out Game_State)
    is
       Player : Engines.PIG_Object_Access;
    begin
       if Game.Level /= 0 then
-         Result := 0;       -- Already playing! -->
-         return;
+         return;                -- Already playing!
       end if;
 
       Game.Score := 0;
@@ -152,8 +150,6 @@ procedure Pig is
 
       New_Player (Game, Player);
       Game.Player := Player;
-
-      Result := 0;
    end Start_Game;
 
 
@@ -180,45 +176,32 @@ procedure Pig is
 
                when Keyboards.Scan_Code_F1 =>
                   Game.Interpolation := not Game.Interpolation;
-                  if Game.Interpolation then
-                     Message (Game, "Interpolation: ON");
-                  else
-                     Message (Game, "Interpolation: OFF");
-                  end if;
+                  Message (Game, (if Game.Interpolation
+                                    then "Interpolation: ON"
+                                    else "Interpolation: OFF"));
 
                when Keyboards.Scan_Code_F2 =>
                   Game.Direct := not Game.Direct;
-                  if Game.Direct then
-                     Message (Game, "Rendering: Direct");
-                  else
-                     Message (Game, "Rendering: Buffered");
-                  end if;
+                  Message (Game, (if Game.Direct
+                                    then "Rendering: Direct"
+                                    else "Rendering: Buffered"));
 
                when Keyboards.Scan_Code_F3 =>
                   Game.Show_Dirtyrects := not Game.Show_Dirtyrects;
-                  if Game.Show_Dirtyrects then
-                     Message (Game, "Dirtyrects: ON");
-                  else
-                     Message (Game, "Dirtyrects: OFF");
-                  end if;
+                  Message (Game, (if Game.Show_Dirtyrects
+                                    then"Dirtyrects: ON"
+                                    else "Dirtyrects: OFF"));
 
                when Keyboards.Scan_Code_F4 =>
                   Game.Nice := not Game.Nice;
-                  if Game.Nice then
-                     Message (Game, "Be Nice: ON");
-                  else
-                     Message (Game, "Be Nice: OFF");
-                  end if;
+                  Message (Game, (if Game.Nice
+                                    then "Be Nice: ON"
+                                    else "Be Nice: OFF"));
 
                when Keyboards.Scan_Code_Space =>
-                  declare
-                     Result : Integer;
-                  begin
-                     Start_Game (Game, Result);
-                  end;
+                  Start_Game (Game);
 
-               when others =>
-                  null;
+               when others =>  null;
             end case;
 
          when Keyboards.Key_Up =>
