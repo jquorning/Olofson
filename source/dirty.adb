@@ -39,8 +39,8 @@ package body Dirty is
    end Close;
 
 
-   procedure Merge (From :        SDL.Video.Rectangles.Rectangle;
-                    To   : in out SDL.Video.Rectangles.Rectangle)
+   procedure Merge (From :        Rectangle;
+                    To   : in out Rectangle)
    is
       use SDL.C;
       X1 : constant int := int'Min (From.X, To.X);
@@ -55,8 +55,8 @@ package body Dirty is
    end Merge;
 
 
-   procedure Intersect (From :        SDL.Video.Rectangles.Rectangle;
-                        To   : in out SDL.Video.Rectangles.Rectangle)
+   procedure Intersect (From :        Rectangle;
+                        To   : in out Rectangle)
    is
       use SDL.C;
    begin
@@ -87,7 +87,7 @@ package body Dirty is
 
 
    procedure Add (Table : in out Table_Type;
-                  Rect  :        SDL.Video.Rectangles.Rectangle)
+                  Rect  :        Rectangle)
    is
       I         : Index_Type := 0;
       Best_I    : Index_Type;

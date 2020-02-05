@@ -66,7 +66,7 @@ package body Engines is
    procedure Run_Logic (Engine : in out PIG_Engine'Class);
 
    procedure Tile_Area (Engine : in out PIG_Engine;
-                        Area   :        SDL.Video.Rectangles.Rectangle);
+                        Area   :        SDL_Rectangle);
 
    procedure Remove_Sprites (Engine : in out PIG_Engine);
 
@@ -98,15 +98,17 @@ package body Engines is
    overriding
    procedure Initialize (Engine : in out PIG_Engine)
    is
+     use SDL.Video.Surfaces;
+     use SDL.Video.Rectangles;
    begin
       Engine.Self    := null;
 
       --  Video stuff
-      Engine.Screen  := SDL.Video.Surfaces.Null_Surface;
-      Engine.Buffer  := SDL.Video.Surfaces.Null_Surface;     --  For h/w surface displays
-      Engine.Surface := SDL.Video.Surfaces.Null_Surface;     --  Where to render to
-      Engine.Pages   := 1;                                   --  # of display VRAM buffers
-      Engine.View    := SDL.Video.Rectangles.Null_Rectangle; --  Viewport pos & size (pixels)
+      Engine.Screen  := Null_Surface;
+      Engine.Buffer  := Null_Surface;    --  For h/w surface displays
+      Engine.Surface := Null_Surface;    --  Where to render to
+      Engine.Pages   := 1;               --  # of display VRAM buffers
+      Engine.View    := Null_Rectangle;  --  Viewport pos & size (pixels)
 
       --  Dirty
       Engine.Page      := 0;                                --  Current page (double buffer)
@@ -207,7 +209,7 @@ package body Engines is
 
    procedure Setup (Engine : in out PIG_Engine;
                     Self   :        PIG_Engine_Access;
-                    Screen :        SDL.Video.Surfaces.Surface;
+                    Screen :        SDL_Surface;
                     Pages  :        Positive)
    is
    begin
@@ -239,7 +241,7 @@ package body Engines is
                              Width, Height :        Pixels;
                              Handle        :    out Sprite_Index)
    is
-      Surface_Load : SDL.Video.Surfaces.Surface;
+      Surface_Load : SDL_Surface;
    begin
       SDL.Images.IO.Create (Surface_Load, Filename);
 
@@ -262,9 +264,9 @@ package body Engines is
          for Y in 1 .. Last_Y loop
             for X in 1 .. Last_X loop
                declare
-                  Source_Area    : SDL.Video.Rectangles.Rectangle;
-                  Target_Area    : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
-                  Surface_Sprite : SDL.Video.Surfaces.Surface;
+                  Source_Area    : SDL_Rectangle;
+                  Target_Area    : SDL_Rectangle := (0, 0, 0, 0);
+                  Surface_Sprite : SDL_Surface;
 
                   Sprite : constant not null PIG_Sprite_Access :=
                     new PIG_Sprite'(Width   => Sprite_Width,
@@ -797,7 +799,7 @@ package body Engines is
 
 
    procedure Pig_Dirty (Engine : in out PIG_Engine;
-                        Area   :        SDL.Video.Rectangles.Rectangle)
+                        Area   :        SDL_Rectangle)
    is
       use type SDL.C.int;
       use SDL.Video.Rectangles;
@@ -819,7 +821,7 @@ package body Engines is
 
 
    procedure Tile_Area (Engine : in out PIG_Engine;
-                        Area   :        SDL.Video.Rectangles.Rectangle)
+                        Area   :        SDL_Rectangle)
    is
       use type SDL.C.int;
       Tile_Width  : Pixels renames Engine.Map.Tile_Width;
@@ -849,13 +851,13 @@ package body Engines is
                use SDL.C;
                C2   : constant Tiles := Tiles (Engine.Map.Map (X, Y));
 
-               From : SDL.Video.Rectangles.Rectangle :=
+               From : SDL_Rectangle :=
                  (X      => int (C2 mod Tilesperrow) * int (Tile_Width),
                   Y      => int (C2 / Tilesperrow)   * int (Tile_Height),
                   Width  => int (Tile_Width),
                   Height => int (Tile_Height));
 
-               To   : SDL.Video.Rectangles.Rectangle :=
+               To   : SDL_Rectangle :=
                  (X      => int (Engine.View.X) + int (Pixels (X) * Tile_Width),
                   Y      => int (Engine.View.Y) + int (Pixels (Y) * Tile_Height),
                   others => 0);
@@ -889,7 +891,7 @@ package body Engines is
                Sprite : constant not null PIG_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Ip.Gimage));
 
-               Area   : SDL.Video.Rectangles.Rectangle :=
+               Area   : SDL_Rectangle :=
                  (X      => int (Object.Ip.Gx) - int (Sprite.Hot_X),
                   Y      => int (Object.Ip.Gy) - int (Sprite.Hot_Y),
                   Width  => int (Sprite.Width),
@@ -946,9 +948,9 @@ package body Engines is
                Sprite      : constant not null PIG_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Ip.Gimage));
 
-               Source_Area : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
+               Source_Area : SDL_Rectangle := (0, 0, 0, 0);
 
-               Target_Area : SDL.Video.Rectangles.Rectangle :=
+               Target_Area : SDL_Rectangle :=
                  (X => int (Object.Ip.Gx - Float (Sprite.Hot_X) + Float (Engine.View.X)),
                   Y => int (Object.Ip.Gy - Float (Sprite.Hot_Y) + Float (Engine.View.Y)),
                   others => 0);
@@ -996,7 +998,8 @@ package body Engines is
    begin
       if Engine.Buffer = Null_Surface then
          declare
-            Format : constant not null SDL.Video.Pixel_Formats.Pixel_Format_Access :=
+            use SDL.Video.Pixel_Formats;
+            Format : constant not null Pixel_Format_Access :=
               Engine.Screen.Pixel_Format;
          begin
             SDL.Video.Surfaces.Makers.Create --  RGBSurface
@@ -1024,8 +1027,8 @@ package body Engines is
       for I in 1 .. Table.Last loop
          declare
             use type SDL.C.int;
-            R  : SDL.Video.Rectangles.Rectangle;
-            R2 : SDL.Video.Rectangles.Rectangle;
+            R  : SDL_Rectangle;
+            R2 : SDL_Rectangle;
          begin
             R        := Table.Rects (I);
             R.X      := R.X - 32;
@@ -1044,7 +1047,7 @@ package body Engines is
       for I in 1 .. Table.Last loop
          declare
             use SDL.C;
-            R : SDL.Video.Rectangles.Rectangle;
+            R : SDL_Rectangle;
          begin
             R := Table.Rects (I);
             R.Height := 1;
@@ -1065,7 +1068,7 @@ package body Engines is
 
 
    procedure Pig_Flip (Engine : in out PIG_Engine;
-                       Window : in out SDL.Video.Windows.Window)
+                       Window : in out SDL_Window)
    is
       use SDL.Video.Surfaces;
       use SDL.Video.Rectangles;
@@ -1125,8 +1128,8 @@ package body Engines is
                               X, Y   :        Pixels)
    is
       use SDL.C;
-      DR : SDL.Video.Rectangles.Rectangle;
-      SA : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
+      DR : SDL_Rectangle;
+      SA : SDL_Rectangle := (0, 0, 0, 0);
    begin
       --      if(frame >= pe->nsprites)
 --              return;
@@ -1200,7 +1203,7 @@ package body Engines is
       pragma Unreferenced (Result);
 --  int pig_map_tiles(PIG_map *pm, const char *filename, int tw, int th)
 --  {
-      Surface : SDL.Video.Surfaces.Surface;
+      Surface : SDL_Surface;
    begin
       Map.Tile_Width  := Width;
       Map.Tile_Height := Height;

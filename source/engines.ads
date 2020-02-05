@@ -21,7 +21,6 @@ with Dirty;
 package Engines
   with Elaborate_Body
 is
-
    ----------------------------------------------------------
    --        Game Engine
    ----------------------------------------------------------
@@ -181,6 +180,10 @@ is
       Handler  : Handler_Access;
    end record;
 
+   subtype SDL_Surface   is SDL.Video.Surfaces.Surface;
+   subtype SDL_Rectangle is SDL.Video.Rectangles.Rectangle;
+   subtype SDL_Window    is SDL.Video.Windows.Window;
+
    --
    --  Level map
    --
@@ -199,17 +202,17 @@ is
 
       Tile_Width  : Pixels;                      --  Size of one tile (pixels)
       Tile_Height : Pixels;
-      Tile        : SDL.Video.Surfaces.Surface;  --  Tile palette image
+      Tile        : SDL_Surface;                 --  Tile palette image
       Hitinfo     : Hitinfo_Array;               --  Collision info for the tiles
    end record;
    type PIG_Map_Access is access all PIG_Map;
 
    --  Sprite frame
    type PIG_Sprite is record
-      Width, Height : Pixels;     --  Size of sprite (pixels)
-      Hot_X, Hot_Y  : Pixels;     --  Hot-spot offset (pixels)
-      Radius        : Pixels;     --  Collision zone radius (pixels)
-      Surface       : SDL.Video.Surfaces.Surface; --  Access
+      Width, Height : Pixels;      --  Size of sprite (pixels)
+      Hot_X, Hot_Y  : Pixels;      --  Hot-spot offset (pixels)
+      Radius        : Pixels ;     --  Collision zone radius (pixels)
+      Surface       : SDL_Surface; --  Access
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
 
@@ -232,11 +235,11 @@ is
         Self    : PIG_Engine_Access;
 
         --  Video stuff
-        Screen  : SDL.Video.Surfaces.Surface;
-        Buffer  : SDL.Video.Surfaces.Surface;  --  For h/w surface displays
-        Surface : SDL.Video.Surfaces.Surface;  --  Where to render to
-        Pages   : Integer;                     --  # of display VRAM buffers
-        View    : SDL.Video.Rectangles.Rectangle; --  Viewport pos & size (pixels)
+        Screen  : SDL_Surface;
+        Buffer  : SDL_Surface;   --  For h/w surface displays
+        Surface : SDL_Surface;   --  Where to render to
+        Pages   : Integer;       --  # of display VRAM buffers
+        View    : SDL_Rectangle; --  Viewport pos & size (pixels)
 
         --  Dirty
         Page      : Integer range 0 .. 1;      --  Current page (double buffer)
@@ -282,7 +285,7 @@ is
 
    procedure Setup (Engine : in out PIG_Engine;
                     Self   :        PIG_Engine_Access;
-                    Screen :        SDL.Video.Surfaces.Surface;
+                    Screen :        SDL_Surface;
                     Pages  :        Positive);
 
    procedure Set_Viewport (Engine : in out PIG_Engine'Class;
@@ -327,12 +330,12 @@ is
    --  Advance logic time by 'frames' logic frames
 
    procedure Pig_Dirty (Engine : in out PIG_Engine;
-                        Area   :        SDL.Video.Rectangles.Rectangle);
+                        Area   :        SDL_Rectangle);
    --  Manually add a dirtyrect for pig_refresh().
    --  Area can be outside the engine viewport.
 
    procedure Pig_Flip (Engine : in out PIG_Engine;
-                       Window : in out SDL.Video.Windows.Window);
+                       Window : in out SDL_Window);
    --  Do what's needed to deal with the dirtyrects
    --  and then make the new frame visible.
 
