@@ -40,14 +40,13 @@ is
    --  Moved from pig.adb
 
    type Pixels is new Integer;
-   type Tiles is new Integer;
+   type Tiles  is new Integer;
 
 
    type PIG_Object;
    type PIG_Engine;
-   type PIG_Object_Access is access all PIG_Object;
-   type PIG_Engine_Access is access all PIG_Engine;
---   type Engine_Class      is access all PIG_Engine'Class;
+   type Object_Access is access all PIG_Object;
+   type Engine_Access is access all PIG_Engine;
 
    type    Sprite_Counts is new Natural;
    subtype Sprite_Index  is Sprite_Counts range 1 .. Sprite_Counts'Last;
@@ -130,10 +129,10 @@ is
    type PIG_Event is record
       Kind  : PIG_Events;
 
-      Cinfo : PIG_Cinfo;           --  Detailed collision info
+      Cinfo : PIG_Cinfo;      --  Detailed collision info
       --  For HIT_TILE, HIT_OBJECT and OFFSCREEN
 
-      Obj   : PIG_Object_Access;   --  Which object?
+      Obj   : Object_Access;  --  Which object?
       --  For HIT_OBJECT
    end record;
 
@@ -220,11 +219,11 @@ is
    --  Engine
    --
    package Object_Lists is
-      new Ada.Containers.Doubly_Linked_Lists (Element_Type => PIG_Object_Access);
+      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Object_Access);
 
 --   type Bef_Aft_Access is
---     not null access procedure (Engine : in PIG_Engine_Access);
---   procedure Null_Before_After (Engine : in PIG_Engine_Access);
+--     not null access procedure (Engine : in Engine_Access);
+--   procedure Null_Before_After (Engine : in Engine_Access);
 
    type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
    type Dirty_Array  is array (0 .. 1) of Dirty.Table_Access;
@@ -232,7 +231,7 @@ is
    type PIG_Engine is
      new Ada.Finalization.Limited_Controlled
      with record
-        Self    : PIG_Engine_Access;
+        Self    : Engine_Access;
 
         --  Video stuff
         Screen  : SDL_Surface;
@@ -284,7 +283,7 @@ is
    --  Logic frame global handlers
 
    procedure Setup (Engine : in out PIG_Engine;
-                    Self   :        PIG_Engine_Access;
+                    Self   :        Engine_Access;
                     Screen :        SDL_Surface;
                     Pages  :        Positive);
 
@@ -416,7 +415,7 @@ is
    --
    function Pig_Object_Open (Engine : in out PIG_Engine'Class;
                              X, Y   :        Pixels;
-                             Last   :        Boolean) return not null PIG_Object_Access;
+                             Last   :        Boolean) return not null Object_Access;
    --  Create an object with the initial position (X, Y). If
    --  Last, the object will end up last in the
    --  processing and rendering order, otherwise, first.
@@ -442,7 +441,7 @@ is
    --  Close all objects.
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Object_Id) return PIG_Object_Access;
+                             Id    :        Object_Id) return Object_Access;
    --  Find object by 'id', starting at object 'start'.
    --
    --  The search starts at 'start' and is done in both

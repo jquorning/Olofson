@@ -74,7 +74,7 @@ is
         Messages          : Integer;
 
         --  Objects
-        Player            : PIG_Object_Access;
+        Player            : Object_Access;
 
         --  Statistics
         Logic_Frames      : Integer;
@@ -107,13 +107,13 @@ is
    procedure New_Player (Game : in out Game_State);
 
    procedure New_Player (Game   : in out Game_State;
-                         Object :    out PIG_Object_Access);
+                         Object :    out Object_Access);
 
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   :        Pixels;
                           Speed  :        Integer;
                           kind   :        Power_Ups;
-                          Object :    out not null PIG_Object_Access);
+                          Object :    out not null Object_Access);
 
    procedure New_Powerup (Game  : in out Game_State;
                           X, Y  :        Pixels;
@@ -127,29 +127,29 @@ is
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Vx, Vy :        Pixels;
-                       Object :    out not null PIG_Object_Access);
+                       Object :    out not null Object_Access);
 
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Speed  :        Integer;
-                       Object :    out not null PIG_Object_Access);
+                       Object :    out not null Object_Access);
 
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Pixels;
                         Speed  :        Integer;
-                        Object :    out not null PIG_Object_Access);
+                        Object :    out not null Object_Access);
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     :        Pixels;
                              Image    :        Sprite_Index;
                              Target_X :        Integer;
-                             Object   :    out not null PIG_Object_Access);
+                             Object   :    out not null Object_Access);
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   :        Pixels;
                              Image  :        Sprite_Index;
                              Target :        Object_Id;
-                             Object :    out not null PIG_Object_Access);
+                             Object :    out not null Object_Access);
 
    overriding
    procedure Before_Objects (Game : in out Game_State);

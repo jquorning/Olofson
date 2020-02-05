@@ -152,7 +152,7 @@ package body Games is
 
 
    procedure New_Player (Game   : in out Game_State;
-                         Object :    out PIG_Object_Access)
+                         Object :    out Object_Access)
    is
    begin
       if Game.Lives /= 0 then
@@ -169,7 +169,7 @@ package body Games is
 
 
    procedure New_Player (Game : in out Game_State) is
-      Dummy : PIG_Object_Access;
+      Dummy : Object_Access;
    begin
       New_Player (Game, Dummy);
    end New_Player;
@@ -179,7 +179,7 @@ package body Games is
                           X, Y   :        Pixels;
                           Speed  :        Integer;
                           Kind   :        Power_Ups;
-                          Object :    out not null PIG_Object_Access)
+                          Object :    out not null Object_Access)
    is
    begin
       Object := Pig_Object_Open (PIG_Engine (Game.Self.all), X, Y, Last => True);
@@ -199,7 +199,7 @@ package body Games is
                           Speed :        Integer;
                           Kind  :        Power_Ups)
    is
-      Dummy : PIG_Object_Access;
+      Dummy : Object_Access;
    begin
       New_Powerup (Game, X, Y, Speed, Kind, Dummy);
    end New_Powerup;
@@ -208,7 +208,7 @@ package body Games is
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Vx, Vy :        Pixels;
-                       Object :    out not null PIG_Object_Access)
+                       Object :    out not null Object_Access)
    is
    begin
       Object := Pig_Object_Open (Game, X + Vx, Y + Vy, Last => True);
@@ -226,7 +226,7 @@ package body Games is
                        X, Y   :        Pixels;
                        Vx, Vy :        Pixels)
    is
-      Dummy : PIG_Object_Access;
+      Dummy : Object_Access;
    begin
       New_Star (Game, X, Y, Vx, Vy, Dummy);
    end New_Star;
@@ -235,7 +235,7 @@ package body Games is
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   :        Pixels;
                        Speed  :        Integer;
-                       Object :    out not null PIG_Object_Access)
+                       Object :    out not null Object_Access)
    is
    begin
       Object := Pig_Object_Open (Game,
@@ -255,7 +255,7 @@ package body Games is
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Pixels;
                         Speed  :        Integer;
-                        Object :    out not null PIG_Object_Access)
+                        Object :    out not null Object_Access)
    is
    begin
       Object := Pig_Object_Open (Game,
@@ -275,7 +275,7 @@ package body Games is
                              X, Y     :        Pixels;
                              Image    :        Sprite_Index;
                              Target_X :        Integer;
-                             Object   :    out not null PIG_Object_Access)
+                             Object   :    out not null Object_Access)
    is
    begin
       Object := Pig_Object_Open (Game, X, Y, Last => True);
@@ -290,7 +290,7 @@ package body Games is
                              X, Y   :        Pixels;
                              Image  :        Sprite_Index;
                              Target :        Object_Id;
-                             Object :    out not null PIG_Object_Access)
+                             Object :    out not null Object_Access)
    is
    begin
       Object := Pig_Object_Open (Game, X, Y, Last => True);
@@ -348,7 +348,7 @@ package body Games is
       Y  : constant Pixels := MAP_H * TILE_H - 30;
       Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
       First  : Boolean := True;
-      Object : PIG_Object_Access := null;
+      Object : Object_Access := null;
    begin
       Ada.Text_IO.Put_Line ("Message : " & Text);
       for C of To_Upper (Text) loop
@@ -508,7 +508,7 @@ package body Games is
                when others =>
                   Pig_Object_Close (Object);
                   declare
-                     Object : PIG_Object_Access;
+                     Object : Object_Access;
                   begin
                      New_Player (Game, Object);
                  --    if Obj = null then
@@ -854,7 +854,7 @@ package body Games is
    procedure Chain_Link_Handler (Object : in out PIG_Object;
                                  Event  :        PIG_Event)
    is
-      Target : constant PIG_Object_Access := Pig_Object_Find (Object,
+      Target : constant Object_Access := Pig_Object_Find (Object,
                                                               Object_Id (Object.Target));
    begin
       case Event.Kind is
@@ -878,7 +878,7 @@ package body Games is
    is
       use Ada.Strings.Unbounded;
       M, K  : Unbounded_String;
-      Dummy : PIG_Object_Access;
+      Dummy : Object_Access;
    begin
       Game.Level := Integer (Map);
       Game.Pig_Object_Close_All;

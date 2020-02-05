@@ -144,7 +144,7 @@ procedure Pig is
 
    procedure Start_Game (Game : in out Game_State)
    is
-      Player : Engines.PIG_Object_Access;
+      Player : Engines.Object_Access;
    begin
       if Game.Level /= 0 then
          return;                -- Already playing!

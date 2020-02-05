@@ -39,14 +39,14 @@ package body Engines is
    function Sqrt (F : Float) return Float
      renames Ada.Numerics.Elementary_Functions.Sqrt;
 
-   procedure Sprite_Sprite_One (Object   : not null PIG_Object_Access;
-                                Object_2 : not null PIG_Object_Access;
+   procedure Sprite_Sprite_One (Object   : not null Object_Access;
+                                Object_2 : not null Object_Access;
                                 T        : Float;
                                 Hitdist  : Float);
    --  Test for stationary sprite/sprite collision
 
    procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
-                                 Object :        not null PIG_Object_Access;
+                                 Object :        not null Object_Access;
                                  Sprite :        PIG_Sprite_Access);
    --  Check Object against all subsequent objects in the list.
    --  The testing is step size limited so that neither object
@@ -76,7 +76,7 @@ package body Engines is
                          Table  :        Dirty.Table_Type);
 
    function Get_Object (Engine : in out PIG_Engine)
-                       return not null PIG_Object_Access;
+                       return not null Object_Access;
 
    procedure Free_Object (Object : in out PIG_Object);
 
@@ -208,7 +208,7 @@ package body Engines is
    end Finalize;
 
    procedure Setup (Engine : in out PIG_Engine;
-                    Self   :        PIG_Engine_Access;
+                    Self   :        Engine_Access;
                     Screen :        SDL_Surface;
                     Pages  :        Positive)
    is
@@ -469,8 +469,8 @@ package body Engines is
    end Test_Offscreen;
 
 
-   procedure Sprite_Sprite_One (Object   : not null PIG_Object_Access;
-                                Object_2 : not null PIG_Object_Access;
+   procedure Sprite_Sprite_One (Object   : not null Object_Access;
+                                Object_2 : not null Object_Access;
                                 T        :          Float;
                                 Hitdist  :          Float)
    is
@@ -528,11 +528,11 @@ package body Engines is
 
 
    procedure Test_Sprite_Sprite (Engine : in out   PIG_Engine;
-                                 Object : not null PIG_Object_Access;
+                                 Object : not null Object_Access;
                                  Sprite :          PIG_Sprite_Access)
    is
-      Object_2 : PIG_Object_Access;
-      Next_2   : constant PIG_Object_Access := null; --  NOT CORRECT !!! ???
+      Object_2 : Object_Access;
+      Next_2   : constant Object_Access := null; --  NOT CORRECT !!! ???
    begin
       return;
       pragma Warnings (Off);
@@ -1299,9 +1299,9 @@ package body Engines is
    --      Object
    ------------------------------------------------------------
 
-   function Get_Object (Engine : in out PIG_Engine) return not null PIG_Object_Access
+   function Get_Object (Engine : in out PIG_Engine) return not null Object_Access
    is
-      Object : constant not null PIG_Object_Access := new PIG_Object'(Clean_Object);
+      Object : constant not null Object_Access := new PIG_Object'(Clean_Object);
    begin
       --      if(pe->object_pool)
 --      {
@@ -1334,9 +1334,9 @@ package body Engines is
 
    function Pig_Object_Open (Engine : in out PIG_Engine'Class;
                              X, Y   :        Pixels;
-                             Last   :        Boolean) return not null PIG_Object_Access
+                             Last   :        Boolean) return not null Object_Access
    is
-      Object : constant not null PIG_Object_Access := Get_Object (Engine.Self.all);
+      Object : constant not null Object_Access := Get_Object (Engine.Self.all);
    begin
       Object.Owner    := Engine_Class (Engine.Self);
       Object.Tilemask := PIG_All;
@@ -1394,10 +1394,10 @@ package body Engines is
 
 
    function Pig_Object_Find (Start : in out PIG_Object;
-                             Id    :        Object_Id) return PIG_Object_Access
+                             Id    :        Object_Id) return Object_Access
    is
 --  PIG_object *pig_object_find(PIG_object *start, int id)
---      Pob, Pof : PIG_Object_Access;
+--      Pob, Pof : Object_Access;
    begin
       for Object of Start.Owner.Objects loop
          if Object.Id = Id then
