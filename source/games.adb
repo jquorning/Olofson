@@ -22,7 +22,7 @@ package body Games is
    procedure Initialize (Game : in out Game_State)
    is
    begin
-      Engines.Initialize (PIG_Engine (Game));
+      Engines.Initialize (Game_Engine (Game));
 
       Game.Keys              := (others => False);
       Game.Nice              := True;
@@ -61,7 +61,7 @@ package body Games is
    procedure Finalize (Game : in out Game_State)
    is
    begin
-      Engines.Finalize (PIG_Engine (Game));
+      Engines.Finalize (Game_Engine (Game));
    end Finalize;
 
 
@@ -104,7 +104,7 @@ package body Games is
       declare
          Map_Tiles_Result : Integer;
          Map : constant PIG_Map_Access :=
-           Pig_Map_Open (Engine_Class (Game.Self), MAP_W, MAP_H);
+           Pig_Map_Open (Game_Engine_Class (Game.Self), MAP_W, MAP_H);
       begin
          Pig_Map_Tiles (Map.all, "tiles.png", TILE_W, TILE_H, Map_Tiles_Result);
          if Map_Tiles_Result < 0 then
@@ -159,7 +159,7 @@ package body Games is
          Object := null;
          return;
       end if;
-      Object := Pig_Object_Open (PIG_Engine (Game), SCREEN_W / 2, -50, Last => True);
+      Object := Pig_Object_Open (Game_Engine (Game), SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
       Object.Ibase   := Game.Pigframes;
@@ -182,7 +182,7 @@ package body Games is
                           Object :    out not null Object_Access)
    is
    begin
-      Object := Pig_Object_Open (PIG_Engine (Game.Self.all), X, Y, Last => True);
+      Object := Pig_Object_Open (Game_Engine (Game.Self.all), X, Y, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Score    := Power_Ups'Pos (Kind);

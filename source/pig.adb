@@ -267,7 +267,9 @@ procedure Pig is
 --         Game_Ptr : constant Game_Access := Create_Game (Screen); -- Class; -- Game_State_Access;
          Game : aliased Game_State; --  renames Game_Ptr.all;
       begin
-         Game.Setup (Engines.PIG_Engine (Game)'Unchecked_Access, Screen, Pages => 1);
+         Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
+                     Screen => Screen,
+                     Pages  => 1);
          Game.Create;
 --         Init_All (Game, Screen);
          --     exception

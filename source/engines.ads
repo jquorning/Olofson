@@ -44,9 +44,9 @@ is
 
 
    type PIG_Object;
-   type PIG_Engine;
+   type Game_Engine;
    type Object_Access is access all PIG_Object;
-   type Engine_Access is access all PIG_Engine;
+   type Engine_Access is access all Game_Engine;
 
    type    Sprite_Counts is new Natural;
    subtype Sprite_Index  is Sprite_Counts range 1 .. Sprite_Counts'Last;
@@ -148,11 +148,11 @@ is
 
    procedure Null_Handler (Object : in out PIG_Object;
                            Event  :        PIG_Event) is null;
-   type Engine_Class is access all PIG_Engine'Class;
+   type Game_Engine_Class is access all Game_Engine'Class;
    type Object_Id    is new Natural;
 
    type PIG_Object is record
-      Owner : Engine_Class;
+      Owner : Game_Engine_Class;
 --        PIG_object      *next, *prev;
 
       Id       : Object_Id;     -- Unique ID. 0 means "free".
@@ -192,7 +192,7 @@ is
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
 
    type PIG_Map is record
-      Owner       : Engine_Class;
+      Owner       : Game_Engine_Class;
 
       Width       : Tiles;                        --  Size of map (tiles)
       Height      : Tiles;
@@ -221,14 +221,10 @@ is
    package Object_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Object_Access);
 
---   type Bef_Aft_Access is
---     not null access procedure (Engine : in Engine_Access);
---   procedure Null_Before_After (Engine : in Engine_Access);
-
    type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
    type Dirty_Array  is array (0 .. 1) of Dirty.Table_Access;
 
-   type PIG_Engine is
+   type Game_Engine is
      new Ada.Finalization.Limited_Controlled
      with record
         Self    : Engine_Access;
@@ -273,31 +269,31 @@ is
    --  Engine
    --
    overriding
-   procedure Initialize (Engine : in out PIG_Engine);
+   procedure Initialize (Engine : in out Game_Engine);
 
    overriding
-   procedure Finalize (Engine : in out PIG_Engine);
+   procedure Finalize (Engine : in out Game_Engine);
 
-   procedure Before_Objects (Engine : in out PIG_Engine) is null;
-   procedure After_Objects  (Engine : in out PIG_Engine) is null;
+   procedure Before_Objects (Engine : in out Game_Engine) is null;
+   procedure After_Objects  (Engine : in out Game_Engine) is null;
    --  Logic frame global handlers
 
-   procedure Setup (Engine : in out PIG_Engine;
+   procedure Setup (Engine : in out Game_Engine;
                     Self   :        Engine_Access;
                     Screen :        SDL_Surface;
                     Pages  :        Positive);
 
-   procedure Set_Viewport (Engine : in out PIG_Engine'Class;
+   procedure Set_Viewport (Engine : in out Game_Engine'Class;
                            X, Y   :        Pixels;
                            Width  :        Pixels;
                            Height :        Pixels);
    --  Set viewport size and position
 
-   procedure Pig_Start (Engine : in out PIG_Engine;
+   procedure Pig_Start (Engine : in out Game_Engine;
                         Frame  :        Integer);
    --  Start engine at logic time 'frame'
 
-   procedure Create_Sprites (Engine   : in out PIG_Engine'Class;
+   procedure Create_Sprites (Engine   : in out Game_Engine'Class;
                              Filename :        String;
                              Width    :        Pixels;
                              Height   :        Pixels;
@@ -313,46 +309,46 @@ is
    --
    --  Returns the index of the first frame loaded.
 
-   procedure Set_Hotspot (Engine : in out PIG_Engine'Class;
+   procedure Set_Hotspot (Engine : in out Game_Engine'Class;
                           Frame  :        Sprite_Index;
                           Hot_X  :        Pixels;
                           Hot_Y  :        Pixels);
    --  Set hot-spot of sprite 'frame' to (hotx, hoty)
 
-   procedure Pig_Radius (Engine : in out PIG_Engine;
+   procedure Pig_Radius (Engine : in out Game_Engine;
                          Frame  :        Sprite_Index;
                          Radius :        Pixels);
    --  Set sprite/sprite collision zone radius of 'frame'
 
-   procedure Pig_Animate (Engine : in out PIG_Engine'Class;
+   procedure Pig_Animate (Engine : in out Game_Engine'Class;
                           Frames :        Float);
    --  Advance logic time by 'frames' logic frames
 
-   procedure Pig_Dirty (Engine : in out PIG_Engine;
+   procedure Pig_Dirty (Engine : in out Game_Engine;
                         Area   :        SDL_Rectangle);
    --  Manually add a dirtyrect for pig_refresh().
    --  Area can be outside the engine viewport.
 
-   procedure Pig_Flip (Engine : in out PIG_Engine;
+   procedure Pig_Flip (Engine : in out Game_Engine;
                        Window : in out SDL_Window);
    --  Do what's needed to deal with the dirtyrects
    --  and then make the new frame visible.
 
-   procedure Pig_Refresh (Engine : in out PIG_Engine);
+   procedure Pig_Refresh (Engine : in out Game_Engine);
    --  Refresh the viewport and any additional dirtyrects.
    --
    --  Note that this does not refresh the entire viewport;
    --  only the areas that have actually changed!
 
-   procedure Pig_Refresh_All (Engine : in out PIG_Engine);
+   procedure Pig_Refresh_All (Engine : in out Game_Engine);
    --  Refresh the whole viewport, including sprites.
 
-   procedure Pig_Draw_Sprite (Engine : in out PIG_Engine;
+   procedure Pig_Draw_Sprite (Engine : in out Game_Engine;
                               Frame  :        Sprite_Index;
                               X, Y   :        Pixels);
    --  Render a sprite "manually", bypassing the engine
 
-   function Pig_Test_Map (Engine : PIG_Engine;
+   function Pig_Test_Map (Engine : Game_Engine;
                           X, Y   : Pixels) return Pig_Sides;
    --  Get the collision flags for the tile at (x, y),
    --  where the unit of x and y is pixels. The return
@@ -360,7 +356,7 @@ is
    --  if (x, y) is outside the map.
 
    type PIG_Cinfo_Access is access all PIG_Cinfo;
-   function Pig_Test_Map_Vector (Engine : in out PIG_Engine;
+   function Pig_Test_Map_Vector (Engine : in out Game_Engine;
                                  X1, Y1 :        Pixels;
                                  X2, Y2 :        Pixels;
                                  Mask   :        Pig_Sides;
@@ -378,7 +374,7 @@ is
    --
    --  Map
    --
-   function Pig_Map_Open (Engine : Engine_Class;
+   function Pig_Map_Open (Engine : Game_Engine_Class;
                           Width  : Tiles;
                           Height : Tiles)
                          return not null PIG_Map_Access;
@@ -413,7 +409,7 @@ is
    --
    --  Object
    --
-   function Pig_Object_Open (Engine : in out PIG_Engine'Class;
+   function Pig_Object_Open (Engine : in out Game_Engine'Class;
                              X, Y   :        Pixels;
                              Last   :        Boolean) return not null Object_Access;
    --  Create an object with the initial position (X, Y). If
@@ -437,7 +433,7 @@ is
    --  but rather kept around until the next rendered frame,
    --  so they can be removed from the screen correctly.
 
-   procedure Pig_Object_Close_All (Engine : in out PIG_Engine);
+   procedure Pig_Object_Close_All (Engine : in out Game_Engine);
    --  Close all objects.
 
    function Pig_Object_Find (Start : in out PIG_Object;

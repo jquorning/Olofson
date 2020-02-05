@@ -29,10 +29,10 @@ package body Engines is
    --  to remove objects that have been marked for
    --  destruction.
 
-   procedure Run_Timers (Engine : in out PIG_Engine'Class;
+   procedure Run_Timers (Engine : in out Game_Engine'Class;
                          Object : in out PIG_Object);
 
-   procedure Test_Offscreen (Engine : in out PIG_Engine;
+   procedure Test_Offscreen (Engine : in out Game_Engine;
                              Object : in out PIG_Object;
                              Sprite :        PIG_Sprite_Access);
 
@@ -45,7 +45,7 @@ package body Engines is
                                 Hitdist  : Float);
    --  Test for stationary sprite/sprite collision
 
-   procedure Test_Sprite_Sprite (Engine : in out PIG_Engine;
+   procedure Test_Sprite_Sprite (Engine : in out Game_Engine;
                                  Object :        not null Object_Access;
                                  Sprite :        PIG_Sprite_Access);
    --  Check Object against all subsequent objects in the list.
@@ -59,23 +59,23 @@ package body Engines is
    --  Returns a non-zero value if the tile at (x, y) is marked for
    --  collisions on the side indicated by 'mask'.
 
-   procedure Test_Sprite_Map (Engine : in out PIG_Engine;
+   procedure Test_Sprite_Map (Engine : in out Game_Engine;
                               Object : in out PIG_Object;
                               Sprite :        PIG_Sprite_Access);
 
-   procedure Run_Logic (Engine : in out PIG_Engine'Class);
+   procedure Run_Logic (Engine : in out Game_Engine'Class);
 
-   procedure Tile_Area (Engine : in out PIG_Engine;
+   procedure Tile_Area (Engine : in out Game_Engine;
                         Area   :        SDL_Rectangle);
 
-   procedure Remove_Sprites (Engine : in out PIG_Engine);
+   procedure Remove_Sprites (Engine : in out Game_Engine);
 
-   procedure Draw_Sprites (Engine : in out PIG_Engine);
+   procedure Draw_Sprites (Engine : in out Game_Engine);
 
-   procedure Show_Rects (Engine : in out PIG_Engine;
+   procedure Show_Rects (Engine : in out Game_Engine;
                          Table  :        Dirty.Table_Type);
 
-   function Get_Object (Engine : in out PIG_Engine)
+   function Get_Object (Engine : in out Game_Engine)
                        return not null Object_Access;
 
    procedure Free_Object (Object : in out PIG_Object);
@@ -96,7 +96,7 @@ package body Engines is
    --      Engine
    ------------------------------------------------------------
    overriding
-   procedure Initialize (Engine : in out PIG_Engine)
+   procedure Initialize (Engine : in out Game_Engine)
    is
      use SDL.Video.Surfaces;
      use SDL.Video.Rectangles;
@@ -172,7 +172,7 @@ package body Engines is
 
 
    overriding
-   procedure Finalize (Engine : in out PIG_Engine) is
+   procedure Finalize (Engine : in out Game_Engine) is
       use Dirty;
    begin
 --  {
@@ -207,7 +207,7 @@ package body Engines is
 --   end Pig_Close;
    end Finalize;
 
-   procedure Setup (Engine : in out PIG_Engine;
+   procedure Setup (Engine : in out Game_Engine;
                     Self   :        Engine_Access;
                     Screen :        SDL_Surface;
                     Pages  :        Positive)
@@ -222,7 +222,7 @@ package body Engines is
       end if;
    end Setup;
 
-   procedure Set_Viewport (Engine : in out PIG_Engine'Class;
+   procedure Set_Viewport (Engine : in out Game_Engine'Class;
                            X, Y   :        Pixels;
                            Width  :        Pixels;
                            Height :        Pixels)
@@ -236,7 +236,7 @@ package body Engines is
    end Set_Viewport;
 
 
-   procedure Create_Sprites (Engine        : in out PIG_Engine'Class;
+   procedure Create_Sprites (Engine        : in out Game_Engine'Class;
                              Filename      :        String;
                              Width, Height :        Pixels;
                              Handle        :    out Sprite_Index)
@@ -322,7 +322,7 @@ package body Engines is
    end Create_Sprites;
 
 
-   procedure Set_Hotspot (Engine : in out PIG_Engine'Class;
+   procedure Set_Hotspot (Engine : in out Game_Engine'Class;
                           Frame  :        Sprite_Index;
                           Hot_X  :        Pixels;
                           Hot_Y  :        Pixels)
@@ -355,7 +355,7 @@ package body Engines is
    end Set_Hotspot;
 
 
-   procedure Pig_Radius (Engine : in out PIG_Engine;
+   procedure Pig_Radius (Engine : in out Game_Engine;
                          Frame  :        Sprite_Index;
                          Radius :        Pixels)
    is
@@ -367,7 +367,7 @@ package body Engines is
    end Pig_Radius;
 
 
-   procedure Pig_Start (Engine : in out PIG_Engine;
+   procedure Pig_Start (Engine : in out Game_Engine;
                         Frame  :        Integer)
    is
    begin
@@ -383,7 +383,7 @@ package body Engines is
    end Pig_Start;
 
 
-   procedure Run_Timers (Engine : in out PIG_Engine'Class;
+   procedure Run_Timers (Engine : in out Game_Engine'Class;
                          Object : in out PIG_Object)
    is
       pragma Unreferenced (Engine);
@@ -411,7 +411,7 @@ package body Engines is
    end Run_Timers;
 
 
-   procedure Test_Offscreen (Engine : in out PIG_Engine;
+   procedure Test_Offscreen (Engine : in out Game_Engine;
                              Object : in out PIG_Object;
                              Sprite :        PIG_Sprite_Access)
    is
@@ -527,7 +527,7 @@ package body Engines is
    end Sprite_Sprite_One;
 
 
-   procedure Test_Sprite_Sprite (Engine : in out   PIG_Engine;
+   procedure Test_Sprite_Sprite (Engine : in out   Game_Engine;
                                  Object : not null Object_Access;
                                  Sprite :          PIG_Sprite_Access)
    is
@@ -616,7 +616,7 @@ package body Engines is
    end Check_Tile;
 
 
-   function Pig_Test_Map (Engine : PIG_Engine;
+   function Pig_Test_Map (Engine : Game_Engine;
                           X, Y   : Pixels) return Pig_Sides
    is
       Mx, My : Tiles;
@@ -634,7 +634,7 @@ package body Engines is
 
 
    Lci : aliased PIG_Cinfo;
-   function Pig_Test_Map_Vector (Engine : in out PIG_Engine;
+   function Pig_Test_Map_Vector (Engine : in out Game_Engine;
                                  X1, Y1 :        Pixels;
                                  X2, Y2 :        Pixels;
                                  Mask   :        Pig_Sides;
@@ -677,7 +677,7 @@ package body Engines is
    end Pig_Test_Map_Vector;
 
 
-   procedure Test_Sprite_Map (Engine : in out PIG_Engine;
+   procedure Test_Sprite_Map (Engine : in out Game_Engine;
                               Object : in out PIG_Object;
                               Sprite :        PIG_Sprite_Access)
    is
@@ -697,7 +697,7 @@ package body Engines is
    end Test_Sprite_Map;
 
 
-   procedure Run_Logic (Engine : in out PIG_Engine'Class)
+   procedure Run_Logic (Engine : in out Game_Engine'Class)
    is
       use Object_Lists;
       Object_Cursor, Next_Cursor : Cursor;
@@ -752,15 +752,15 @@ package body Engines is
                Run_Timers (Engine, Object.all);
 
                if Object.Id /= 0 then
-                  Test_Offscreen (PIG_Engine (Engine), Object.all, Sprite);
+                  Test_Offscreen (Game_Engine (Engine), Object.all, Sprite);
                end if;
 
                if True then --  Object.Id /= 0 and (Object.Hitmask or Object.Hitgroup) then
-                  Test_Sprite_Sprite (PIG_Engine (Engine), Object, Sprite);
+                  Test_Sprite_Sprite (Game_Engine (Engine), Object, Sprite);
                end if;
 
                if Object.Id /= 0 and Object.Tilemask /= PIG_None then
-                  Test_Sprite_Map (PIG_Engine (Engine), Object.all, Sprite);
+                  Test_Sprite_Map (Game_Engine (Engine), Object.all, Sprite);
                end if;
             end if;
          end;
@@ -783,7 +783,7 @@ package body Engines is
    end Run_Logic;
 
 
-   procedure Pig_Animate (Engine : in out PIG_Engine'Class;
+   procedure Pig_Animate (Engine : in out Game_Engine'Class;
                           Frames :        Float)
    is
       --  Advance logic time
@@ -798,7 +798,7 @@ package body Engines is
    end Pig_Animate;
 
 
-   procedure Pig_Dirty (Engine : in out PIG_Engine;
+   procedure Pig_Dirty (Engine : in out Game_Engine;
                         Area   :        SDL_Rectangle)
    is
       use type SDL.C.int;
@@ -820,7 +820,7 @@ package body Engines is
    end Pig_Dirty;
 
 
-   procedure Tile_Area (Engine : in out PIG_Engine;
+   procedure Tile_Area (Engine : in out Game_Engine;
                         Area   :        SDL_Rectangle)
    is
       use type SDL.C.int;
@@ -872,7 +872,7 @@ package body Engines is
    end Tile_Area;
 
 
-   procedure Remove_Sprites (Engine : in out PIG_Engine)
+   procedure Remove_Sprites (Engine : in out Game_Engine)
      --  Remove all objects, using the information that
      --  remains from the last frame. The actual removal
      --  is done by drawing over the sprites with tiles
@@ -913,7 +913,7 @@ package body Engines is
    end Remove_Sprites;
 
 
-   procedure Draw_Sprites (Engine : in out PIG_Engine)
+   procedure Draw_Sprites (Engine : in out Game_Engine)
    is
       Table  : not null Dirty.Table_Access renames Engine.Workdirty;
       Fframe : constant Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
@@ -974,14 +974,14 @@ package body Engines is
    end Draw_Sprites;
 
 
-   procedure Pig_Refresh (Engine : in out PIG_Engine) is
+   procedure Pig_Refresh (Engine : in out Game_Engine) is
    begin
       Remove_Sprites (Engine);
       Draw_Sprites   (Engine);
    end Pig_Refresh;
 
 
-   procedure Pig_Refresh_All (Engine : in out PIG_Engine) is
+   procedure Pig_Refresh_All (Engine : in out Game_Engine) is
       use SDL.Video.Rectangles;
    begin
       Tile_Area (Engine, Engine.View);
@@ -990,7 +990,7 @@ package body Engines is
    end Pig_Refresh_All;
 
 
-   procedure Show_Rects (Engine : in out PIG_Engine;
+   procedure Show_Rects (Engine : in out Game_Engine;
                          Table  :        Dirty.Table_Type)
    is
       use SDL.Video.Surfaces;
@@ -1067,7 +1067,7 @@ package body Engines is
    end Show_Rects;
 
 
-   procedure Pig_Flip (Engine : in out PIG_Engine;
+   procedure Pig_Flip (Engine : in out Game_Engine;
                        Window : in out SDL_Window)
    is
       use SDL.Video.Surfaces;
@@ -1123,7 +1123,7 @@ package body Engines is
    end Pig_Flip;
 
 
-   procedure Pig_Draw_Sprite (Engine : in out PIG_Engine;
+   procedure Pig_Draw_Sprite (Engine : in out Game_Engine;
                               Frame  :        Sprite_Index;
                               X, Y   :        Pixels)
    is
@@ -1150,7 +1150,7 @@ package body Engines is
    --    Map
    ------------------------------------------------------------
 
-   function Pig_Map_Open (Engine : Engine_Class;
+   function Pig_Map_Open (Engine : Game_Engine_Class;
                           Width  : Tiles;
                           Height : Tiles)
                          return not null PIG_Map_Access
@@ -1299,7 +1299,7 @@ package body Engines is
    --      Object
    ------------------------------------------------------------
 
-   function Get_Object (Engine : in out PIG_Engine) return not null Object_Access
+   function Get_Object (Engine : in out Game_Engine) return not null Object_Access
    is
       Object : constant not null Object_Access := new PIG_Object'(Clean_Object);
    begin
@@ -1332,13 +1332,13 @@ package body Engines is
    end Free_Object;
 
 
-   function Pig_Object_Open (Engine : in out PIG_Engine'Class;
+   function Pig_Object_Open (Engine : in out Game_Engine'Class;
                              X, Y   :        Pixels;
                              Last   :        Boolean) return not null Object_Access
    is
       Object : constant not null Object_Access := Get_Object (Engine.Self.all);
    begin
-      Object.Owner    := Engine_Class (Engine.Self);
+      Object.Owner    := Game_Engine_Class (Engine.Self);
       Object.Tilemask := PIG_All;
       Object.Hitmask  := 0;
       Object.Hitgroup := 0;
@@ -1384,7 +1384,7 @@ package body Engines is
    end Pig_Object_Close;
 
 
-   procedure Pig_Object_Close_All (Engine : in out PIG_Engine) is
+   procedure Pig_Object_Close_All (Engine : in out Game_Engine) is
    begin
 --        while not Engine.Objects.Is_Empty loop
 --           Close_Object (Engine.Objects);

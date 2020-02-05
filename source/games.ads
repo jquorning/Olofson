@@ -40,7 +40,7 @@ is
    type Key_Array is array (Key_Used) of Boolean;
 
    type Game_State is
-     new PIG_Engine
+     new Game_Engine
      with record
 
         --  I/O
