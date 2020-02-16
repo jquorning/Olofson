@@ -98,8 +98,8 @@ package body Engines is
    overriding
    procedure Initialize (Engine : in out Game_Engine)
    is
-     use SDL.Video.Surfaces;
-     use SDL.Video.Rectangles;
+      use SDL.Video.Surfaces;
+      use SDL.Video.Rectangles;
    begin
       Engine.Self    := null;
 
@@ -581,7 +581,7 @@ package body Engines is
             end;
          end if;
          Object_2 := Next_2;
-                   end loop;
+      end loop;
       pragma Warnings (On);
    end Test_Sprite_Sprite;
 

@@ -1281,6 +1281,10 @@ package body Games is
          --  bpp, Flags);
          --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
          Screen := Window.Get_Surface;
+         Screen.Fill (Area   => (0, 0,
+                                 Width  => Screen.Size.Width,
+                                 Height => Screen.Size.Height),
+                      Colour => 16#00_00_00_00#);
       exception
          when others => --  if Screen = null then
             Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,

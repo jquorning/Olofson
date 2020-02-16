@@ -114,7 +114,7 @@ is
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   :        Pixels;
                           Speed  :        Integer;
-                          kind   :        Power_Ups;
+                          Kind   :        Power_Ups;
                           Object :    out not null Object_Access);
 
    procedure New_Powerup (Game  : in out Game_State;

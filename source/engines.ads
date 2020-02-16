@@ -210,7 +210,7 @@ is
    type PIG_Sprite is record
       Width, Height : Pixels;      --  Size of sprite (pixels)
       Hot_X, Hot_Y  : Pixels;      --  Hot-spot offset (pixels)
-      Radius        : Pixels ;     --  Collision zone radius (pixels)
+      Radius        : Pixels;      --  Collision zone radius (pixels)
       Surface       : SDL_Surface; --  Access
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
