@@ -360,7 +360,6 @@ package body Games is
       First  : Boolean := True;
       Object : Object_Access := null;
    begin
-      Ada.Text_IO.Put_Line ("Message : " & Text);
       for C of To_Upper (Text) loop
          if First then
             First := False;
