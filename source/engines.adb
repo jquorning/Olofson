@@ -1350,10 +1350,10 @@ package body Engines is
          Engine.Objects.Prepend (Object);
       end if;
 
-      Object.X  := Float (X);
-      Object.Y  := Float (Y);
-      Object.Ax := Float (X);
-      Object.Ay := Float (Y);
+      Object.X     := Float (X);
+      Object.Y     := Float (Y);
+      Object.Ip.Ox := Float (X);
+      Object.Ip.Oy := Float (Y);
 
       return Object;
    end Open_Object;

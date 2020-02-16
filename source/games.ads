@@ -11,6 +11,8 @@
 
 with Ada.Real_Time;
 
+with SDL.Events.Events;
+
 with Engines;
 
 package Games
@@ -177,7 +179,21 @@ is
    procedure Chain_Head_Handler (Object : in out Game_Object;
                                  Event  :        PIG_Event);
 
+   procedure Dashboard (Game : in out Game_State);
+   --  Render the dashboard
+
    procedure Chain_Link_Handler (Object : in out Game_Object;
                                  Event  :        PIG_Event);
+
+   procedure Start_Game (Game : in out Game_State);
+
+   procedure Handle_Input (Game  : in out Game_State;
+                           Event : in out SDL.Events.Events.Events);
+
+   procedure Handle_Keys (Game : in out Game_State);
+
+   procedure Play_Game (Double_Buffer : Boolean;
+                        Full_Screen   : Boolean;
+                        BPP           : Positive);
 
 end Games;
