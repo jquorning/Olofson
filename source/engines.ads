@@ -190,19 +190,21 @@ is
    type Map_Array  is array (Tiles range <>, Tiles range <>) of Tile_Index;
    type Hit_Array  is array (Tiles range <>, Tiles range <>) of Pig_Sides;
    type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
+   type Map_Array_Access is not null access Map_Array;
+   type Hit_Array_Access is not null access Hit_Array;
 
    type PIG_Map is record
       Owner       : Game_Engine_Class;
 
-      Width       : Tiles;                        --  Size of map (tiles)
+      Width       : Tiles;             --  Size of map (tiles)
       Height      : Tiles;
-      Map         : not null access Map_Array;   --  2D aray of tile indices
-      Hit         : not null access Hit_Array;   --  2D aray of collision flags
+      Map         : Map_Array_Access;  --  2D aray of tile indices
+      Hit         : Hit_Array_Access;  --  2D aray of collision flags
 
-      Tile_Width  : Pixels;                      --  Size of one tile (pixels)
+      Tile_Width  : Pixels;            --  Size of one tile (pixels)
       Tile_Height : Pixels;
-      Tile        : SDL_Surface;                 --  Tile palette image
-      Hitinfo     : Hitinfo_Array;               --  Collision info for the tiles
+      Tile        : SDL_Surface;       --  Tile palette image
+      Hitinfo     : Hitinfo_Array;     --  Collision info for the tiles
    end record;
    type PIG_Map_Access is access all PIG_Map;
 
@@ -223,6 +225,7 @@ is
 
    type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
    type Dirty_Array  is array (0 .. 1) of Dirty.Table_Access;
+   type Sprite_Array_Access is access Sprite_Array;
 
    type Game_Engine is
      new Ada.Finalization.Limited_Controlled
@@ -259,7 +262,7 @@ is
 
         --  Sprites
         Sprite_Last       : Sprite_Counts;
-        Sprites           : access Sprite_Array;
+        Sprites           : Sprite_Array_Access;
 
         --  Space for user data
         --      Userdata : Long_Integer;

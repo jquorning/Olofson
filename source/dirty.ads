@@ -19,11 +19,12 @@ is
 
    --  A table of dirtyrects for one display page
    subtype Index_Type     is SDL.C.size_t;
+   type Rectangle_Arrays_Access is not null access Rectangle_Arrays;
 
    type Table_Type is record
-      Rects : not null access Rectangle_Arrays;  --  Table of rects
-      Last  : Index_Type;                        --  # of rects currently used
-      Best  : Index_Type;                        --  Merge testing starts here!
+      Rects : Rectangle_Arrays_Access;  --  Table of rects
+      Last  : Index_Type;               --  # of rects currently used
+      Best  : Index_Type;               --  Merge testing starts here!
    end record;
    type Table_Access is access all Table_Type;
 
