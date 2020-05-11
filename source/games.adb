@@ -14,7 +14,7 @@ with Ada.Strings.Unbounded;
 with Ada.Numerics.Elementary_Functions;
 with Ada.Characters.Handling;
 
---  with Interfaces;
+with Interfaces;
 
 with SDL.Video.Surfaces;
 with SDL.Video.Rectangles;
@@ -1097,7 +1097,6 @@ package body Games is
       for I in 0 .. 56 - 1 loop
          declare
             use SDL.Video.Palettes;
-            use SDL.Video.Pixel_Formats;
 
             Line : constant SDL.Video.Rectangles.Rectangle :=
               (X      => 0,
@@ -1117,7 +1116,7 @@ package body Games is
             M_2 : constant Float := Sin (M_1 * Pi * 0.5);
             M   : constant Float := Sin (M_2 * Pi * 0.5);
 
-            Pixel : constant Unsigned_32 :=
+            Pixel : constant Interfaces.Unsigned_32 :=
               SDL.Video.Pixel_Formats.To_Pixel
               (Format => Game.Surface.Pixel_Format,
                Red    => (Colour_Component ((128.0 * F1      + 64.0) * M)),
