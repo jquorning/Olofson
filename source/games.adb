@@ -165,7 +165,7 @@ package body Games is
                          Object :    out Object_Access)
    is
    begin
-      if Game.Lives /= 0 then
+      if Game.Lives = 0 then
          Object := null;
          return;
       end if;
@@ -249,8 +249,8 @@ package body Games is
    is
    begin
       Object := Open_Object (Game,
-                                 X * TILE_W,
-                                 Y * TILE_H, Last => True);
+                             X * TILE_W,
+                             Y * TILE_H, Last => True);
 
       Game.Enemycount := Game.Enemycount + 1;
       Object.Ibase    := Game.Evil;
@@ -520,9 +520,9 @@ package body Games is
                      Object : Object_Access;
                   begin
                      New_Player (Game, Object);
-                 --    if Obj = null then
-                 --       Load_Level (gs, 0);
-                 --    end if;
+                     if Object = null then
+                        Load_Level (Game, 0);
+                     end if;
                   end;
 
             end case;
