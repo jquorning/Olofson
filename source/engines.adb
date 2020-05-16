@@ -729,8 +729,10 @@ package body Engines is
          Object_Cursor := Next_Cursor;
       end loop;
 
-      for Object of Engine.Objects loop
+      Object_Cursor := Engine.Objects.First;
+      while Object_Cursor /= No_Element loop
          declare
+            Object : constant Object_Access := Element (Object_Cursor);
             Sprite : PIG_Sprite_Access;
          begin
             --  next = po->next;
@@ -764,6 +766,7 @@ package body Engines is
                end if;
             end if;
          end;
+         Next (Object_Cursor);
       end loop;
 
       for Object of Engine.Objects loop
