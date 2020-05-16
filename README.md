@@ -12,4 +12,13 @@ See [LICENSE](LICENSE.md) for terms.
 ## Requirements
 
 * Ada 2012 compiler
+* GPRbuild
 * [SDLAda](https://github.com/Lucretia/sdlada)
+
+## Build and run
+
+```sh
+gprbuild pig.gpr
+cd resource
+../binary/pig
+```
