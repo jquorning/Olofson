@@ -1377,6 +1377,9 @@ package body Games is
                   Game.Pig_Refresh;
                end if;
 
+               --  Clean object list
+               Game.Clean_Object_List;
+
                --  Make the new frame visible
                Game.Pig_Flip (Window);
 
