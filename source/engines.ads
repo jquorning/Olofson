@@ -346,6 +346,9 @@ is
    procedure Pig_Refresh_All (Engine : in out Game_Engine);
    --  Refresh the whole viewport, including sprites.
 
+   procedure Clean_Object_List (Engine : in out Game_Engine);
+   --  Remove objects marked for deletion.
+
    procedure Pig_Draw_Sprite (Engine : in out Game_Engine;
                               Frame  :        Sprite_Index;
                               X, Y   :        Pixels);

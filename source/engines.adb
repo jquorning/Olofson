@@ -990,6 +990,19 @@ package body Engines is
    end Pig_Refresh_All;
 
 
+   procedure Clean_Object_List (Engine : in out Game_Engine) is
+      use Object_Lists;
+      Cur : Cursor := Engine.Objects.First;
+   begin
+      while Cur /= No_Element loop
+         if Element (Cur).Id = 0 then
+            Engine.Objects.Delete (Cur);
+         end if;
+         Next (Cur);
+      end loop;
+   end Clean_Object_List;
+
+
    procedure Show_Rects (Engine : in out Game_Engine;
                          Table  :        Dirty.Table_Type)
    is
