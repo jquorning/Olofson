@@ -39,4 +39,4 @@ jobs:
       
     # Runs a set of commands using the runners shell
     - name: Build Fixed Rate Pig
-      run: gprbuild pig.gpr -aP sdlada/build/gnat -k
+      run: gprbuild pig.gpr -aP /opt/sdlada -k
