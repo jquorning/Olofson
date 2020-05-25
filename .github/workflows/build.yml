@@ -24,7 +24,7 @@ jobs:
 
     # Runs a single command using the runners shell
     - name: Get development tools
-      run: sudo apt-get install gnat gprbuild
+      run: sudo apt-get install gnat gprbuild libsdl2
 
     - name: Checkout SDLAda
       run: git clone https://github.com/Lucretia/sdlada.git
