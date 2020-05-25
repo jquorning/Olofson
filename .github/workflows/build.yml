@@ -31,9 +31,10 @@ jobs:
 
     - name: Build SDLAda
       run: |
-        cd build/gnat
+        cd sdlada/build/gnat
         SDL_PLATFORM=linux SDL_MODE=release make
         SDL_PLATFORM=linux SDL_MODE=release make install
+        cd
       
     # Runs a set of commands using the runners shell
     - name: Build Fixed Rate Pig
