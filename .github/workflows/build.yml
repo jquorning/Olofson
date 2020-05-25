@@ -35,8 +35,8 @@ jobs:
         SDL_PLATFORM=linux SDL_MODE=release make
         SDL_PLATFORM=linux SDL_MODE=release make install
         cd
-        export GPR_PROJECT_PATH=sdlada/build/gnat
+#        export GPR_PROJECT_PATH=sdlada/build/gnat
       
     # Runs a set of commands using the runners shell
     - name: Build Fixed Rate Pig
-      run: gprbuild pig.gpr -k
+      run: gprbuild pig.gpr -aP sdlada/build/gnat -k
