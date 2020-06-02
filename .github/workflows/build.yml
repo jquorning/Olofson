@@ -24,18 +24,33 @@ jobs:
 
     # Runs a single command using the runners shell
     - name: Get development tools
-      run: sudo apt-get install gnat gprbuild libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev
+      run: |
+        sudo apt-get update
+        sudo apt-get install gnat
+        sudo apt-get install gprbuild
+        sudo apt-get install libsdl2-dev
+        sudo apt-get install libsdl2-image-dev
+        sudo apt-get install libsdl2-ttf-dev
 
     - name: Checkout SDLAda
-      run: git clone https://github.com/Lucretia/sdlada.git
-
-    - name: Build SDLAda
       run: |
-        cd sdlada/build/gnat
-        SDL_PLATFORM=linux SDL_MODE=release make
-        SDL_PLATFORM=linux SDL_MODE=release make install
-        cd
+        git clone https://github.com/Lucretia/sdlada.git
+
+    - name: Build SDLAda keyboard events
+      run: |
+        export SDL_PLATFORM=linux
+        export SDL_MODE=release
+        gprbuild -p -Psdlada/build/gnat/tools.gpr
+        sdlada/build/gnat/gen/release/tools/gen_keyboard > sdlada/src/sdl-events-keyboards.ads
+
+    - name: Build and install SDLAda
+      run: |
+        export SDL_PLATFORM=linux
+        export SDL_MODE=release
+        gprbuild -p -Psdlada/build/gnat/sdlada.gpr
+        gprinstall --prefix=/opt --build-name=release -p -f -Psdlada/build/gnat/sdlada.gpr
       
     # Runs a set of commands using the runners shell
     - name: Build Fixed Rate Pig
-      run: gprbuild -v pig.gpr -aP /opt/share/gpr -k -largs -lsdl2 -lsdl2_ttf -lsdl2_image
+      run: |
+        gprbuild pig.gpr -aP /opt/share/gpr -k -largs -lSDL2 -lSDL2_ttf -lSDL2_image
