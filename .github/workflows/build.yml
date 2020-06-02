@@ -38,4 +38,4 @@ jobs:
       
     # Runs a set of commands using the runners shell
     - name: Build Fixed Rate Pig
-      run: gprbuild pig.gpr -aP /opt/share/gpr -k -largs -lsdl2 -lsdl2_ttf -lsdl2_image
+      run: gprbuild -v pig.gpr -aP /opt/share/gpr -k -largs -lsdl2 -lsdl2_ttf -lsdl2_image
