@@ -3,7 +3,7 @@
 
 with "sdlada.gpr";
 
-project Pig is
+project Fixed_Rate_Pig is
 
   for Languages    use ("Ada");
   for Source_Dirs  use ("source/");
@@ -11,9 +11,11 @@ project Pig is
   for Exec_Dir     use "binary/";
   for Main         use ("pig.adb");
 
-  for Create_Missing_Dirs use "true";
+  for Create_Missing_Dirs use "True";
 
   package Builder is
+
+     for Executable ("pig.adb") use "fixedratepig";
 
      for Default_Switches ("Ada") use
        ("-g",
@@ -34,4 +36,4 @@ project Pig is
      for Default_Switches ("ada") use ("-E");
   end Binder;
 
-end Pig;
+end Fixed_Rate_Pig;

@@ -18,7 +18,7 @@ See [LICENSE](LICENSE.md) for terms.
 ## Build and run
 
 ```sh
-gprbuild pig.gpr
+gprbuild fixed_rate_pig.gpr
 cd resource
-../binary/pig
+../binary/fixedratepig
 ```
