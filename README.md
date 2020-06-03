@@ -1,11 +1,7 @@
 
 # Fixed Rate Pig
-A fixed logic frame rate demo
 
-Ada translation of the arcade game demo *Pig* by *David Olofson*.
-
-[Olofsen.net](http://olofson.net)  
-[Download](http://olofson.net/mixed.html) 
+This is a translation of the arcade game demo *Pig* to Ada and SDL2.
 
 ## Requirements
 
@@ -20,3 +16,10 @@ gprbuild fixed_rate_pig.gpr
 cd resource
 ../binary/fixedratepig
 ```
+
+## Original
+
+The original arcade game demo *Pig* by *David Olofson*:
+
+[Olofsen.net](http://olofson.net)  
+[Download](http://olofson.net/mixed.html) 
