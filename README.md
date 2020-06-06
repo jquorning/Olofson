@@ -2,6 +2,13 @@
 
 SDL2 demo using the SDLAda binding.
 
+## Build and Run
+
+```sh
+gprbuild
+./parallax3
+```
+
 ## Requirements
 
 * Ada 2012 compiler
