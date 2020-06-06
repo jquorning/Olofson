@@ -6,7 +6,7 @@ SDL2 demo using the SDLAda binding.
 
 ```sh
 gprbuild
-./parallax3
+./parallax3 PLATFORM=macosx
 ```
 
 ## Requirements
