@@ -15,6 +15,10 @@ gprbuild
 * GPRbuild
 * [SDLAda](https://github.com/Lucretia/sdlada)
 
+## Screenshots
+
+![Parallax on Linux](screenshots/linux.png)
+
 ## Original
 
 The original *Parallax 3* can be found [here](http://olofson.net/examples.html).
