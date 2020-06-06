@@ -1,6 +1,8 @@
 with "sdlada";
 
 project Parallax3 is
+  Platform : SDLAda.Platform_Type := external ("SDL_PLATFORM", "linux");
+
   for Source_Dirs use ("source/");
   for Object_Dir  use "object/";
   for Exec_Dir    use "./";
@@ -18,9 +20,19 @@ project Parallax3 is
   end Compiler;
 
   package Linker is
-     for Default_Switches ("Ada") use ("-F/Library/Frameworks",
-                                       "-framework", "SDL2",
-                                       "-framework", "SDL2_image");
+    case Platform is
+      when "linux" | "bsd" | "android" | "windows" =>
+        for Default_Switches ("Ada") use ("-lSDL2",
+                                          "-lSDL2_image");
+
+      when "macosx" =>
+        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
+                                          "-framework", "SDL2",
+                                          "-framework", "SDL2_image");
+
+      when "ios" =>
+        null;
+    end case;
   end Linker;
 
 end Parallax3;
