@@ -1,4 +1,4 @@
-with "SDLAda";
+with "sdlada";
 
 project Parallax3 is
   for Source_Dirs use ("source/");
