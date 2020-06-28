@@ -19,9 +19,9 @@ with SDL.Video.Palettes;
 
 with SDL.Images.IO;
 
-with SDl.Events.Events;
-with SDl.Events.Keyboards;
-with SDl.Events.Mice;
+with SDL.Events.Events;
+with SDL.Events.Keyboards;
+with SDL.Events.Mice;
 
 package body Parallax_3 is
 
@@ -127,17 +127,25 @@ package body Parallax_3 is
    --    ...and some code. :-)
    ------------------------------------------------------------
 
-   type Tile_Kind is (TM_EMPTY, TM_KEYED, TM_OPAQUE); -- 0, 1, 2
+   type Tile_Kind is (Empty, Keyed, Opaque);
 
+   function Tile_Mode (Tile : Character) return Tile_Kind;
    --  Checks if tile is opaqe, empty or color keyed
+
+   procedure Draw_Tile (Screen : in out Surface;
+                        Tiles  :        Surface;
+                        X, Y   :        Integer;
+                        Tile   :        Character;
+                        Pixels :    out Integer);
+
    function Tile_Mode (Tile : Character) return Tile_Kind is
    begin
       case Tile is
-         when '0' =>        return TM_OPAQUE;
-         when '1' =>        return TM_KEYED;
-         when '2' | '3' =>  return TM_OPAQUE;
-         when '4' =>        return TM_KEYED;
-         when others =>     return TM_EMPTY;
+         when '0' =>        return Opaque;
+         when '1' =>        return Keyed;
+         when '2' | '3' =>  return Opaque;
+         when '4' =>        return Keyed;
+         when others =>     return Empty;
       end case;
    end Tile_Mode;
 
@@ -157,13 +165,16 @@ package body Parallax_3 is
          return;
       end if;
 
-      Source_Rect.X      := 0;      -- Only one column, so we never change this.
-      Source_Rect.Y      := (Character'Pos (Tile) - Character'Pos ('0')) * TILE_H;  -- Select tile from image!
+      Source_Rect.X := 0;      -- Only one column, so we never change this.
+      Source_Rect.Y := (Character'Pos (Tile)
+                               - Character'Pos ('0')) * TILE_H;
+      --  Select tile from image!
+
       Source_Rect.Width  := TILE_W;
       Source_Rect.Height := TILE_H;
 
-      dest_rect.x := int (X);
-      dest_rect.y := int (Y);
+      Dest_Rect.X := int (X);
+      Dest_Rect.Y := int (Y);
 
       Screen.Blit (Source      => Tiles,
                    Source_Area => Source_Rect,
@@ -192,7 +203,7 @@ package body Parallax_3 is
       Use_Planets   : Boolean   := True;
       Num_Of_Layers : Integer   := 7;
       Bounce_Around : Boolean   := False;
-      Wrap          : boolean   := False;
+      Wrap          : Boolean   := False;
       Alpha         : Integer   := 0;
 
       Layers : array (0 .. Num_Of_Layers - 1) of aliased Layer_Type;
@@ -203,7 +214,7 @@ package body Parallax_3 is
       Total_Pixels     : Natural;
 
       Peak_Calls       : Natural := 0;
-      peak_blits       : Natural := 0;
+      Peak_Blits       : Natural := 0;
       Peak_Recursions  : Natural := 0;
       Peak_Pixels      : Natural := 0;
 
@@ -242,7 +253,8 @@ package body Parallax_3 is
 --                      bpp = atoi(&argv[i][1]);
 --      }
 
---      Layers := new Layer_Array'(0 .. Num_Of_Layers - 1 => null);-- Layer_Type; -- Calloc(sizeof(layer_t), num_of_layers);
+      --      Layers := new Layer_Array'(0 .. Num_Of_Layers - 1 => null);-- Layer_Type;
+      --  Calloc(sizeof(layer_t), num_of_layers);
 --      if(!layers)
 --      {
 --              fprintf(stderr, "Failed to allocate layers!\n");
@@ -253,7 +265,7 @@ package body Parallax_3 is
                                        Title    => "Parallax 3",
                                        Position => (100, 100),
                                        Size     => (SCREEN_W, SCREEN_H)
-                                      );-- , bpp, flags);
+                                      );  -- , bpp, flags);
       Screen := Window.Get_Surface;
 --      screen = SDL_SetVideoMode(SCREEN_W, SCREEN_H, bpp, flags);
 --      if(!screen)
@@ -266,7 +278,7 @@ package body Parallax_3 is
 --      SDL_WM_SetCaption("Parallax Scrolling 3 - Overdraw", "Parallax 3");
 --      SDL_ShowCursor(0);
 
-      SDL.Images.IO.Create (Tiles_Bmp,"assets/tiles.bmp");
+      SDL.Images.IO.Create (Tiles_Bmp, "assets/tiles.bmp");
 --      if(!tiles_bmp)
 --      {
 --              fprintf(stderr, "Could not load graphics!\n");
@@ -292,41 +304,41 @@ package body Parallax_3 is
 
       if Num_Of_Layers > 1 then
 
-         -- Assign maps and tile palettes to parallax layers
+         --  Assign maps and tile palettes to parallax layers
          Layer_Init (Layers (0), Foreground_Map'Access, Tiles, Otiles);
          for I in 1 .. Num_Of_Layers - 2 loop
-            if (i mod 2 = 1) and Use_Planets then
-               Layer_Init (Layers(I), Middle_Map'Access,
-                           tiles, otiles);
+            if (I mod 2 = 1) and Use_Planets then
+               Layer_Init (Layers (I), Middle_Map'Access,
+                           Tiles, Otiles);
             else
                Layer_Init (Layers (I), Foreground_Map'Access,
-                           tiles, otiles);
+                           Tiles, Otiles);
             end if;
          end loop;
          Layer_Init (Layers (Num_Of_Layers - 1), Background_Map'Access,
-                     tiles, otiles);
+                     Tiles, Otiles);
 
          --  Set up the depth order for the
          --  recursive rendering algorithm.
 
-         for i in 0 .. num_of_layers - 2 loop
+         for I in 0 .. Num_Of_Layers - 2 loop
             Layer_Next (Layers (I), Layers (I + 1)'Unchecked_Access);
          end loop;
       else
-         Layer_Init (Layers (0), Single_Map'Access, tiles, otiles);
+         Layer_Init (Layers (0), Single_Map'Access, Tiles, Otiles);
       end if;
 
       if Bounce_Around and (Num_Of_Layers > 1) then
 
-         for I in 0 .. num_of_layers - 2 loop
+         for I in 0 .. Num_Of_Layers - 2 loop
             declare
                use Ada.Numerics.Elementary_Functions;
-               A : constant float := 1.0 + Float (I) * 2.0 * 3.1415 / Float (Num_Of_Layers);
-               V : constant float := 200.0 / Float (I + 1);
+               A : constant Float := 1.0 + Float (I) * 2.0 * 3.1415 / Float (Num_Of_Layers);
+               V : constant Float := 200.0 / Float (I + 1);
             begin
-               Layer_Vel (Layers (I), V * Cos (a), V * Sin (a));
+               Layer_Vel (Layers (I), V * Cos (A), V * Sin (A));
                if not Wrap then
-                  Layer_Limit_Bounce (Layers (i));
+                  Layer_Limit_Bounce (Layers (I));
                end if;
             end;
          end loop;
@@ -335,11 +347,11 @@ package body Parallax_3 is
          --  Set foreground scrolling speed and enable "bounce mode"
          Layer_Vel (Layers (0), FOREGROUND_VEL_X, FOREGROUND_VEL_Y);
          if not Wrap then
-            Layer_Limit_Bounce (Layers(0));
+            Layer_Limit_Bounce (Layers (0));
          end if;
 
-         -- Link all intermediate levels to the foreground layer
-         for i in 1 .. Num_Of_Layers - 2 loop
+         --  Link all intermediate levels to the foreground layer
+         for I in 1 .. Num_Of_Layers - 2 loop
             Layer_Link (Layers (I), Layers (0)'Unchecked_Access, 1.5 / Float (I + 1));
          end loop;
       end if;
@@ -407,7 +419,7 @@ package body Parallax_3 is
          begin
             Tick2      := Ada.Real_Time.Clock;
             Delta_Time := To_Duration (Tick2 - Tick1);
-            Tick1      := tick2;
+            Tick1      := Tick2;
             Time       := Time + Long_Float (Delta_Time);
          end;
 
@@ -416,7 +428,7 @@ package body Parallax_3 is
             use Ada.Numerics.Elementary_Functions;
          begin
             if Num_Of_Layers > 1 then
-               Layer_Vel (Layers (num_of_layers - 1),
+               Layer_Vel (Layers (Num_Of_Layers - 1),
                           Sin (Float (Time) * 0.00011) * BACKGROUND_VEL,
                           Cos (Float (Time) * 0.00013) * BACKGROUND_VEL);
             end if;
@@ -433,7 +445,7 @@ package body Parallax_3 is
          end loop;
 
          --  Render layers (recursive!)
-         Layer_Render (Layers (0), screen, border);
+         Layer_Render (Layers (0), Screen, Border);
 
          Total_Calls      := 0;
          Total_Blits      := 0;
@@ -457,26 +469,26 @@ package body Parallax_3 is
          end if;
 
          for I in 0 .. Num_Of_Layers - 1 loop
-            Total_Calls      := total_calls + Layers (I).calls;
-            Total_Blits      := total_blits + Layers (I).blits;
-            Total_Recursions := total_recursions + Layers (I).Recursions;
-            Total_Pixels     := Total_Pixels + Layers (I).pixels;
+            Total_Calls      := Total_Calls + Layers (I).Calls;
+            Total_Blits      := Total_Blits + Layers (I).Blits;
+            Total_Recursions := Total_Recursions + Layers (I).Recursions;
+            Total_Pixels     := Total_Pixels + Layers (I).Pixels;
          end loop;
 
          if Total_Calls > Peak_Calls then
             Peak_Calls := Total_Calls;
          end if;
 
-         if total_blits > Peak_Blits then
-            peak_blits := total_blits;
+         if Total_Blits > Peak_Blits then
+            Peak_Blits := Total_Blits;
          end if;
 
-         if total_recursions > Peak_Recursions then
-            peak_recursions := total_recursions;
+         if Total_Recursions > Peak_Recursions then
+            Peak_Recursions := Total_Recursions;
          end if;
 
-         if total_pixels > Peak_Pixels then
-            peak_pixels := total_pixels;
+         if Total_Pixels > Peak_Pixels then
+            Peak_Pixels := Total_Pixels;
          end if;
 
          if Verbose >= 2 then
@@ -518,8 +530,8 @@ package body Parallax_3 is
       Put ("        recursions = "); Natural_IO.Put (Peak_Recursions); New_Line;
       Put ("        pixels     = "); Natural_IO.Put (Peak_Pixels); New_Line;
 
-      --SDL_FreeSurface(tiles);
-      --Tiles.Finalize;
+      --  SDL_FreeSurface(tiles);
+      --  Tiles.Finalize;
       SDL.Finalise;
 
    end Main;
@@ -555,63 +567,66 @@ package body Parallax_3 is
    -- Next --
    ----------
 
-   procedure Layer_Next (LR      : in out Layer_Type;
-                         Next_Lr :        Layer_Access) is
+   procedure Layer_Next (Layer      : in out Layer_Type;
+                         Next_Layer :        Layer_Access) is
    begin
-      lr.next := next_lr;
+      Layer.Next := Next_Layer;
    end Layer_Next;
 
    ---------
    -- Pos --
    ---------
 
-   procedure Layer_Pos (LR   : in out Layer_Type;
-                        X, Y :        Float) is
+   procedure Layer_Pos (Layer : in out Layer_Type;
+                        X, Y  :        Float) is
    begin
-      lr.pos_x := x;
-      lr.pos_y := y;
+      Layer.Pos_X := X;
+      Layer.Pos_Y := Y;
    end Layer_Pos;
 
    ---------
    -- Vel --
    ---------
 
-   procedure Layer_Vel (LR   : in out Layer_Type;
-                        X, Y :        Float) is
+   procedure Layer_Vel (Layer : in out Layer_Type;
+                        X, Y  :        Float) is
    begin
-      lr.vel_x := x;
-      lr.vel_y := y;
+      Layer.Vel_X := X;
+      Layer.Vel_Y := Y;
    end Layer_Vel;
 
-   procedure X_Do_Limit_Bounce (LR : in out Layer_Type) is
-      Maxx : constant Float := Float (MAP_W * TILE_W - SCREEN_W);
-      Maxy : constant Float := Float (MAP_H * TILE_H - SCREEN_H);
+   procedure X_Do_Limit_Bounce (Layer : in out Layer_Type);
+   --  Spec
+
+   procedure X_Do_Limit_Bounce (Layer : in out Layer_Type) is
+      Max_X : constant Float := Float (MAP_W * TILE_W - SCREEN_W);
+      Max_Y : constant Float := Float (MAP_H * TILE_H - SCREEN_H);
    begin
-      if lr.pos_x >= Maxx then
+      if Layer.Pos_X >= Max_X then
 
          --  v.out = - v.in
-         lr.vel_x := -lr.vel_x;
+         Layer.Vel_X := -Layer.Vel_X;
 
-         -- Mirror over right limit. We need to do this
-         -- to be totally accurate, as we're in a time
-         -- discreet system! Ain't that obvious...? ;-)
+         --  Mirror over right limit. We need to do this
+         --  to be totally accurate, as we're in a time
+         --  discreet system! Ain't that obvious...? ;-)
 
-         lr.pos_x := maxx * 2.0 - lr.pos_x;
+         Layer.Pos_X := Max_X * 2.0 - Layer.Pos_X;
 
-      elsif lr.pos_x <= 0.0 then
+      elsif Layer.Pos_X <= 0.0 then
 
          --  Basic physics again...
-         lr.vel_x := -lr.vel_x;
+         Layer.Vel_X := -Layer.Vel_X;
          --  Mirror over left limit
-         lr.pos_x := -lr.pos_x;
+         Layer.Pos_X := -Layer.Pos_X;
       end if;
 
-      if lr.pos_y >= Maxy then
-         lr.vel_y := -lr.vel_y;
-         lr.pos_y := maxy * 2.0 - lr.pos_y;
-      elsif lr.pos_y <= 0.0 then
-         lr.vel_y := -lr.vel_y;
-         lr.pos_y := -lr.pos_y;
+      if Layer.Pos_Y >= Max_Y then
+         Layer.Vel_Y := -Layer.Vel_Y;
+         Layer.Pos_Y := Max_Y * 2.0 - Layer.Pos_Y;
+      elsif Layer.Pos_Y <= 0.0 then
+         Layer.Vel_Y := -Layer.Vel_Y;
+         Layer.Pos_Y := -Layer.Pos_Y;
       end if;
    end X_Do_Limit_Bounce;
 
@@ -619,58 +634,58 @@ package body Parallax_3 is
    -- Animate --
    -------------
 
-   procedure Layer_Animate (LR : in out Layer_Type;
-                            DT :        Float) is
+   procedure Layer_Animate (Layer : in out Layer_Type;
+                            DT    :        Float) is
    begin
-      if lr.Flags.Linked then
-         lr.pos_x := lr.link.pos_x * lr.ratio;
-         lr.pos_y := lr.link.pos_y * lr.ratio;
+      if Layer.Flags.Linked then
+         Layer.Pos_X := Layer.Link.Pos_X * Layer.Ratio;
+         Layer.Pos_Y := Layer.Link.Pos_Y * Layer.Ratio;
       else
-         lr.Pos_X := lr.pos_x + dt * lr.vel_x;
-         lr.pos_y := lr.Pos_Y + dt * lr.vel_y;
-         if lr.Flags.LIMIT_BOUNCE then
-            X_Do_Limit_Bounce (lr);
+         Layer.Pos_X := Layer.Pos_X + DT * Layer.Vel_X;
+         Layer.Pos_Y := Layer.Pos_Y + DT * Layer.Vel_Y;
+         if Layer.Flags.Limit_Bounce then
+            X_Do_Limit_Bounce (Layer);
          end if;
       end if;
    end Layer_Animate;
 
 
-   procedure Layer_Limit_Bounce (LR : in out Layer_Type) is
+   procedure Layer_Limit_Bounce (Layer : in out Layer_Type) is
    begin
-      lr.Flags.LIMIT_BOUNCE := True;
+      Layer.Flags.Limit_Bounce := True;
    end Layer_Limit_Bounce;
 
    ----------
    -- Link --
    ----------
 
-   procedure Layer_Link (LR    : in out Layer_Type;
-                         To_Lr :        Layer_Access;
-                         Ratio :        Float) is
+   procedure Layer_Link (Layer    : in out Layer_Type;
+                         To_Layer :        Layer_Access;
+                         Ratio    :        Float) is
    begin
-      lr.Flags.Linked := True; --  |= TL_LINKED;
-      lr.link  := to_lr;
-      lr.ratio := ratio;
+      Layer.Flags.Linked := True;
+      Layer.Link  := To_Layer;
+      Layer.Ratio := Ratio;
    end Layer_Link;
 
    ------------
    -- Render --
    ------------
 
-   procedure Layer_Render (LR     : in out Layer_Type;
+   procedure Layer_Render (Layer  : in out Layer_Type;
                            Screen : in out Surface;
                            Rect   :        Rectangle)
    is
       use SDL.Video.Rectangles, SDL.C;
-      max_x, Max_Y         : integer;
-      map_pos_x, Map_Pos_Y : integer;
-      mx, my, Mx_Start     : integer;
-      fine_x, Fine_Y       : integer;
+      Max_X, Max_Y         : Integer;
+      Map_Pos_X, Map_Pos_Y : Integer;
+      M_X, M_Y, Mx_Start   : Integer;
+      Fine_X, Fine_Y       : Integer;
 
       Pos        : Rectangle;
       Local_Clip : Rectangle;
    begin
-      lr.calls := lr.calls + 1;
+      Layer.Calls := Layer.Calls + 1;
 
       --  Set up clipping
       --  (Note that we must first clip "rect" to the
@@ -678,65 +693,65 @@ package body Parallax_3 is
       --  clipping up as soon as we have more that two
       --  layers!)
 
-      if Rect /= SDL.Video.Rectangles.Null_Rectangle Then
+      if Rect /= SDL.Video.Rectangles.Null_Rectangle then
 
-         pos        := screen.clip_rectangle;
-         local_clip := Rect; -- *rect;
+         Pos        := Screen.Clip_Rectangle;
+         Local_Clip := Rect; -- *rect;
 
          --  Convert to (x2,y2)
-         pos.Width := pos.width + pos.x;
-         pos.height := pos.Height + pos.y;
-         local_clip.Width  := local_clip.width + local_clip.x;
-         local_clip.height := local_clip.Height + local_clip.y;
-         if local_clip.x < pos.X then
-            local_clip.x := pos.x;
+         Pos.Width  := Pos.Width  + Pos.X;
+         Pos.Height := Pos.Height + Pos.Y;
+         Local_Clip.Width  := Local_Clip.Width  + Local_Clip.X;
+         Local_Clip.Height := Local_Clip.Height + Local_Clip.Y;
+         if Local_Clip.X < Pos.X then
+            Local_Clip.X := Pos.X;
          end if;
-         if local_clip.y < pos.Y then
-            local_clip.y := pos.y;
+         if Local_Clip.Y < Pos.Y then
+            Local_Clip.Y := Pos.Y;
          end if;
-         if local_clip.width > pos.Width then
-            local_clip.width := pos.width;
+         if Local_Clip.Width > Pos.Width then
+            Local_Clip.Width := Pos.Width;
          end if;
-         if local_clip.height > pos.Height then
-            local_clip.height := pos.height;
+         if Local_Clip.Height > Pos.Height then
+            Local_Clip.Height := Pos.Height;
          end if;
 
-         -- Convert result back to w, h
-         local_clip.Width := local_clip.width - local_clip.x;
-         local_clip.height := local_clip.Height - local_clip.y;
+         --  Convert result back to w, h
+         Local_Clip.Width  := Local_Clip.Width  - Local_Clip.X;
+         Local_Clip.Height := Local_Clip.Height - Local_Clip.Y;
 
-         -- Check if we actually have an area left!
+         --  Check if we actually have an area left!
          if Local_Clip.Width = 0 or Local_Clip.Height = 0 then
             return;
          end if;
 
          --  Set the final clip rect
-         Screen.Set_Clip_Rectangle (local_clip);
+         Screen.Set_Clip_Rectangle (Local_Clip);
 
       else
          Screen.Set_Clip_Rectangle (Null_Rectangle);
-         local_clip := screen.clip_rectangle;
+         Local_Clip := Screen.Clip_Rectangle;
       end if;
 
-      pos.Width  := TILE_W;
-      pos.Height := TILE_H;
+      Pos.Width  := TILE_W;
+      Pos.Height := TILE_H;
 
       --  Position of clip rect in map space
-      map_pos_x := Integer (lr.pos_x + Float (screen.clip_rectangle.X));
-      map_pos_y := Integer (lr.pos_y + Float (screen.clip_rectangle.Y));
+      Map_Pos_X := Integer (Layer.Pos_X + Float (Screen.Clip_Rectangle.X));
+      Map_Pos_Y := Integer (Layer.Pos_Y + Float (Screen.Clip_Rectangle.Y));
 
       --  The calculations would break with negative map coords...
-      if map_pos_x < 0 then
+      if Map_Pos_X < 0 then
          Map_Pos_X := Map_Pos_X + MAP_W * TILE_W * (-Map_Pos_X / (MAP_W * TILE_W) + 1);
       end if;
 
-      if map_pos_y < 0 then
+      if Map_Pos_Y < 0 then
          Map_Pos_Y := Map_Pos_Y + MAP_H * TILE_H * (-Map_Pos_Y / (MAP_H * TILE_H) + 1);
       end if;
 
       --  Position on map in tiles
-      Mx := Map_Pos_X / TILE_W;
-      My := Map_Pos_Y / TILE_H;
+      M_X := Map_Pos_X / TILE_W;
+      M_Y := Map_Pos_Y / TILE_H;
 
       --  Fine position - pixel offset; up to 1 tile - 1 pixel
       Fine_X := Map_Pos_X mod TILE_W;
@@ -745,56 +760,56 @@ package body Parallax_3 is
       --  Draw all visible tiles
       Max_X := Integer (Screen.Clip_Rectangle.X + Screen.Clip_Rectangle.Width);
       Max_Y := Integer (Screen.Clip_Rectangle.Y + Screen.Clip_Rectangle.Height);
-      Mx_Start := Mx;
+      Mx_Start := M_X;
 
       Pos.Y := Screen.Clip_Rectangle.Y - SDL.Coordinate (Fine_Y);
-      while pos.y < SDL.Coordinate (Max_Y) loop
-         Mx    := Mx_Start;
-         My    := My mod MAP_H;
-         Pos.X := screen.clip_rectangle.x - SDL.Coordinate (Fine_X);
-         while pos.X < SDL.Coordinate (Max_X) loop
+      while Pos.Y < SDL.Coordinate (Max_Y) loop
+         M_X   := Mx_Start;
+         M_Y   := M_Y mod MAP_H;
+         Pos.X := Screen.Clip_Rectangle.X - SDL.Coordinate (Fine_X);
+         while Pos.X < SDL.Coordinate (Max_X) loop
             declare
                Tile : Character;
-               Tm   : Tile_Kind; --Integer;
+               Kind : Tile_Kind;
             begin
-               mx := Mx mod MAP_W;
-               tile := lr.map(My, Mx);
-               tm   := tile_mode(tile);
+               M_X  := M_X mod MAP_W;
+               Tile := Layer.Map (M_Y, M_X);
+               Kind := Tile_Mode (Tile);
 
-               if (Tm /= TM_OPAQUE) and (lr.Next /= null) then
+               if Kind /= Opaque and Layer.Next /= null then
 
-                  Lr.Recursions := Lr.Recursions + 1;
+                  Layer.Recursions := Layer.Recursions + 1;
                   --  Recursive call !!!
-                  Layer_Render (Lr.Next.all, screen, pos);
-                  Screen.Set_Clip_Rectangle (local_clip);
+                  Layer_Render (Layer.Next.all, Screen, Pos);
+                  Screen.Set_Clip_Rectangle (Local_Clip);
                end if;
 
-               if tm /= TM_EMPTY then
+               if Kind /= Empty then
                   declare
                      Tiles  : Surface;
                      Pixels : Integer;
                   begin
-                     if tm = TM_OPAQUE then
-                        Tiles := lr.Opaque_Tiles;
+                     if Kind = Opaque then
+                        Tiles := Layer.Opaque_Tiles;
                      else
-                        Tiles := lr.Tiles;
+                        Tiles := Layer.Tiles;
                      end if;
-                     Lr.Blits := Lr.Blits + 1;
+                     Layer.Blits := Layer.Blits + 1;
 
                      Draw_Tile (Screen, Tiles,
                                 Integer (Pos.X),
                                 Integer (Pos.Y),
                                 Tile, Pixels);
 
-                     Lr.Pixels := Lr.pixels + Pixels;
+                     Layer.Pixels := Layer.Pixels + Pixels;
                   end;
                end if;
             end;
-            Mx    := Mx + 1;
+            M_X   := M_X + 1;
             Pos.X := Pos.X + TILE_W;
          end loop;
-         My    := My + 1;
-         pos.Y := pos.y + TILE_H;
+         M_Y   := M_Y + 1;
+         Pos.Y := Pos.Y + TILE_H;
       end loop;
    end Layer_Render;
 
@@ -802,12 +817,12 @@ package body Parallax_3 is
    -- Reset_Stats --
    -----------------
 
-   procedure Layer_Reset_Stats (LR : in out Layer_Type) is
+   procedure Layer_Reset_Stats (Layer : in out Layer_Type) is
    begin
-      lr.calls      := 0;
-      lr.blits      := 0;
-      lr.recursions := 0;
-      lr.pixels     := 0;
+      Layer.Calls      := 0;
+      Layer.Blits      := 0;
+      Layer.Recursions := 0;
+      Layer.Pixels     := 0;
    end Layer_Reset_Stats;
 
 

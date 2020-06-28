@@ -94,37 +94,37 @@ package Parallax_3 is
                          Opaque_Tiles :     Surface);
    --  Initialize layer; set up map and tile graphics data.
 
-   procedure Layer_Next (LR      : in out Layer_Type;
-                         Next_Lr :        Layer_Access);
+   procedure Layer_Next (Layer      : in out Layer_Type;
+                         Next_Layer :        Layer_Access);
    --  Tell a layer which layer is next, or under this layer.
 
-   procedure Layer_Pos (LR   : in out Layer_Type;
-                        X, Y :        Float);
+   procedure Layer_Pos (Layer : in out Layer_Type;
+                        X, Y  :        Float);
    --  Set position.
 
-   procedure Layer_Vel (LR   : in out Layer_Type;
-                        X, Y :        Float);
+   procedure Layer_Vel (Layer : in out Layer_Type;
+                        X, Y  :        Float);
    --  Set velocity.
 
-   procedure Layer_Animate (LR : in out Layer_Type;
-                            DT :        Float);
+   procedure Layer_Animate (Layer : in out Layer_Type;
+                            DT    :        Float);
    --  Update animation (apply the velocity, that is).
 
-   procedure Layer_Limit_Bounce (LR : in out Layer_Type);
+   procedure Layer_Limit_Bounce (Layer : in out Layer_Type);
    --  Bounce at map limits.
 
-   procedure Layer_Link (LR    : in out Layer_Type;
-                         To_Lr :        Layer_Access;
-                         Ratio :        Float);
+   procedure Layer_Link (Layer    : in out Layer_Type;
+                         To_Layer :        Layer_Access;
+                         Ratio    :        Float);
    --  Link the position of this layer to another layer, w/ scale ratio.
 
-   procedure Layer_Render (LR     : in out Layer_Type;
+   procedure Layer_Render (Layer  : in out Layer_Type;
                            Screen : in out Surface;
                            Rect   :        Rectangle);
    --  Render layer to the specified surface,
    --  clipping to the specified rectangle.
 
-   procedure Layer_Reset_Stats (LR : in out Layer_Type);
+   procedure Layer_Reset_Stats (Layer : in out Layer_Type);
 
    procedure Main;
 

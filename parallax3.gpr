@@ -13,7 +13,7 @@ project Parallax3 is
 
   package Compiler is
      for Default_Switches ("Ada") use
-         (--"-gnatyyM99",
+         ("-gnatyyM99",
           "-gnatwa", "-gnatVa");
   end Compiler;
 
