@@ -17,6 +17,7 @@ with Ada.Text_IO;
 with SDL.Video.Windows.Makers;
 with SDL.Images.IO;
 with SDl.Events.Events;
+with SDL.Video.Palettes;
 
 package body Parallax_3 is
 
@@ -274,9 +275,9 @@ package body Parallax_3 is
       Otiles := Tiles_Bmp;
 
 --      /* Set colorkey for non-opaque tiles to bright magenta */
---      SDL_SetColorKey(tiles,
---                      SDL_SRCCOLORKEY|SDL_RLEACCEL,
---                      SDL_MapRGB(tiles->format,255,0,255));
+        SDL.Video.Surfaces.Set_Colour_Key
+          (Self => Tiles,
+           Now  => SDL.Video.Palettes.Colour'(Red => 255, Green => <>, Blue => 255, Alpha => <>));
 
 --      if(alpha)
 --              SDL_SetAlpha(tiles, SDL_SRCALPHA|SDL_RLEACCEL, alpha);
