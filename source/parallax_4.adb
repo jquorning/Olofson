@@ -23,7 +23,7 @@ with SDL.Events.Events;
 with SDL.Events.Keyboards;
 with SDL.Events.Mice;
 
-package body Parallax_3 is
+package body Parallax_4 is
 
    ------------------------------------------------------------
    --      ...some globals...
@@ -826,4 +826,4 @@ package body Parallax_3 is
    end Layer_Reset_Stats;
 
 
-end Parallax_3;
+end Parallax_4;
