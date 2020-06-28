@@ -1,4 +1,4 @@
-with "SDLAda";
+with "sdlada";
 
 project Parallax3 is
   for Source_Dirs use ("source/");
@@ -18,9 +18,19 @@ project Parallax3 is
   end Compiler;
 
   package Linker is
-     for Default_Switches ("Ada") use ("-F/Library/Frameworks",
-                                       "-framework", "SDL2",
-                                       "-framework", "SDL2_image");
+    case SDLAda.Platform is
+      when "linux" | "bsd" | "android" | "windows" =>
+        for Default_Switches ("Ada") use ("-lSDL2",
+                                          "-lSDL2_image");
+
+      when "macosx" =>
+        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
+                                          "-framework", "SDL2",
+                                          "-framework", "SDL2_image");
+
+      when "ios" =>
+        null;
+    end case;
   end Linker;
 
 end Parallax3;

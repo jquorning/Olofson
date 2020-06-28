@@ -6,7 +6,7 @@ SDL2 demo using the SDLAda binding.
 
 ```sh
 gprbuild
-./parallax3
+./parallax3 PLATFORM=macosx
 ```
 
 ## Requirements
@@ -14,6 +14,10 @@ gprbuild
 * Ada 2012 compiler
 * GPRbuild
 * [SDLAda](https://github.com/Lucretia/sdlada)
+
+## Screenshots
+
+![Parallax on Linux](screenshots/linux.png)
 
 ## Original
 
