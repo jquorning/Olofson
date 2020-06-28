@@ -15,9 +15,13 @@ with Ada.Real_Time;
 with Ada.Text_IO;
 
 with SDL.Video.Windows.Makers;
-with SDL.Images.IO;
-with SDl.Events.Events;
 with SDL.Video.Palettes;
+
+with SDL.Images.IO;
+
+with SDl.Events.Events;
+with SDl.Events.Keyboards;
+with SDl.Events.Mice;
 
 package body Parallax_3 is
 
@@ -274,13 +278,17 @@ package body Parallax_3 is
       Tiles  := Tiles_Bmp;
       Otiles := Tiles_Bmp;
 
---      /* Set colorkey for non-opaque tiles to bright magenta */
-        SDL.Video.Surfaces.Set_Colour_Key
-          (Self => Tiles,
-           Now  => SDL.Video.Palettes.Colour'(Red => 255, Green => <>, Blue => 255, Alpha => <>));
+      --  Set colorkey for non-opaque tiles to bright magenta
+      SDL.Video.Surfaces.Set_Colour_Key
+        (Self => Tiles,
+         Now  => SDL.Video.Palettes.Colour'(Red   => 255,
+                                            Green => 0,
+                                            Blue  => 255,
+                                            Alpha => 0));
 
---      if(alpha)
---              SDL_SetAlpha(tiles, SDL_SRCALPHA|SDL_RLEACCEL, alpha);
+--      if Alpha /= 0 then
+--         Tiles.Set_Alpha (SDL_SRCALPHA|SDL_RLEACCEL, Alpha);
+--      end if;
 
       if Num_Of_Layers > 1 then
 
@@ -342,16 +350,21 @@ package body Parallax_3 is
       loop
          declare
             use SDL.Events;
+            use SDL.Events.Keyboards;
             Event : SDL.Events.Events.Events;
          begin
             if SDL.Events.Events.Poll (Event) then
 
                case Event.Common.Event_Type is
-                  when Quit => exit;
 
+                  --  Click to exit
+                  when Quit | Mice.Button_Down =>
+                     exit;
 
-                     --  Click to exit
---                  when Mouse_Down => return;
+                  when Keyboards.Key_Down =>
+                     exit when
+                       Event.Keyboard.Key_Sym.Key_Code
+                       = SDL.Events.Keyboards.Code_Escape;
 
 --              if (event.type == SDL_MOUSEBUTTONDOWN)
 --                      break;
