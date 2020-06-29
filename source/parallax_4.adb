@@ -1,9 +1,9 @@
 --
---  "Parallax Scrolling III - Overdraw Elimination"
+--  "Parallax Scrolling IV - Overdraw Elimination +"
 --
 --   Nghia             <nho@optushome.com.au>
 --   Randi J. Relander <rjrelander@users.sourceforge.net>
---   David Olofson     <david@gardena.net>
+--   David Olofson     <david@olofson.net>
 --
 --  This software is released under the terms of the GPL.
 --
@@ -24,10 +24,6 @@ with SDL.Events.Keyboards;
 with SDL.Events.Mice;
 
 package body Parallax_4 is
-
-   ------------------------------------------------------------
-   --      ...some globals...
-   ------------------------------------------------------------
 
    --
    --  Foreground map.
@@ -123,6 +119,8 @@ package body Parallax_4 is
       "0000000000000000"
      );
 
+   Detect_Runs : Boolean := True;
+
    ------------------------------------------------------------
    --    ...and some code. :-)
    ------------------------------------------------------------
@@ -208,12 +206,10 @@ package body Parallax_4 is
 
       Layers : array (0 .. Num_Of_Layers - 1) of aliased Layer_Type;
 
-      Total_Calls      : Natural;
       Total_Blits      : Natural;
       Total_Recursions : Natural;
       Total_Pixels     : Natural;
 
-      Peak_Calls       : Natural := 0;
       Peak_Blits       : Natural := 0;
       Peak_Recursions  : Natural := 0;
       Peak_Pixels      : Natural := 0;
@@ -292,8 +288,7 @@ package body Parallax_4 is
 
       --  Set colorkey for non-opaque tiles to bright magenta
       Tiles.Set_Colour_Key
-        (--  Self => Tiles,
-         Now  => SDL.Video.Palettes.Colour'(Red   => 255,
+        (Now  => SDL.Video.Palettes.Colour'(Red   => 255,
                                             Green => <>,
                                             Blue  => 255,
                                             Alpha => <>));
@@ -447,20 +442,18 @@ package body Parallax_4 is
          --  Render layers (recursive!)
          Layer_Render (Layers (0), Screen, Border);
 
-         Total_Calls      := 0;
          Total_Blits      := 0;
          Total_Recursions := 0;
          Total_Pixels     := 0;
 
          if Verbose >= 1 then
             New_Line;
-            Put_Line ("layer    calls    blits recursions pixels");
+            Put_Line ("layer    blits recursions pixels");
          end if;
 
          if Verbose = 3 then
             for I in 0 .. Num_Of_Layers - 1 loop
                Natural_IO.Put (I);
-               Natural_IO.Put (Layers (I).Calls);
                Natural_IO.Put (Layers (I).Blits);
                Natural_IO.Put (Layers (I).Recursions);
                Natural_IO.Put (Layers (I).Pixels);
@@ -469,15 +462,10 @@ package body Parallax_4 is
          end if;
 
          for I in 0 .. Num_Of_Layers - 1 loop
-            Total_Calls      := Total_Calls + Layers (I).Calls;
             Total_Blits      := Total_Blits + Layers (I).Blits;
             Total_Recursions := Total_Recursions + Layers (I).Recursions;
             Total_Pixels     := Total_Pixels + Layers (I).Pixels;
          end loop;
-
-         if Total_Calls > Peak_Calls then
-            Peak_Calls := Total_Calls;
-         end if;
 
          if Total_Blits > Peak_Blits then
             Peak_Blits := Total_Blits;
@@ -493,7 +481,6 @@ package body Parallax_4 is
 
          if Verbose >= 2 then
             Put ("TOTAL:  ");
-            Natural_IO.Put (Total_Calls);
             Natural_IO.Put (Total_Blits);
             Natural_IO.Put (Total_Recursions);
             Natural_IO.Put (Total_Pixels);
@@ -502,7 +489,6 @@ package body Parallax_4 is
 
          if Verbose >= 1 then
             Put ("PEAK:   ");
-            Natural_IO.Put (Peak_Calls);
             Natural_IO.Put (Peak_Blits);
             Natural_IO.Put (Peak_Recursions);
             Natural_IO.Put (Peak_Pixels);
@@ -525,7 +511,6 @@ package body Parallax_4 is
       end loop;
 
       Put_Line ("Statistics: (All figures per rendered frame.)");
-      Put ("        calls      = "); Natural_IO.Put (Peak_Calls); New_Line;
       Put ("        blits      = "); Natural_IO.Put (Peak_Blits); New_Line;
       Put ("        recursions = "); Natural_IO.Put (Peak_Recursions); New_Line;
       Put ("        pixels     = "); Natural_IO.Put (Peak_Pixels); New_Line;
@@ -672,49 +657,40 @@ package body Parallax_4 is
    -- Render --
    ------------
 
+   --  This version is slightly improved over the
+   --  one in "Parallax 3"; it combines horizontal
+   --  runs of transparent and partially transparent
+   --  tiles before recursing down.
+
    procedure Layer_Render (Layer  : in out Layer_Type;
                            Screen : in out Surface;
                            Rect   :        Rectangle)
    is
       use SDL.Video.Rectangles, SDL.C;
-      Max_X, Max_Y         : Integer;
-      Map_Pos_X, Map_Pos_Y : Integer;
-      M_X, M_Y, Mx_Start   : Integer;
-      Fine_X, Fine_Y       : Integer;
-
       Pos        : Rectangle;
       Local_Clip : Rectangle;
    begin
-      Layer.Calls := Layer.Calls + 1;
-
       --  Set up clipping
       --  (Note that we must first clip "rect" to the
       --  current cliprect of the screen - or we'll screw
-      --  clipping up as soon as we have more that two
+      --  clipping up as soon as we have more than two
       --  layers!)
 
       if Rect /= SDL.Video.Rectangles.Null_Rectangle then
 
          Pos        := Screen.Clip_Rectangle;
-         Local_Clip := Rect; -- *rect;
+         Local_Clip := Rect;
 
          --  Convert to (x2,y2)
          Pos.Width  := Pos.Width  + Pos.X;
          Pos.Height := Pos.Height + Pos.Y;
          Local_Clip.Width  := Local_Clip.Width  + Local_Clip.X;
          Local_Clip.Height := Local_Clip.Height + Local_Clip.Y;
-         if Local_Clip.X < Pos.X then
-            Local_Clip.X := Pos.X;
-         end if;
-         if Local_Clip.Y < Pos.Y then
-            Local_Clip.Y := Pos.Y;
-         end if;
-         if Local_Clip.Width > Pos.Width then
-            Local_Clip.Width := Pos.Width;
-         end if;
-         if Local_Clip.Height > Pos.Height then
-            Local_Clip.Height := Pos.Height;
-         end if;
+
+         Local_Clip.X      := C.int'Min (Local_Clip.X, Pos.X);
+         Local_Clip.Y      := C.int'Min (Local_Clip.Y, Pos.Y);
+         Local_Clip.Width  := C.int'Min (Local_Clip.Width,  Pos.Width);
+         Local_Clip.Height := C.int'Min (Local_Clip.Height, Pos.Height);
 
          --  Convert result back to w, h
          Local_Clip.Width  := Local_Clip.Width  - Local_Clip.X;
@@ -733,84 +709,124 @@ package body Parallax_4 is
          Local_Clip := Screen.Clip_Rectangle;
       end if;
 
-      Pos.Width  := TILE_W;
-      Pos.Height := TILE_H;
+      declare
+         --  Position of clip rect in map space
+         Map_Pos_X0 : constant Integer := Integer (Layer.Pos_X + Float (Screen.Clip_Rectangle.X));
+         Map_Pos_Y0 : constant Integer := Integer (Layer.Pos_Y + Float (Screen.Clip_Rectangle.Y));
 
-      --  Position of clip rect in map space
-      Map_Pos_X := Integer (Layer.Pos_X + Float (Screen.Clip_Rectangle.X));
-      Map_Pos_Y := Integer (Layer.Pos_Y + Float (Screen.Clip_Rectangle.Y));
+         --  The calculations would break with negative map coords...
+         Map_Pos_X  : constant Integer := Map_Pos_X0 +
+           (if Map_Pos_X0 < 0
+              then Map_Pos_X0 + MAP_W * TILE_W * (-Map_Pos_X0 / (MAP_W * TILE_W) + 1)
+              else 0);
 
-      --  The calculations would break with negative map coords...
-      if Map_Pos_X < 0 then
-         Map_Pos_X := Map_Pos_X + MAP_W * TILE_W * (-Map_Pos_X / (MAP_W * TILE_W) + 1);
-      end if;
+         Map_Pos_Y  : constant Integer := Map_Pos_Y0 +
+             (if Map_Pos_Y0 < 0
+                then Map_Pos_Y0 + MAP_H * TILE_H * (-Map_Pos_Y0 / (MAP_H * TILE_H) + 1)
+                else 0);
 
-      if Map_Pos_Y < 0 then
-         Map_Pos_Y := Map_Pos_Y + MAP_H * TILE_H * (-Map_Pos_Y / (MAP_H * TILE_H) + 1);
-      end if;
+         --  Fine position - pixel offset; up to (1 tile - 1 pixel)
+         Fine_X : constant Integer := Map_Pos_X mod TILE_W;
+         Fine_Y : constant Integer := Map_Pos_Y mod TILE_H;
 
-      --  Position on map in tiles
-      M_X := Map_Pos_X / TILE_W;
-      M_Y := Map_Pos_Y / TILE_H;
+         --  Draw all visible tiles
+         Max_X : constant Integer := Integer (Screen.Clip_Rectangle.X
+                                                + Screen.Clip_Rectangle.Width);
+         Max_Y : constant Integer := Integer (Screen.Clip_Rectangle.Y
+                                                + Screen.Clip_Rectangle.Height);
 
-      --  Fine position - pixel offset; up to 1 tile - 1 pixel
-      Fine_X := Map_Pos_X mod TILE_W;
-      Fine_Y := Map_Pos_Y mod TILE_H;
+         M_X, M_Y, Mx_Start : Integer;
+      begin
 
-      --  Draw all visible tiles
-      Max_X := Integer (Screen.Clip_Rectangle.X + Screen.Clip_Rectangle.Width);
-      Max_Y := Integer (Screen.Clip_Rectangle.Y + Screen.Clip_Rectangle.Height);
-      Mx_Start := M_X;
+         --  Position on map in tiles
+         M_X := Map_Pos_X / TILE_W;
+         M_Y := Map_Pos_Y / TILE_H;
 
-      Pos.Y := Screen.Clip_Rectangle.Y - SDL.Coordinate (Fine_Y);
-      while Pos.Y < SDL.Coordinate (Max_Y) loop
-         M_X   := Mx_Start;
-         M_Y   := M_Y mod MAP_H;
-         Pos.X := Screen.Clip_Rectangle.X - SDL.Coordinate (Fine_X);
-         while Pos.X < SDL.Coordinate (Max_X) loop
-            declare
-               Tile : Character;
-               Kind : Tile_Kind;
-            begin
-               M_X  := M_X mod MAP_W;
-               Tile := Layer.Map (M_Y, M_X);
-               Kind := Tile_Mode (Tile);
+         Mx_Start := M_X;
 
-               if Kind /= Opaque and Layer.Next /= null then
+         Pos.Height := TILE_H;
+         Pos.Y := Screen.Clip_Rectangle.Y - SDL.Coordinate (Fine_Y);
+         while Pos.Y < SDL.Coordinate (Max_Y) loop
+            M_X   := Mx_Start;
+            M_Y   := M_Y mod MAP_H;
+            Pos.X := Screen.Clip_Rectangle.X - SDL.Coordinate (Fine_X);
+            while Pos.X < SDL.Coordinate (Max_X) loop
+               declare
+                  Tile  : Character;
+                  Kind  : Tile_Kind;
+                  Run_W : Integer;
+               begin
+                  M_X  := M_X mod MAP_W;
+                  Tile := Layer.Map (M_Y, M_X);
+                  Kind := Tile_Mode (Tile);
 
-                  Layer.Recursions := Layer.Recursions + 1;
-                  --  Recursive call !!!
-                  Layer_Render (Layer.Next.all, Screen, Pos);
-                  Screen.Set_Clip_Rectangle (Local_Clip);
-               end if;
+                  --  Calculate run length
+                  --  (Kind will tell what kind of run it is)
+                  Run_W := 1;
+                  if Detect_Runs then
+                     while Integer (Pos.X) + Run_W * TILE_W < Max_X loop
+                        declare
+                           Sort : constant Character :=
+                             Layer.Map (M_Y, (M_X + Run_W) mod MAP_W);
+                           TT   : Tile_Kind := Tile_Mode (Sort);
+                        begin
+                           if TT /= Opaque then
+                              TT := Empty;
+                           end if;
 
-               if Kind /= Empty then
-                  declare
-                     Tiles  : Surface;
-                     Pixels : Integer;
-                  begin
-                     if Kind = Opaque then
-                        Tiles := Layer.Opaque_Tiles;
-                     else
-                        Tiles := Layer.Tiles;
+                           if Kind /= TT then
+                              exit;
+                           end if;
+                        end;
+
+                        Run_W := Run_W + 1;
+                     end loop;
+                  end if;
+
+                  --  Recurse to next layer
+                  if Kind /= Opaque and Layer.Next /= null then
+
+                     Layer.Recursions := Layer.Recursions + 1;
+                     --  Recursive call !!!
+                     Layer_Render (Layer.Next.all, Screen, Pos);
+                     Screen.Set_Clip_Rectangle (Local_Clip);
+                  end if;
+
+                  --  Render our tiles
+                  Pos.Width := TILE_W;
+                  while Run_W /= 0 loop
+                     Run_W := Run_W - 1;
+
+                     M_X := M_X mod MAP_W;
+                     Tile := Layer.Map (M_Y, M_X);
+                     Kind := Tile_Mode (Tile);
+                     if Kind /= Empty then
+                        declare
+                           Tiles  : Surface;
+                           Pixels : Integer;
+                        begin
+                           Tiles := (if Kind = Opaque
+                                       then Layer.Opaque_Tiles
+                                       else Layer.Tiles);
+                           Layer.Blits := Layer.Blits + 1;
+
+                           Draw_Tile (Screen, Tiles,
+                                      Integer (Pos.X), Integer (Pos.Y),
+                                      Tile, Pixels);
+                           Layer.Pixels := Layer.Pixels + Pixels;
+                        end;
                      end if;
-                     Layer.Blits := Layer.Blits + 1;
-
-                     Draw_Tile (Screen, Tiles,
-                                Integer (Pos.X),
-                                Integer (Pos.Y),
-                                Tile, Pixels);
-
-                     Layer.Pixels := Layer.Pixels + Pixels;
-                  end;
-               end if;
-            end;
-            M_X   := M_X + 1;
-            Pos.X := Pos.X + TILE_W;
+                     M_X   := M_X + 1;
+                     Pos.X := Pos.X + TILE_W;
+                  end loop;
+               end;
+               M_X   := M_X + 1;
+               Pos.X := Pos.X + TILE_W;
+            end loop;
+            M_Y   := M_Y + 1;
+            Pos.Y := Pos.Y + TILE_H;
          end loop;
-         M_Y   := M_Y + 1;
-         Pos.Y := Pos.Y + TILE_H;
-      end loop;
+      end;
    end Layer_Render;
 
    -----------------
