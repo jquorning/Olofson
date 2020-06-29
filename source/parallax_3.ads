@@ -127,5 +127,15 @@ package Parallax_3 is
    procedure Layer_Reset_Stats (Layer : in out Layer_Type);
 
    procedure Main;
+   
+   --  Command line options
+   Verbose       : aliased Integer;
+   No_Planets    : aliased Boolean;
+   Num_Of_Layers : aliased Integer;
+   Bounce_Around : aliased Boolean;
+   Wrap          : aliased Boolean;
+   Alpha         : aliased Integer;
+   Double_Buffer : aliased Boolean;
+   Full_Screen   : aliased Boolean;
 
 end Parallax_3;

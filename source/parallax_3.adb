@@ -199,12 +199,12 @@ package body Parallax_3 is
       subtype Verbosity is Integer range 0 .. 3;
       Bpp           : Integer   := 0;
       Flags         : Integer   := 0;
-      Verbose       : Verbosity := 0;
+      --  Verbose       : Verbosity := 0;
       Use_Planets   : Boolean   := True;
-      Num_Of_Layers : Integer   := 7;
-      Bounce_Around : Boolean   := False;
-      Wrap          : Boolean   := False;
-      Alpha         : Integer   := 0;
+      --  Num_Of_Layers : Integer   := 7;
+      --  Bounce_Around : Boolean   := False;
+      --  Wrap          : Boolean   := False;
+      --  Alpha         : Integer   := 0;
 
       Layers : array (0 .. Num_Of_Layers - 1) of aliased Layer_Type;
 
