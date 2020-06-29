@@ -221,8 +221,9 @@ package body Parallax_3 is
    begin
       Natural_IO.Default_Width := 8;
 
-      if not SDL.Initialise then --  (SDL.Enable_Screen) then
-         raise Program_Error with "Can not initiallise SDL2";
+      --  Enable audio to prevent crash at program exit
+      if not SDL.Initialise (SDL.Enable_Audio) then
+         raise Program_Error with "Can not initialise SDL2";
       end if;
 
       SDL.Video.Windows.Makers.Create (Window,
