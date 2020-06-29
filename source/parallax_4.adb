@@ -119,10 +119,10 @@ package body Parallax_4 is
       "0000000000000000"
      );
 
-   Detect_Runs : Boolean := True;
+   Detect_Runs : constant Boolean := True;
 
    ------------------------------------------------------------
-   --    ...and some code. :-)
+   --    ...And some code. :-)
    ------------------------------------------------------------
 
    type Tile_Kind is (Empty, Keyed, Opaque);
@@ -187,6 +187,8 @@ package body Parallax_4 is
       use Ada.Text_IO;
       package Natural_IO is new Integer_IO (Natural);
 
+      use SDL.Video.Windows;
+
       Window    : SDL.Video.Windows.Window;
       Screen    : Surface;
       Tiles_Bmp : Surface;
@@ -194,15 +196,19 @@ package body Parallax_4 is
       Otiles    : Surface;
       Border    : Rectangle;
 
-      subtype Verbosity is Integer range 0 .. 3;
-      Bpp           : Integer   := 0;
-      Flags         : Integer   := 0;
-      Verbose       : Verbosity := 0;
-      Use_Planets   : Boolean   := True;
-      Num_Of_Layers : Integer   := 7;
-      Bounce_Around : Boolean   := False;
-      Wrap          : Boolean   := False;
-      Alpha         : Integer   := 0;
+      Flags     : constant Window_Flags := (if Full_Screen
+                                              then SDL.Video.Windows.Full_Screen
+                                              else 0);
+
+      --  subtype Verbosity is Integer range 0 .. 3;
+      --  Bpp           : Integer   := 0;
+      --  Flags         : Integer   := 0;
+      --  Verbose       : Verbosity := 0;
+      --  Use_Planets   : Boolean   := True;
+      --  Num_Of_Layers : Integer   := 7;
+      --  Bounce_Around : Boolean   := False;
+      --  Wrap          : Boolean   := False;
+      --  Alpha         : Integer   := 0;
 
       Layers : array (0 .. Num_Of_Layers - 1) of aliased Layer_Type;
 
@@ -221,65 +227,22 @@ package body Parallax_4 is
    begin
       Natural_IO.Default_Width := 8;
 
-      if not SDL.Initialise then -- (SDL.Enabel_Video) then
-         raise Program_Error with "Can not initiallise SDL2";
+      --  Enable audio to prevent crash at program exit
+      if not SDL.Initialise (SDL.Enable_Audio) then
+         raise Program_Error with "Can not initialise SDL2";
       end if;
-
---      for(i = 1; i < argc; ++i)
---      {
---              if(strncmp(argv[i], "-v", 2) == 0)
---                      verbose = argv[i][2] - '0';
---              else if(strncmp(argv[i], "-a", 2) == 0)
---                      alpha = atoi(&argv[i][2]);
---              else if(strncmp(argv[i], "-b", 2) == 0)
---                      bounce_around = 1;
---              else if(strncmp(argv[i], "-w", 2) == 0)
---                      wrap = 1;
---              else if(strncmp(argv[i], "-l", 2) == 0)
---                      num_of_layers = atoi(&argv[i][2]);
---              else if(strncmp(argv[i], "-p", 2) == 0)
---                      use_planets = 1;
---              else if(strncmp(argv[i], "-np", 2) == 0)
---                      use_planets = 0;
---              else if(strncmp(argv[i], "-d", 2) == 0)
---                      flags |= SDL_DOUBLEBUF;
---              else if(strncmp(argv[i], "-f", 2) == 0)
---                      flags |= SDL_FULLSCREEN;
---              else
---                      bpp = atoi(&argv[i][1]);
---      }
-
-      --      Layers := new Layer_Array'(0 .. Num_Of_Layers - 1 => null);-- Layer_Type;
-      --  Calloc(sizeof(layer_t), num_of_layers);
---      if(!layers)
---      {
---              fprintf(stderr, "Failed to allocate layers!\n");
---              exit(-1);
---      }
 
       SDL.Video.Windows.Makers.Create (Window,
                                        Title    => "Parallax 3",
                                        Position => (100, 100),
-                                       Size     => (SCREEN_W, SCREEN_H)
-                                      );  -- , bpp, flags);
+                                       Size     => (SCREEN_W, SCREEN_H),
+                                       Flags    => Flags);
       Screen := Window.Get_Surface;
---      screen = SDL_SetVideoMode(SCREEN_W, SCREEN_H, bpp, flags);
---      if(!screen)
---      {
---              fprintf(stderr, "Failed to open screen!\n");
---              exit(-1);
---      }
-
       Border := Screen.Clip_Rectangle;
 --      SDL_WM_SetCaption("Parallax Scrolling 3 - Overdraw", "Parallax 3");
 --      SDL_ShowCursor(0);
 
       SDL.Images.IO.Create (Tiles_Bmp, "assets/tiles.bmp");
---      if(!tiles_bmp)
---      {
---              fprintf(stderr, "Could not load graphics!\n");
---              exit(-1);
---      }
 --      tiles = SDL_DisplayFormat(tiles_bmp);
 --      otiles = SDL_DisplayFormat(tiles_bmp);
 --      SDL_FreeSurface(tiles_bmp);
@@ -302,7 +265,7 @@ package body Parallax_4 is
          --  Assign maps and tile palettes to parallax layers
          Layer_Init (Layers (0), Foreground_Map'Access, Tiles, Otiles);
          for I in 1 .. Num_Of_Layers - 2 loop
-            if (I mod 2 = 1) and Use_Planets then
+            if (I mod 2 = 1) and not No_Planets then
                Layer_Init (Layers (I), Middle_Map'Access,
                            Tiles, Otiles);
             else
