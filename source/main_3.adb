@@ -1,6 +1,6 @@
 with Parallax_3;
 
-procedure Main is
+procedure Main_3 is
 begin
    Parallax_3.Main;
-end Main;
+end Main_3;
