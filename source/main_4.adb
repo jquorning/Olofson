@@ -10,7 +10,7 @@ procedure Main_4 is
    Config : Command_Line_Configuration;
 begin
 
-   Set_Usage (Config, "[options]", "Parallax demo");
+   Set_Usage (Config, "[options]", "Parallax IV SDL2 demo");
 
    Define_Switch (Config, Verbose'Access,       "-v:", Help => "Verbose (0..3)");
    Define_Switch (Config, Alpha'Access,         "-a:", Help => "Alpha (0..255)");
