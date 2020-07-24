@@ -35,14 +35,14 @@ jobs:
       run: |
         git clone https://github.com/Lucretia/sdlada.git
 
-    - name: Build SDLAda tools
-      run: |
-        gprbuild -p -Psdlada/build/gnat/tools.gpr -XSDL_PLATFORM=linux -XSDL_MODE=release
-        sdlada/build/gnat/gen/release/tools/gen_keyboard > sdlada/src/sdl-events-keyboards.ads
+#    - name: Build SDLAda tools
+#      run: |
+#        gprbuild -p -Psdlada/build/gnat/tools.gpr -XSDL_PLATFORM=linux -XSDL_MODE=release
+#        sdlada/build/gnat/gen/release/tools/gen_keyboard > sdlada/src/sdl-events-keyboards.ads
 
-    - name: Build Fixed Rate Pig
-      run: |
-        gprbuild fixed_rate_pig.gpr -aPsdlada/build/gnat -k -largs -lSDL2 -lSDL2_ttf -lSDL2_image
+#    - name: Build Fixed Rate Pig
+#      run: |
+#        gprbuild fixed_rate_pig.gpr -aPsdlada/build/gnat -k -largs -lSDL2 -lSDL2_ttf -lSDL2_image
 
-    - name: Run Fixed Rate Pig help
-      run: cd resource; ../binary/fixedratepig -h
+# #   - name: Run Fixed Rate Pig help
+#      run: cd resource; ../binary/fixedratepig -h
