@@ -1,5 +1,4 @@
 
-<<<<<<< HEAD
 ## Olofson
 
 SDL2 demos using the SDLAda binding.
@@ -22,8 +21,6 @@ gprbuild fixedratepig.gpr -XSDL_PLATFORM=macosx
 ## Screenshots
 
 ![Parallax on Linux](screenshots/linux.png)
-
-![Ballfield on Linux](screenshots/ballfield_anim.mp4)
 
 ## Original
 
