@@ -1,3 +1,4 @@
+
 ## Olofson
 
 SDL2 demos using the SDLAda binding.
@@ -5,8 +6,9 @@ SDL2 demos using the SDLAda binding.
 ## Build and Run
 
 ```sh
-gprbuild -XSDL_PLATFORM=macosx
-./parallax3
+gprbuild parallax3.gpr -XSDL_PLATFORM=macosx
+gprbuild parallax4.gpr -XSDL_PLATFORM=macosx
+gprbuild ballfield.gpr -XSDL_PLATFORM=macosx
 ```
 
 ## Requirements
@@ -18,6 +20,8 @@ gprbuild -XSDL_PLATFORM=macosx
 ## Screenshots
 
 ![Parallax on Linux](screenshots/linux.png)
+
+![Ballfield on Linux](screenshots/ballfield_anim.mp4)
 
 ## Original
 

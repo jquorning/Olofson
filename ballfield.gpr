@@ -1,0 +1,35 @@
+with "sdlada";
+
+project Ballfield is
+  for Source_Dirs use ("source/");
+  for Object_Dir  use "object/";
+  for Exec_Dir    use "./";
+  for Create_Missing_Dirs use "True";
+  for Main use ("main.adb");
+
+  package Builder is
+     for Executable ("main.adb") use "ballfield";
+  end Builder;
+
+  package Compiler is
+     for Default_Switches ("Ada") use
+         ("-gnatyyM99", "-gnatwa", "-gnatVa");
+  end Compiler;
+
+  package Linker is
+    case SDLAda.Platform is
+      when "linux" | "bsd" | "android" | "windows" =>
+        for Default_Switches ("Ada") use ("-lSDL2",
+                                          "-lSDL2_image");
+
+      when "macosx" =>
+        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
+                                          "-framework", "SDL2",
+                                          "-framework", "SDL2_image");
+
+      when "ios" =>
+        null;
+    end case;
+  end Linker;
+
+end Ballfield;
