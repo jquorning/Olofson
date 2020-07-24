@@ -1,8 +1,8 @@
 with "sdlada";
 
 project Ballfield is
-  for Source_Dirs use ("source/");
-  for Object_Dir  use "object/";
+  for Source_Dirs use ("ballfield-dir/");
+  for Object_Dir  use "ballfield-dir/object/";
   for Exec_Dir    use "./";
   for Create_Missing_Dirs use "True";
   for Main use ("main.adb");
@@ -17,15 +17,16 @@ project Ballfield is
   end Compiler;
 
   package Linker is
+
     case SDLAda.Platform is
-      when "linux" | "bsd" | "android" | "windows" =>
+      when "linux" | "bsd" | "android" | "windows" | "macosx" =>
         for Default_Switches ("Ada") use ("-lSDL2",
                                           "-lSDL2_image");
 
-      when "macosx" =>
-        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
-                                          "-framework", "SDL2",
-                                          "-framework", "SDL2_image");
+--      when "macos_framework" =>
+--        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
+--                                          "-framework", "SDL2",
+--                                          "-framework", "SDL2_image");
 
       when "ios" =>
         null;

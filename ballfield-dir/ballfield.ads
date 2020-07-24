@@ -13,7 +13,7 @@ with SDL.Video.Rectangles;
 
 package Ballfield is
 
-   Assets_Path : constant String := "assets/";
+   Assets_Path : constant String := "ballfield-dir/assets/";
 
    procedure Main;
 
