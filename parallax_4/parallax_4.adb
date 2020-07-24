@@ -233,7 +233,7 @@ package body Parallax_4 is
       end if;
 
       SDL.Video.Windows.Makers.Create (Window,
-                                       Title    => "Parallax 3",
+                                       Title    => "Parallax 4",
                                        Position => (100, 100),
                                        Size     => (SCREEN_W, SCREEN_H),
                                        Flags    => Flags);
@@ -242,7 +242,7 @@ package body Parallax_4 is
 --      SDL_WM_SetCaption("Parallax Scrolling 3 - Overdraw", "Parallax 3");
 --      SDL_ShowCursor(0);
 
-      SDL.Images.IO.Create (Tiles_Bmp, "assets/tiles.bmp");
+      SDL.Images.IO.Create (Tiles_Bmp, "parallax_4/assets/tiles.bmp");
 --      tiles = SDL_DisplayFormat(tiles_bmp);
 --      otiles = SDL_DisplayFormat(tiles_bmp);
 --      SDL_FreeSurface(tiles_bmp);
