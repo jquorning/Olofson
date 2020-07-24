@@ -1,7 +1,7 @@
 --
 --
 
-with "sdlada.gpr";
+with "sdlada";
 
 project Fixed_Rate_Pig is
 
@@ -19,7 +19,6 @@ project Fixed_Rate_Pig is
 
      for Default_Switches ("Ada") use
        ("-g",
---        "-O2",
         "-gnatf",
         "-gnatVa",
         "-gnata",
@@ -38,17 +37,19 @@ project Fixed_Rate_Pig is
 
   package Linker is
     case SDLAda.Platform is
-      when "linux" | "bsd" | "android" | "windows" =>
+
+      when "linux" | "bsd" | "android" | "windows" | "macosx" =>
         for Default_Switches ("Ada") use ("-lSDL2",
                                           "-lSDL2_image");
 
-      when "macosx" =>
-        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
-                                          "-framework", "SDL2",
-                                          "-framework", "SDL2_image");
+--      when "macos_framework" =>
+--        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
+--                                          "-framework", "SDL2",
+--                                          "-framework", "SDL2_image");
 
       when "ios" =>
         null;
+
     end case;
   end Linker;
 end Fixed_Rate_Pig;
