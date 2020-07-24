@@ -1,38 +1,33 @@
 with "sdlada";
 
-project Parallax is
-  for Source_Dirs use ("source/");
-  for Object_Dir  use "object/";
+project Parallax_3 is
+  for Source_Dirs use ("parallax_3/");
+  for Object_Dir  use "parallax_3/object/";
   for Exec_Dir    use "./";
   for Create_Missing_Dirs use "True";
-  for Main use ("main_3.adb",
-                "main_4.adb");
+  for Main use ("main_3.adb");
 
   package Builder is
      for Executable ("main_3.adb") use "parallax3";
-     for Executable ("main_4.adb") use "parallax4";
   end Builder;
 
   package Compiler is
      for Default_Switches ("Ada") use
-         ("-gnatyyM99",
-          "-gnatwa", "-gnatVa");
+         ("-gnatyyM99", "-gnatwa", "-gnatVa");
   end Compiler;
 
   package Linker is
     case SDLAda.Platform is
+
       when "linux" | "bsd" | "android" | "windows" =>
-        for Default_Switches ("Ada") use ("-lSDL2",
-                                          "-lSDL2_image");
+        for Default_Switches ("Ada") use ("-lSDL2", "-lSDL2_image");
 
       when "macosx" =>
-        for Default_Switches ("Ada") use ("-F/Library/Frameworks",
-                                          "-framework", "SDL2",
-                                          "-framework", "SDL2_image");
+        for Default_Switches ("Ada") use ("-lSDL2", "-lSDL2_image");
 
       when "ios" =>
         null;
     end case;
   end Linker;
 
-end Parallax;
+end Parallax_3;
