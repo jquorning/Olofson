@@ -1,21 +1,23 @@
 
+<<<<<<< HEAD
 ## Olofson
 
 SDL2 demos using the SDLAda binding.
-
-## Build and Run
-
-```sh
-gprbuild parallax3.gpr -XSDL_PLATFORM=macosx
-gprbuild parallax4.gpr -XSDL_PLATFORM=macosx
-gprbuild ballfield.gpr -XSDL_PLATFORM=macosx
-```
 
 ## Requirements
 
 * Ada 2012 compiler
 * GPRbuild
 * [SDLAda](https://github.com/Lucretia/sdlada)
+
+## Build
+
+```sh
+gprbuild parallax3.gpr -XSDL_PLATFORM=macosx
+gprbuild parallax4.gpr -XSDL_PLATFORM=macosx
+gprbuild ballfield.gpr -XSDL_PLATFORM=macosx
+gprbuild fixedratepig.gpr -XSDL_PLATFORM=macosx
+```
 
 ## Screenshots
 
