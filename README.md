@@ -1,6 +1,6 @@
-## Parallax 3
+## Olofson
 
-SDL2 demo using the SDLAda binding.
+SDL2 demos using the SDLAda binding.
 
 ## Build and Run
 
@@ -21,4 +21,4 @@ gprbuild -XSDL_PLATFORM=macosx
 
 ## Original
 
-The original *Parallax 3* can be found [here](http://olofson.net/examples.html).
+The originals are found [here](http://olofson.net/examples.html).
