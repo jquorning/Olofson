@@ -64,9 +64,9 @@ package body Engines is
    --  moves more than 25% of the collision distance between tests.
    --  (25% should be sufficient for correct direction flags.)
 
-   function Check_Tile (Map  : not null PIG_Map_Access;
+   function Check_Tile (Map  : not null Pig_Map_Access;
                         X, Y : Pixels;
-                        Mask : Pig_Sides) return Pig_Sides;
+                        Mask : Sides) return Sides;
    --  Returns a non-zero value if the tile at (x, y) is marked for
    --  collisions on the side indicated by 'mask'.
 
@@ -95,7 +95,7 @@ package body Engines is
    Clean_Object : constant Game_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
       Ip    => (Gimage => 0, others => 0.0),
-      Tilemask => PIG_None,
+      Tilemask => No_Side,
       Hitmask  => 0, Hitgroup => 0,
       Timer    => (0, 0, 0),
       Age      => 0, Score => 0, Power => 0, Target => 0,
@@ -359,19 +359,19 @@ package body Engines is
          Sprite : not null PIG_Sprite_Access renames Engine.Sprites (Frame);
       begin
          case Hot_X is
-            when PIG_UNCHANGED =>  null;
-            when PIG_MIN       =>  Sprite.Hot_X := 0;
-            when PIG_CENTER    =>  Sprite.Hot_X := Sprite.Width / 2;
-            when PIG_MAX       =>  Sprite.Hot_X := Sprite.Width;
-            when others        =>  Sprite.Hot_X := Hot_X;
+            when Unchanged =>  null;
+            when Minimum   =>  Sprite.Hot_X := 0;
+            when Center    =>  Sprite.Hot_X := Sprite.Width / 2;
+            when Maximum   =>  Sprite.Hot_X := Sprite.Width;
+            when others    =>  Sprite.Hot_X := Hot_X;
          end case;
 
          case Hot_Y is
-            when PIG_UNCHANGED =>  null;
-            when PIG_MIN       =>  Sprite.Hot_Y := 0;
-            when PIG_CENTER    =>  Sprite.Hot_Y := Sprite.Height / 2;
-            when PIG_MAX       =>  Sprite.Hot_Y := Sprite.Height;
-            when others        =>  Sprite.Hot_Y := Hot_Y;
+            when Unchanged =>  null;
+            when Minimum   =>  Sprite.Hot_Y := 0;
+            when Center    =>  Sprite.Hot_Y := Sprite.Height / 2;
+            when Maximum   =>  Sprite.Hot_Y := Sprite.Height;
+            when others    =>  Sprite.Hot_Y := Hot_Y;
          end case;
       end;
    end Set_Hotspot;
@@ -416,10 +416,10 @@ package body Engines is
             Object.Timer (I) := Object.Timer (I) - 1;
             if Object.Timer (I) = 0 then
                declare
-                  To_Kind : constant array (Timer_Id) of PIG_Events := (1 => PIG_TIMER_1,
-                                                                        2 => PIG_TIMER_2,
-                                                                        3 => PIG_TIMER_3);
-                  Event : PIG_Event;
+                  To_Kind : constant array (Timer_Id) of Pig_Events :=
+                    (1 => Timer_1, 2 => Timer_2, 3 => Timer_3);
+
+                  Event : Pig_Event;
                begin
                   Event.Kind := To_Kind (I);
                   Object.Handler (Object, Event);
@@ -445,7 +445,7 @@ package body Engines is
       Width   : constant Pixels := (if Sprite /= null then Sprite.Width  else 0);
       Height  : constant Pixels := (if Sprite /= null then Sprite.Height else 0);
 
-      Sides : constant Pig_Sides :=
+      Hit : constant Sides :=
           (Top    =>  Pixels (Object.Y) - Hot_Y < -Height,
            Bottom =>  Pixels (Object.Y) - Hot_Y >= Pixels (Engine.View.Height),
            Left   =>  Pixels (Object.X) - Hot_X < -Width,
@@ -453,19 +453,19 @@ package body Engines is
 
       Dx : constant Float := Object.X - Object.Ip.Ox;
       Dy : constant Float := Object.Y - Object.Ip.Oy;
-      Event : PIG_Event;
+      Event : Pig_Event;
    begin
-      if Sides = PIG_None then
+      if Hit = No_Side then
          return;
       end if;
 
-      if Sides.Top then
+      if Hit.Top then
          Event.Cinfo.Y := 0;
          if Dy /= 0.0 then
             Event.Cinfo.X := Pixels (Object.Ip.Ox - Dx * Object.Ip.Oy / Dy);
          end if;
 
-      elsif Sides.Bottom then
+      elsif Hit.Bottom then
          Event.Cinfo.Y := Pixels (Engine.View.Height - 1);
          if Dy /= 0.0 then
             Event.Cinfo.X := Pixels (Object.Ip.Ox + Dx *
@@ -473,13 +473,13 @@ package body Engines is
          end if;
       end if;
 
-      if Sides.Left then
+      if Hit.Left then
          Event.Cinfo.X := 0;
          if Dx /= 0.0 then
             Event.Cinfo.Y := Pixels (Object.Ip.Oy - Dy * Object.Ip.Ox / Dx);
          end if;
 
-      elsif Sides.Right then
+      elsif Hit.Right then
          Event.Cinfo.X := Pixels (Engine.View.Width - 1);
          if Dx not in -0.01 .. 0.01 then
             Event.Cinfo.Y := Pixels (Object.Ip.Oy + Dy *
@@ -487,8 +487,8 @@ package body Engines is
          end if;
       end if;
 
-      Event.Cinfo.Sides := Sides;
-      Event.Kind        := PIG_OFFSCREEN;
+      Event.Cinfo.Hit := Hit;
+      Event.Kind      := Offscreen;
       Object.Handler (Object, Event);
    end Test_Offscreen;
 
@@ -498,8 +498,8 @@ package body Engines is
                                 T        :          Float;
                                 Hitdist  :          Float)
    is
-      Event : PIG_Event;
-      Sides : Pig_Sides;
+      Event : Pig_Event;
+      Hit   : Sides;
       IX    : constant Float := Object.Ip.Ox   * (1.0 - T) + Object.X   * T;
       IY    : constant Float := Object.Ip.Oy   * (1.0 - T) + Object.Y   * T;
       IX2   : constant Float := Object_2.Ip.Ox * (1.0 - T) + Object_2.X * T;
@@ -513,25 +513,25 @@ package body Engines is
       end if;
 
       if abs D_Square < 1.0 then
-         Sides := PIG_All;
+         Hit := All_Sides;
       else
          declare
             D   : constant Float := Sqrt (D_Square);
             Dx2 : constant Float := Dx / D;
             Dy2 : constant Float := Dy / D;
          begin
-            Sides.Left   := Dx2 < -0.707;
-            Sides.Right  := Dx2 >  0.707;
-            Sides.Top    := Dy2 < -0.707;
-            Sides.Bottom := Dy2 >  0.707;
+            Hit.Left   := Dx2 < -0.707;
+            Hit.Right  := Dx2 >  0.707;
+            Hit.Top    := Dy2 < -0.707;
+            Hit.Bottom := Dy2 >  0.707;
          end;
       end if;
-      Event.Kind     := PIG_HIT_OBJECT;
+      Event.Kind     := Hit_Object;
       Event.Cinfo.Ff := 0.0;
 
-      Event.Cinfo.X     := Pixels (IX);
-      Event.Cinfo.Y     := Pixels (IY);
-      Event.Cinfo.Sides := Sides;
+      Event.Cinfo.X   := Pixels (IX);
+      Event.Cinfo.Y   := Pixels (IY);
+      Event.Cinfo.Hit := Hit;
 
       if True then --      if Object.Hitmask and Object_2.Hitgroup then
          Event.Obj := Object_2;
@@ -541,10 +541,10 @@ package body Engines is
       if True then --      if Object_2.Id and (Object_2.Hitmask and Object.Hitgroup) then
          Event.Cinfo.X := Pixels (IX2);
          Event.Cinfo.Y := Pixels (IY2);
-         Event.Cinfo.Sides := (Right  => Sides.Left,
-                               Left   => Sides.Right,
-                               Bottom => Sides.Top,
-                               Top    => Sides.Bottom);
+         Event.Cinfo.Hit := (Right  => Hit.Left,
+                             Left   => Hit.Right,
+                             Bottom => Hit.Top,
+                             Top    => Hit.Bottom);
          Event.Obj := Object;
          Object_2.Handler (Object_2.all, Event);
       end if;
@@ -609,27 +609,30 @@ package body Engines is
       pragma Warnings (On);
    end Test_Sprite_Sprite;
 
+   ----------------
+   -- Check_tile --
+   ----------------
 
-   function Check_Tile (Map  : not null PIG_Map_Access;
+   function Check_Tile (Map  : not null Pig_Map_Access;
                         X, Y : Pixels;
-                        Mask : Pig_Sides) return Pig_Sides
+                        Mask : Sides) return Sides
    is
       Mx, My : Tiles;
    begin
       --  Must check < 0 first! (Division rounds
       --  towards zero - not downwards.)
       if X < 0 or Y < 0 then
-         return PIG_None;
+         return No_Side;
       end if;
 
       Mx := Tiles (X / Map.Tile_Width);
       My := Tiles (Y / Map.Tile_Height);
       if Mx >= Map.Width or My >= Map.Height then
-         return PIG_None;
+         return No_Side;
       end if;
 
       declare
-         Hit : constant Pig_Sides := Map.Hit (Mx, My);
+         Hit : constant Sides := Map.Hit (Mx, My);
       begin
          return
            (Top    => Hit.Top    and Mask.Top,
@@ -639,19 +642,22 @@ package body Engines is
       end;
    end Check_Tile;
 
+   ------------------
+   -- Pig_Test_Map --
+   ------------------
 
    function Pig_Test_Map (Engine : Game_Engine;
-                          X, Y   : Pixels) return Pig_Sides
+                          X, Y   : Pixels) return Sides
    is
       Mx, My : Tiles;
    begin
       if X < 0 or Y < 0 then
-         return PIG_None;
+         return No_Side;
       end if;
       Mx := Tiles (X / Engine.Map.Tile_Width);
       My := Tiles (Y / Engine.Map.Tile_Height);
       if Mx >= Engine.Map.Width or My >= Engine.Map.Height then
-         return PIG_None;
+         return No_Side;
       end if;
       return Engine.Map.Hit (Mx, My);
    end Pig_Test_Map;
@@ -661,9 +667,9 @@ package body Engines is
    function Pig_Test_Map_Vector (Engine : in out Game_Engine;
                                  X1, Y1 :        Pixels;
                                  X2, Y2 :        Pixels;
-                                 Mask   :        Pig_Sides;
+                                 Mask   :        Sides;
                                  Ci     :        PIG_Cinfo_Access)
-                                return Pig_Sides
+                                return Sides
      --  Simple implementation that checks only for top edge collisions.
      --  (Full top/bottom/left/right checks with proper handling of
      --  corners and rows of tiles is a lot more complicated, so I'll
@@ -671,33 +677,33 @@ package body Engines is
      --  but incorrect.)
    is
       Ci2  : constant not null PIG_Cinfo_Access := (if Ci /= null then Ci else Lci'Access);
-      Map  : constant not null PIG_Map_Access   := Engine.Map;
+      Map  : constant not null Pig_Map_Access   := Engine.Map;
       X, Y : Pixels;
       Dist : Pixels := 2_000_000_000;
    begin
-      Ci2.Sides := PIG_None;
+      Ci2.Hit := No_Side;
       if Mask.Top and Y1 < Y2 then
 
          --  Test for tiles that can be hit from the top
          Y := Y1 + Map.Tile_Height - Y1 mod Map.Tile_Height;
          while Y <= Y2 loop
             X := X1 + (X2 - X1) * (Y - Y1) / (Y2 - Y1);
-            if Check_Tile (Map, X, Y + 1, PIG_Top) /= PIG_None then
+            if Check_Tile (Map, X, Y + 1, Top_Side) /= No_Side then
                Dist := (X - X1) * (X - X1) + (Y - Y1) * (Y - Y1);
                Ci2.X := X;
                Ci2.Y := Y - 1;
-               Ci2.Sides.Top := True;
+               Ci2.Hit.Top := True;
                exit;
             end if;
             Y := Y + Map.Tile_Height;
          end loop;
       end if;
 
-      if Ci2.Sides /= PIG_None then
+      if Ci2.Hit /= No_Side then
          Ci2.Ff := Sqrt (Float ((X2 - X1) * (X2 - X1) +
                                  (Y2 - Y1) * (Y2 - Y1) / Dist));
       end if;
-      return Ci2.Sides;
+      return Ci2.Hit;
    end Pig_Test_Map_Vector;
 
 
@@ -707,15 +713,15 @@ package body Engines is
    is
       pragma Unreferenced (Sprite);
       Cinfo : aliased PIG_Cinfo;
-      Event : PIG_Event;
+      Event : Pig_Event;
    begin
-      if PIG_None /= Pig_Test_Map_Vector (Engine,
+      if No_Side /= Pig_Test_Map_Vector (Engine,
                                           Pixels (Object.Ip.Ox), Pixels (Object.Ip.Oy),
                                           Pixels (Object.X),     Pixels (Object.Y),
                                           Object.Tilemask, Cinfo'Unchecked_Access)
       then
          Event.Cinfo := Cinfo;
-         Event.Kind  := PIG_HIT_TILE;
+         Event.Kind  := Hit_Tile;
          Object.Handler (Object, Event);
       end if;
    end Test_Sprite_Map;
@@ -739,14 +745,14 @@ package body Engines is
       Object_Cursor := Engine.Objects.First;
       while Object_Cursor /= No_Element loop
          declare
-            Event : PIG_Event;
+            Event : Pig_Event;
          begin
             --  We must grab the next pointer before
             --  we call any event handlers, as they
             --  may cause objects to remove themselves!
             Next_Cursor := Next (Object_Cursor);
 
-            Event.Kind := PIG_PREFRAME;
+            Event.Kind := Preframe;
 --            Object.Handler (Object.all, Event);
             Element (Object_Cursor).Handler (Element (Object_Cursor).all, Event);
          end;
@@ -785,7 +791,7 @@ package body Engines is
                   Test_Sprite_Sprite (Game_Engine (Engine), Object, Sprite);
                end if;
 
-               if Object.Id /= 0 and Object.Tilemask /= PIG_None then
+               if Object.Id /= 0 and Object.Tilemask /= No_Side then
                   Test_Sprite_Map (Game_Engine (Engine), Object.all, Sprite);
                end if;
             end if;
@@ -796,9 +802,9 @@ package body Engines is
       for Object of Engine.Objects loop
          if Object.Id /= 0 then
             declare
-               Event : PIG_Event;
+               Event : Pig_Event;
             begin
-               Event.Kind := PIG_POSTFRAME;
+               Event.Kind := Postframe;
                Object.Handler (Object.all, Event);
                Object.Age := Object.Age + 1;
             end;
@@ -1225,7 +1231,7 @@ package body Engines is
    function Pig_Map_Open (Engine : Game_Engine_Class;
                           Width  : Tiles;
                           Height : Tiles)
-                         return not null PIG_Map_Access
+                         return not null Pig_Map_Access
    is
    begin
       if Engine.Map /= null then
@@ -1246,7 +1252,7 @@ package body Engines is
                  Hitinfo     => (others => (others => False))
                 );
 
-      Engine.Map.Hit.all := (others => (others => PIG_None));
+      Engine.Map.Hit.all := (others => (others => No_Side));
       Engine.Map.Map.all := (others => (others => 0));
       return Engine.Map;
    end Pig_Map_Open;
@@ -1296,11 +1302,14 @@ package body Engines is
 --      return 0;
    end Pig_Map_Tiles;
 
+   -----------------------
+   -- Pig_Map_Collision --
+   -----------------------
 
    procedure Pig_Map_Collisions (Map   : in out PIG_Map;
                                  First :        Natural;
                                  Count :        Natural;
-                                 Sides :        Pig_Sides)
+                                 Hit   :        Sides)
    is
 --  void pig_map_collisions(PIG_map *pm, unsigned first, unsigned count, PIG_sides sides)
 --  {
@@ -1411,7 +1420,7 @@ package body Engines is
       Object : constant not null Object_Access := Get_Object (Engine.Self.all);
    begin
       Object.Owner    := Game_Engine_Class (Engine.Self);
-      Object.Tilemask := PIG_All;
+      Object.Tilemask := All_Sides;
       Object.Hitmask  := 0;
       Object.Hitgroup := 0;
 

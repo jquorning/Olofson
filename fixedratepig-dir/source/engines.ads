@@ -65,68 +65,70 @@ is
    --
    --  Game logic events
    --
-   type PIG_Events is
+   type Pig_Events is
      (
-      PIG_PREFRAME,
+      Preframe,
       --  Occurs once per logic frame, before collision and
       --  off-screen detection, and before timer handlers.
 
-      PIG_TIMER_1,
-      PIG_TIMER_2,
-      PIG_TIMER_3,
+      Timer_1,
+      Timer_2,
+      Timer_3,
       --  Occurs whenever timer x expires. Timers are one-
       --  shot, but can be reloaded by the handler for
       --  periodic action. Timer events are handled before
       --  before collision and off-screen detection.
 
-      PIG_HIT_TILE,
+      Hit_Tile,
       --  Occurs when the hot-spot of an object hits a
       --  marked side of a tile, and the corresponding bit
       --  in 'tilemask' is set.
 
-      PIG_HIT_OBJECT,
+      Hit_Object,
       --  Occurs when the collision circle of an object
       --  intersects the collision circle of another object,
       --  provided one or more bits in 'hitgroup' of the
       --  other object matches bits in 'hitmask'.
 
-      PIG_OFFSCREEN,
+      Offscreen,
       --  Occurs when an object is off-screen. This takes
       --  in account the hot-spot and bounding rectangle of
       --  the current sprite frame.
 
-      PIG_POSTFRAME
+      Postframe
         --  Occurs once per logic frame, after collision
         --  detection, off-screen detection and all other
         --  events.
    );
 
-   type Pig_Sides is record
+   type Sides is record
       Top    : Boolean;
       Bottom : Boolean;
       Left   : Boolean;
       Right  : Boolean;
    end record;
-   PIG_Top  : constant Pig_Sides := (Top => True, others => False);
-   PIG_None : constant Pig_Sides := (others => False);
-   PIG_All  : constant Pig_Sides := (others => True);
+
+   Top_Side  : constant Sides := (Top => True, others => False);
+   No_Side   : constant Sides := (others => False);
+   All_Sides : constant Sides := (others => True);
 
    --  Magic values
-   PIG_UNCHANGED : constant := -10000000;
-   PIG_MIN       : constant := -10000001;
-   PIG_CENTER    : constant := -10000002;
-   PIG_MAX       : constant := -10000003;
+   subtype Magic_Value is Pixels;
+   Unchanged : constant Magic_Value := -10000000;
+   Minimum   : constant Magic_Value := -10000001;
+   Center    : constant Magic_Value := -10000002;
+   Maximum   : constant Magic_Value := -10000003;
 
    --  Collision info
    type PIG_Cinfo is record
-      Ff    : Float;      --  Fractional frame
-      X, Y  : Pixels;     --  Exact position
-      Sides : Pig_Sides;  --  Side of tile hit
+      Ff   : Float;      --  Fractional frame
+      X, Y : Pixels;     --  Exact position
+      Hit  : Sides;      --  Side of tile hit
    end record;
 
 
-   type PIG_Event is record
-      Kind  : PIG_Events;
+   type Pig_Event is record
+      Kind  : Pig_Events;
 
       Cinfo : PIG_Cinfo;      --  Detailed collision info
       --  For HIT_TILE, HIT_OBJECT and OFFSCREEN
@@ -143,10 +145,10 @@ is
 
    type Handler_Access is not null access
      procedure (Object : in out Game_Object;
-                Event  :        PIG_Event);
+                Event  :        Pig_Event);
 
    procedure Null_Handler (Object : in out Game_Object;
-                           Event  :        PIG_Event) is null;
+                           Event  :        Pig_Event) is null;
    type Game_Engine_Class is access all Game_Engine'Class;
    type Object_Id    is new Natural;
 
@@ -162,7 +164,7 @@ is
       Vx, Vy   : Float;         -- Speed
       Ax, Ay   : Float;         -- Acceleration
       Ip       : PIG_Ipoint;
-      Tilemask : Pig_Sides;     -- Sprite/tile mask [PIG_ALL]
+      Tilemask : Sides;         -- Sprite/tile mask [PIG_ALL]
 
       Hitmask  : Integer;       -- Sprite/sprite mask [0]
       Hitgroup : Integer;       -- Sprite/sprite group [0]
@@ -187,8 +189,8 @@ is
    --
    type Tile_Index is range 0 .. 255;
    type Map_Array  is array (Tiles range <>, Tiles range <>) of Tile_Index;
-   type Hit_Array  is array (Tiles range <>, Tiles range <>) of Pig_Sides;
-   type Hitinfo_Array is array (Tile_Index) of Pig_Sides;
+   type Hit_Array  is array (Tiles range <>, Tiles range <>) of Sides;
+   type Hitinfo_Array is array (Tile_Index) of Sides;
    type Map_Array_Access is not null access Map_Array;
    type Hit_Array_Access is not null access Hit_Array;
 
@@ -205,7 +207,7 @@ is
       Tile        : Surface;           --  Tile palette image
       Hitinfo     : Hitinfo_Array;     --  Collision info for the tiles
    end record;
-   type PIG_Map_Access is access all PIG_Map;
+   type Pig_Map_Access is access all PIG_Map;
 
    --  Sprite frame
    type PIG_Sprite is record
@@ -253,7 +255,7 @@ is
         Frame : Integer;              --  Logic time; integer part
 
         --  Background graphics
-        Map   : PIG_Map_Access;
+        Map   : Pig_Map_Access;
 
         --  Objects
         Objects           : Object_Lists.List;
@@ -354,7 +356,7 @@ is
    --  Render a sprite "manually", bypassing the engine
 
    function Pig_Test_Map (Engine : Game_Engine;
-                          X, Y   : Pixels) return Pig_Sides;
+                          X, Y   : Pixels) return Sides;
    --  Get the collision flags for the tile at (x, y),
    --  where the unit of x and y is pixels. The return
    --  is the PIG_sides flags for the tile, or PIG_NONE
@@ -364,9 +366,9 @@ is
    function Pig_Test_Map_Vector (Engine : in out Game_Engine;
                                  X1, Y1 :        Pixels;
                                  X2, Y2 :        Pixels;
-                                 Mask   :        Pig_Sides;
+                                 Mask   :        Sides;
                                  Ci     :        PIG_Cinfo_Access)
-                                return Pig_Sides;
+                                return Sides;
    --  Find the first "collidable" tile side when going from
    --  (x1, y1) to (x2, y2). 'mask' determines which tile sides
    --  are considered for collisions.
@@ -382,7 +384,7 @@ is
    function Pig_Map_Open (Engine : Game_Engine_Class;
                           Width  : Tiles;
                           Height : Tiles)
-                         return not null PIG_Map_Access;
+                         return not null Pig_Map_Access;
 
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
@@ -396,7 +398,7 @@ is
    procedure Pig_Map_Collisions (Map   : in out PIG_Map;
                                  First :        Natural;
                                  Count :        Natural;
-                                 Sides :        Pig_Sides);
+                                 Hit   :        Sides);
    --  Set tile collision info for 'count' tiles, starting at
    --  'first'. Each tile in the tile palette has a set of
    --  PIG_sides flags that determine which sides the tile are

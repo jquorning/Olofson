@@ -17,7 +17,14 @@ with Engines;
 package Games
   with Elaborate_Body
 is
-   use Engines;
+   subtype Game_Engine   is Engines.Game_Engine;
+   subtype Sprite_Index  is Engines.Sprite_Index;
+   subtype Object_Access is Engines.Object_Access;
+   subtype Pixels        is Engines.Pixels;
+   subtype Power_Ups     is Engines.Power_Ups;
+   subtype Object_Id     is Engines.Object_Id;
+   subtype Game_Object   is Engines.Game_Object;
+   subtype Pig_Event     is Engines.Pig_Event;
 
    --  Graphics defines
    SCREEN_W     : constant := 800;
@@ -163,28 +170,28 @@ is
 
 
    procedure Player_Handler (Object : in out Game_Object;
-                             Event  :        PIG_Event);
+                             Event  :        Pig_Event);
 
    procedure Powerup_Handler (Object : in out Game_Object;
-                              Event  :        PIG_Event);
+                              Event  :        Pig_Event);
 
    procedure Star_Handler (Object : in out Game_Object;
-                           Event  :        PIG_Event);
+                           Event  :        Pig_Event);
 
    procedure Evil_Handler (Object : in out Game_Object;
-                           Event  :        PIG_Event);
+                           Event  :        Pig_Event);
 
    procedure Slime_Handler (Object : in out Game_Object;
-                            Event  :        PIG_Event);
+                            Event  :        Pig_Event);
 
    procedure Chain_Head_Handler (Object : in out Game_Object;
-                                 Event  :        PIG_Event);
+                                 Event  :        Pig_Event);
 
    procedure Dashboard (Game : in out Game_State);
    --  Render the dashboard
 
    procedure Chain_Link_Handler (Object : in out Game_Object;
-                                 Event  :        PIG_Event);
+                                 Event  :        Pig_Event);
 
    procedure Start_Game (Game : in out Game_State);
 
