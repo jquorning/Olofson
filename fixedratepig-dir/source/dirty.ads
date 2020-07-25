@@ -22,7 +22,7 @@ is
    Null_Rectangle : constant Rectangle := Rectangles.Null_Rectangle;
 
    type Rectangle_Arrays_Access
-     is not null access Rectangles.Rectangle_Arrays;
+     is access Rectangles.Rectangle_Arrays;
 
    type Dirty_Table is record
       Rects : Rectangle_Arrays_Access;  --  Table of rects

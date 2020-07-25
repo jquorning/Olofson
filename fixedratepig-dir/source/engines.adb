@@ -26,7 +26,6 @@ package body Engines is
    package Rectangles renames SDL.Video.Rectangles;
    package Surfaces   renames SDL.Video.Surfaces;
 
-   subtype Dirty_Table is Dirty.Dirty_Table;
    subtype int is SDL.C.int;
 
    Null_Rectangle : constant Rectangle := Rectangles.Null_Rectangle;
@@ -121,17 +120,13 @@ package body Engines is
       Engine.View    := Null_Rectangle;  --  Viewport pos & size (pixels)
 
       --  Dirty
+      Dirty.Create (Engine.Dirty (Zero), Size => 128);
+      Dirty.Create (Engine.Dirty (One),  Size =>   0);
+      Dirty.Create (Engine.Dirty (Work), Size => 256);
+      --  One table for each page and one work dirtytable
 
-      Engine.Page := 0;
+      Engine.Page := Zero;
       --  Current page (double buffer)
-
-      Dirty.Create (Engine.Pagedirty (0).all, Size => 128);
-      Dirty.Create (Engine.Pagedirty (1).all, Size =>   0);
---      Engine.Pagedirty (1).all := null;
-      --  One table for each page
-
-      Dirty.Create (Engine.Workdirty.all, Size => 256);
-      --  The work dirtytable
 
       --  "Live" switches
       Engine.Interpolation   := True;
@@ -191,6 +186,7 @@ package body Engines is
    overriding
    procedure Finalize (Engine : in out Game_Engine) is
    begin
+      null;
       --  {
       --      if(pe->sprites)
       --      {
@@ -210,15 +206,15 @@ package body Engines is
       --              pig_map_close(pe->map);
       --      if(pe->buffer)
       --              SDL_FreeSurface(pe->buffer);
-      if Engine.Pagedirty (0) /= null then
-         Dirty.Close (Engine.Pagedirty (0).all);
-      end if;
-      if Engine.Pagedirty (1) /= null then
-         Dirty.Close (Engine.Pagedirty (1).all);
-      end if;
-      if Engine.Workdirty /= null then
-         Dirty.Close (Engine.Workdirty.all);
-      end if;
+      --  if Engine.Pagedirty (0) /= null then
+      --     Dirty.Close (Engine.Pagedirty (0).all);
+      --  end if;
+      --  if Engine.Pagedirty (1) /= null then
+      --     Dirty.Close (Engine.Pagedirty (1).all);
+      --  end if;
+      --  if Engine.Workdirty /= null then
+      --     Dirty.Close (Engine.Workdirty.all);
+      --  end if;
       --      free(pe);
       --   end Pig_Close;
    end Finalize;
@@ -238,7 +234,7 @@ package body Engines is
       Engine.Surfac := Screen;
 
       if Pages > 1 then
-         Dirty.Create (Engine.Pagedirty (1).all, Size => 128);
+         Dirty.Create (Engine.Dirty (One), Size => 128);
       end if;
    end Setup;
 
@@ -591,10 +587,12 @@ package body Engines is
                Hit_Dist : constant Float := Float'Max (1.0, Hitdist_2);
 
                --  Calculate number of testing steps
-               D_Max_1 : constant Float := Float'Max (abs (Object  .Ip.Ox - Object  .X),
-                                                      abs (Object  .Ip.Oy - Object  .Y));
-               D_Max_2 : constant Float := Float'Max (abs (Object_2.Ip.Ox - Object_2.X),
-                                                      abs (Object_2.Ip.Oy - Object_2.Y));
+               D_Max_1 : constant Float :=
+                 Float'Max (abs (Object  .Ip.Ox - Object  .X),
+                            abs (Object  .Ip.Oy - Object  .Y));
+               D_Max_2 : constant Float :=
+                 Float'Max (abs (Object_2.Ip.Ox - Object_2.X),
+                            abs (Object_2.Ip.Oy - Object_2.Y));
                D_Max   : constant Float := Float'Max (D_Max_1, D_Max_2);
                Delta_T : constant Float := (if D_Max > 1.0
                                               then Hit_Dist / (D_Max * 4.0)
@@ -856,7 +854,7 @@ package body Engines is
       end if;
 
       if R.Width /= 0 and R.Height /= 0 then
-         Dirty.Add (Engine.Pagedirty (Engine.Page).all, R);
+         Dirty.Add (Engine.Dirty (Engine.Page), R);
       end if;
 
    end Pig_Dirty;
@@ -965,18 +963,18 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out Game_Engine)
    is
-      Old_Dirty : constant Table_Access := Engine.Workdirty;
+      Old_Dirty : constant Page_Index := Work;
       Fframe    : constant Float := Float (Engine.Time
                                           - Long_Float'Floor (Engine.Time));
    begin
       Engine.Surfac.Set_Clip_Rectangle (Engine.View);
 
       --  Swap the work and display/back page dirtytables
-      Engine.Workdirty               := Engine.Pagedirty (Engine.Page);
-      Engine.Pagedirty (Engine.Page) := Old_Dirty;
+      Engine.Work := Engine.Page;
+      Engine.Page := Old_Dirty;
 
       --  Clear the display/back page dirtytable
-      Engine.Workdirty.Last := 0;
+      Engine.Dirty (Engine.Work).Last := 0;
 
       --  Update positions and render all objects
       for Object of Engine.Objects loop
@@ -1017,14 +1015,14 @@ package body Engines is
                --  We use the clipped rect for the dirtyrect!
                --
                if Target_Area.Width /= 0 and Target_Area.Height /= 0 then
-                  Dirty.Add (Engine.Workdirty.all, Target_Area);
+                  Dirty.Add (Engine.Dirty (Zero), Target_Area);
                end if;
             end;
          end if;
       end loop;
 
       --  Merge the display/back page table into the work table
-      Dirty.Merge_Tables (Engine.Workdirty.all, Old_Dirty.all);
+      Dirty.Merge_Tables (Engine.Dirty (Engine.Work), Engine.Dirty (Old_Dirty));
    end Draw_Sprites;
 
    -----------------
@@ -1153,7 +1151,7 @@ package body Engines is
    procedure Pig_Flip (Engine : in out Game_Engine;
                        Win    : in out Window)
    is
-      Table : Dirty_Table renames Engine.Workdirty.all;
+      Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
 --      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
 
@@ -1186,7 +1184,7 @@ package body Engines is
       if False then
 --         SDL_Flip (Engine.Screen);
          if Engine.Pages > 1 then
-            Engine.Page := 1 - Engine.Page;
+            Engine.Page := (if Engine.Page = One then Zero else One);
          end if;
       else
          Win.Update_Surface_Rectangles (Table.Rects.all);

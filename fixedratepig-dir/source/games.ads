@@ -101,7 +101,7 @@ is
    overriding
    procedure Finalize (Game : in out Game_State);
 
-   procedure Create (Game : in out Game_State);
+   function Create return Game_State;
 
    procedure Inc_Score (Game : in out Game_State; V : Integer);
 

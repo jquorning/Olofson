@@ -104,65 +104,68 @@ package body Games is
    -- Create --
    ------------
 
-   procedure Create (Game : in out Game_State) is
+   function Create return Game_State is
    begin
-      Game.Set_Viewport (0, 0, SCREEN_W, MAP_H * TILE_H);
+      return Game : Game_State
+      do
+         Game.Set_Viewport (0, 0, SCREEN_W, MAP_H * TILE_H);
 
-      Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
-      Game.Create_Sprites (Asset_Dir & "font.png",      44, 56, Game.Scorefont);
-      Game.Create_Sprites (Asset_Dir & "glassfont.png", 60, 60, Game.Glassfont);
-      Game.Create_Sprites (Asset_Dir & "icons.png",     48, 48, Game.Icons);
-      Game.Create_Sprites (Asset_Dir & "stars.png",     32, 32, Game.Stars);
-      Game.Create_Sprites (Asset_Dir & "pigframes.png", 64, 48, Game.Pigframes);
-      Game.Create_Sprites (Asset_Dir & "evil.png",      48, 48, Game.Evil);
-      Game.Create_Sprites (Asset_Dir & "slime.png",     48, 48, Game.Slime);
+         Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
+         Game.Create_Sprites (Asset_Dir & "font.png",      44, 56, Game.Scorefont);
+         Game.Create_Sprites (Asset_Dir & "glassfont.png", 60, 60, Game.Glassfont);
+         Game.Create_Sprites (Asset_Dir & "icons.png",     48, 48, Game.Icons);
+         Game.Create_Sprites (Asset_Dir & "stars.png",     32, 32, Game.Stars);
+         Game.Create_Sprites (Asset_Dir & "pigframes.png", 64, 48, Game.Pigframes);
+         Game.Create_Sprites (Asset_Dir & "evil.png",      48, 48, Game.Evil);
+         Game.Create_Sprites (Asset_Dir & "slime.png",     48, 48, Game.Slime);
 
-      declare
-         subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
-         subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
-         subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
-         subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
-      begin
-         for I in Icons_Range loop
-            Game.Set_Hotspot (Game.Icons + I, Center, 45);
-         end loop;
+         declare
+            subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
+            subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
+            subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
+            subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
+         begin
+            for I in Icons_Range loop
+               Game.Set_Hotspot (Game.Icons + I, Center, 45);
+            end loop;
 
-         for I in Pig_Range loop
-            Game.Set_Hotspot (Game.Pigframes + I, Center, 43);
-         end loop;
+            for I in Pig_Range loop
+               Game.Set_Hotspot (Game.Pigframes + I, Center, 43);
+            end loop;
 
-         for I in Evil_Range loop
-            Game.Set_Hotspot (Game.Evil + I, Center, 46);
-         end loop;
+            for I in Evil_Range loop
+               Game.Set_Hotspot (Game.Evil + I, Center, 46);
+            end loop;
 
-         for I in Slime_Range loop
-            Game.Set_Hotspot (Game.Slime + I, Center, 46);
-         end loop;
-      end;
+            for I in Slime_Range loop
+               Game.Set_Hotspot (Game.Slime + I, Center, 46);
+            end loop;
+         end;
 
-      declare
-         use Engines;
-         Map_Tiles_Result : Integer;
-         Map : constant Pig_Map_Access :=
-           Pig_Map_Open (Game_Engine_Class (Game.Self), MAP_W, MAP_H);
-      begin
-         Pig_Map_Tiles (Map.all, Asset_Dir & "tiles.png",
-                        TILE_W, TILE_H, Map_Tiles_Result);
-         if Map_Tiles_Result < 0 then
-            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                                  "Could not load background graphics!");
-            --  Game.Pig_Close; -- (Game.Engine.all);
-            --  Free (gs);
-            raise Storage_Error with "Could not load background graphics.";
-         end if;
+         declare
+            use Engines;
+            Map_Tiles_Result : Integer;
+            Map : constant Pig_Map_Access :=
+              Pig_Map_Open (Game_Engine_Class (Game.Self), MAP_W, MAP_H);
+         begin
+            Pig_Map_Tiles (Map.all, Asset_Dir & "tiles.png",
+                           TILE_W, TILE_H, Map_Tiles_Result);
+            if Map_Tiles_Result < 0 then
+               Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
+                                     "Could not load background graphics!");
+               --  Game.Pig_Close; -- (Game.Engine.all);
+               --  Free (gs);
+               raise Storage_Error with "Could not load background graphics.";
+            end if;
 
-         --  Mark tiles for collision detection
-         Pig_Map_Collisions (Map.all,  0, 12, All_Sides);   --  Red, green, yellov
-         Pig_Map_Collisions (Map.all, 12, 17, No_Side);  --  Sky
-         Pig_Map_Collisions (Map.all, 29,  3, All_Sides);   --  Single R, G, Y
+            --  Mark tiles for collision detection
+            Pig_Map_Collisions (Map.all,  0, 12, All_Sides);   --  Red, green, yellov
+            Pig_Map_Collisions (Map.all, 12, 17, No_Side);  --  Sky
+            Pig_Map_Collisions (Map.all, 29,  3, All_Sides);   --  Single R, G, Y
 
-         Game.Load_Level (0);
-      end;
+            Game.Load_Level (0);
+         end;
+      end return;
    end Create;
 
    --------------
@@ -1387,12 +1390,12 @@ package body Games is
 
       declare
 --         Game_Ptr : constant Game_Access := Create_Game (Screen); -- Class; -- Game_State_Access;
-         Game : aliased Game_State; --  renames Game_Ptr.all;
+         Game : aliased Game_State := Create; --  renames Game_Ptr.all;
       begin
          Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
                      Screen => Screen,
                      Pages  => 1);
-         Game.Create;
+--         Game.Create;
 --         Init_All (Game, Screen);
          --     exception
          --        when others => --  if not Gs then

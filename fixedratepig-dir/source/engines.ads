@@ -20,6 +20,9 @@ with Dirty;
 package Engines
   with Elaborate_Body
 is
+
+   subtype Dirty_Table is Dirty.Dirty_Table;
+
    ----------------------------------------------------------
    --        Game Engine
    ----------------------------------------------------------
@@ -227,46 +230,45 @@ is
    type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
    type Sprite_Array_Access is access Sprite_Array;
 
-   type Dirty_Index is range 0 .. 1;
-   type Table_Access is access Dirty.Dirty_Table;
-   type Dirty_Array  is array (Dirty_Index) of Table_Access;
+   type Page_Index is (Zero, One, Work);
+   type Page_Array is array (Page_Index) of Dirty_Table;
 
    type Game_Engine is
      new Ada.Finalization.Limited_Controlled
-     with record
-        Self    : Engine_Access;
+      with record
+         Self    : Engine_Access;
 
-        --  Video stuff
-        Screen  : Surface;
-        Buffer  : Surface;       --  For h/w surface displays
-        Surfac  : Surface;       --  Where to render to
-        Pages   : Integer;       --  # of display VRAM buffers
-        View    : Rectangle;     --  Viewport pos & size (pixels)
+         --  Video stuff
+         Screen  : Surface;
+         Buffer  : Surface;       --  For h/w surface displays
+         Surfac  : Surface;       --  Where to render to
+         Pages   : Integer;       --  # of display VRAM buffers
+         View    : Rectangle;     --  Viewport pos & size (pixels)
 
-        --  Dirty
-        Page      : Dirty_Index;    --  Current page (double buffer)
-        Pagedirty : Dirty_Array;    --  One table for each page
-        Workdirty : Table_Access;   --  The work dirtytable
+         --  Dirty
+         Page  : Page_Index;      --  Current page (double buffer)
+         Dirty : Page_Array;      --  One table for each page
+         Work  : Page_Index;      --  The work dirtytable
 
-        --  "Live" switches
-        Interpolation   : Boolean;
-        Direct          : Boolean;    --  True: Render directly to screen
-        Show_Dirtyrects : Boolean;
+         --  "Live" switches
+         Interpolation   : Boolean;
+         Direct          : Boolean;    --  True: Render directly to screen
+         Show_Dirtyrects : Boolean;
 
-        --  Time
-        Time  : Long_Float;           --  Logic time (frames)
-        Frame : Integer;              --  Logic time; integer part
+         --  Time
+         Time  : Long_Float;           --  Logic time (frames)
+         Frame : Integer;              --  Logic time; integer part
 
-        --  Background graphics
-        Map   : Pig_Map_Access;
+         --  Background graphics
+         Map   : Pig_Map_Access;
 
-        --  Objects
-        Objects           : Object_Lists.List;
-        Object_Id_Counter : Object_Id;
+         --  Objects
+         Objects           : Object_Lists.List;
+         Object_Id_Counter : Object_Id;
 
-        --  Sprites
-        Sprite_Last       : Sprite_Counts;
-        Sprites           : Sprite_Array_Access;
+         --  Sprites
+         Sprite_Last       : Sprite_Counts;
+         Sprites           : Sprite_Array_Access;
 
         --  Space for user data
         --      Userdata : Long_Integer;
