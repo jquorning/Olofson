@@ -178,9 +178,9 @@ is
       Handler  : Handler_Access;
    end record;
 
-   subtype SDL_Surface   is SDL.Video.Surfaces.Surface;
-   subtype SDL_Rectangle is SDL.Video.Rectangles.Rectangle;
-   subtype SDL_Window    is SDL.Video.Windows.Window;
+   subtype Surface   is SDL.Video.Surfaces.Surface;
+   subtype Rectangle is SDL.Video.Rectangles.Rectangle;
+   subtype Window    is SDL.Video.Windows.Window;
 
    --
    --  Level map
@@ -202,7 +202,7 @@ is
 
       Tile_Width  : Pixels;            --  Size of one tile (pixels)
       Tile_Height : Pixels;
-      Tile        : SDL_Surface;       --  Tile palette image
+      Tile        : Surface;           --  Tile palette image
       Hitinfo     : Hitinfo_Array;     --  Collision info for the tiles
    end record;
    type PIG_Map_Access is access all PIG_Map;
@@ -212,7 +212,7 @@ is
       Width, Height : Pixels;      --  Size of sprite (pixels)
       Hot_X, Hot_Y  : Pixels;      --  Hot-spot offset (pixels)
       Radius        : Pixels;      --  Collision zone radius (pixels)
-      Surface       : SDL_Surface; --  Access
+      Surfac        : Surface;     --  Access
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
 
@@ -232,11 +232,11 @@ is
         Self    : Engine_Access;
 
         --  Video stuff
-        Screen  : SDL_Surface;
-        Buffer  : SDL_Surface;   --  For h/w surface displays
-        Surface : SDL_Surface;   --  Where to render to
+        Screen  : Surface;
+        Buffer  : Surface;       --  For h/w surface displays
+        Surfac  : Surface;       --  Where to render to
         Pages   : Integer;       --  # of display VRAM buffers
-        View    : SDL_Rectangle; --  Viewport pos & size (pixels)
+        View    : Rectangle;     --  Viewport pos & size (pixels)
 
         --  Dirty
         Page      : Integer range 0 .. 1;      --  Current page (double buffer)
@@ -282,7 +282,7 @@ is
 
    procedure Setup (Engine : in out Game_Engine;
                     Self   :        Engine_Access;
-                    Screen :        SDL_Surface;
+                    Screen :        Surface;
                     Pages  :        Positive);
 
    procedure Set_Viewport (Engine : in out Game_Engine'Class;
@@ -327,12 +327,12 @@ is
    --  Advance logic time by 'frames' logic frames
 
    procedure Pig_Dirty (Engine : in out Game_Engine;
-                        Area   :        SDL_Rectangle);
+                        Area   :        Rectangle);
    --  Manually add a dirtyrect for pig_refresh().
    --  Area can be outside the engine viewport.
 
    procedure Pig_Flip (Engine : in out Game_Engine;
-                       Window : in out SDL_Window);
+                       Win    : in out Window);
    --  Do what's needed to deal with the dirtyrects
    --  and then make the new frame visible.
 

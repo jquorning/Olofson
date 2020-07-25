@@ -23,6 +23,18 @@ package body Engines is
    PIG_MAX_SPRITES : constant := 1024;
    --  Size of sprite frame table
 
+   package Rectangles renames SDL.Video.Rectangles;
+   package Surfaces   renames SDL.Video.Surfaces;
+
+   subtype int is SDL.C.int;
+
+   Null_Rectangle : constant Rectangle := Rectangles.Null_Rectangle;
+   Null_Surface   : constant Surface   := Surfaces.Null_Surface;
+
+   function "=" (Left, Right : Surface) return Boolean renames Surfaces."=";
+
+   use type int;
+
    procedure Close_Object (Object : in out Game_Object);
    --  Actually remove an objects. Used internally,
    --  to remove objects that have been marked for
@@ -65,7 +77,7 @@ package body Engines is
    procedure Run_Logic (Engine : in out Game_Engine'Class);
 
    procedure Tile_Area (Engine : in out Game_Engine;
-                        Area   :        SDL_Rectangle);
+                        Area   :        Rectangle);
 
    procedure Remove_Sprites (Engine : in out Game_Engine);
 
@@ -90,30 +102,34 @@ package body Engines is
       State    => Object_States'First,
       Handler  => Null_Handler'Access, others => 0.0);
 
+   ----------------
+   -- Initialize --
+   ----------------
 
-   ------------------------------------------------------------
-   --      Engine
-   ------------------------------------------------------------
    overriding
    procedure Initialize (Engine : in out Game_Engine)
    is
-      use SDL.Video.Surfaces;
-      use SDL.Video.Rectangles;
    begin
       Engine.Self    := null;
 
       --  Video stuff
       Engine.Screen  := Null_Surface;
       Engine.Buffer  := Null_Surface;    --  For h/w surface displays
-      Engine.Surface := Null_Surface;    --  Where to render to
+      Engine.Surfac  := Null_Surface;    --  Where to render to
       Engine.Pages   := 1;               --  # of display VRAM buffers
       Engine.View    := Null_Rectangle;  --  Viewport pos & size (pixels)
 
       --  Dirty
-      Engine.Page      := 0;                                --  Current page (double buffer)
+
+      Engine.Page := 0;
+      --  Current page (double buffer)
+
       Engine.Pagedirty := (0 => Dirty.Create (Size => 128),
-                           1 => null);                      --  One table for each page
-      Engine.Workdirty := Dirty.Create (Size => 256);       --  The work dirtytable
+                           1 => null);
+      --  One table for each page
+
+      Engine.Workdirty := Dirty.Create (Size => 256);
+      --  The work dirtytable
 
       --  "Live" switches
       Engine.Interpolation   := True;
@@ -208,13 +224,13 @@ package body Engines is
 
    procedure Setup (Engine : in out Game_Engine;
                     Self   :        Engine_Access;
-                    Screen :        SDL_Surface;
+                    Screen :        Surface;
                     Pages  :        Positive)
    is
    begin
-      Engine.Self    := Self;
-      Engine.Screen  := Screen;
-      Engine.Surface := Screen;  -- JQ ???
+      Engine.Self   := Self;
+      Engine.Screen := Screen;
+      Engine.Surfac := Screen;  -- JQ ???
 
       if Pages > 1 then
          Engine.Pagedirty (1) := Dirty.Create (Size => 128);
@@ -226,7 +242,7 @@ package body Engines is
                            Width  :        Pixels;
                            Height :        Pixels)
    is
-      use SDL.C;
+      subtype int is SDL.C.int;
    begin
       Engine.View := (X      => int (X),
                       Y      => int (Y),
@@ -240,19 +256,20 @@ package body Engines is
                              Width, Height :        Pixels;
                              Handle        :    out Sprite_Index)
    is
-      Surface_Load : SDL_Surface;
+      None : constant SDL.Video.Blend_Modes := SDL.Video.None;
+
+      Surface_Load : Surface;
    begin
       SDL.Images.IO.Create (Surface_Load, Filename);
 
       --  Disable blending, so we get the alpha channel COPIED!
-      Surface_Load.Set_Alpha_Blend (0);               --      SDL_SetAlpha(tmp, 0, 0);
-      Surface_Load.Set_Blend_Mode  (SDL.Video.None);  --      SDL_SetAlpha(tmp, 0, 0);
---      Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0), Enable => True);
+      Surface_Load.Set_Alpha_Blend (0);
+      Surface_Load.Set_Blend_Mode  (None);
+      Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0));
 
       Handle := Engine.Sprite_Last + 1;
 
       declare
-         use SDL.C;
          Surface_Width  : constant Pixels := Pixels (Surface_Load.Size.Width);
          Surface_Height : constant Pixels := Pixels (Surface_Load.Size.Height);
          Sprite_Width   : constant Pixels := (if Width  /= 0 then Width  else Surface_Width);
@@ -263,17 +280,19 @@ package body Engines is
          for Y in 1 .. Last_Y loop
             for X in 1 .. Last_X loop
                declare
-                  Source_Area    : SDL_Rectangle;
-                  Target_Area    : SDL_Rectangle := (0, 0, 0, 0);
-                  Surface_Sprite : SDL_Surface;
+                  subtype C_int is SDL.C.int;
+
+                  Source_Area    : Rectangle;
+                  Target_Area    : Rectangle := (0, 0, 0, 0);
+                  Surface_Sprite : Surface;
 
                   Sprite : constant not null PIG_Sprite_Access :=
-                    new PIG_Sprite'(Width   => Sprite_Width,
-                                    Height  => Sprite_Height,
-                                    Hot_X   => Sprite_Width  / 2,
-                                    Hot_Y   => Sprite_Height / 2,
-                                    Radius  => (Sprite_Width + Sprite_Height) / 5,
-                                    Surface => SDL.Video.Surfaces.Null_Surface);
+                    new PIG_Sprite'(Width  => Sprite_Width,
+                                    Height => Sprite_Height,
+                                    Hot_X  => Sprite_Width  / 2,
+                                    Hot_Y  => Sprite_Height / 2,
+                                    Radius => (Sprite_Width + Sprite_Height) / 5,
+                                    Surfac => Null_Surface);
                begin
 --                      if(pe->nsprites >= PIG_MAX_SPRITES)
 --                      {
@@ -281,28 +300,32 @@ package body Engines is
 --                              return -1;
 --                      }
 --                      s = (PIG_sprite *)calloc(1, sizeof(PIG_sprite));
-                  SDL.Video.Surfaces.Makers.Create (Surface_Sprite,
-                                                    Size       => (int (Sprite_Width),
-                                                                   int (Sprite_Height)),
-                                                    BPP        => 32,
-                                                    Red_Mask   => 16#FF000000#,
-                                                    Green_Mask => 16#00FF0000#,
-                                                    Blue_Mask  => 16#0000FF00#,
-                                                    Alpha_Mask => 16#000000FF#);
+                  Surfaces.Makers.Create
+                    (Surface_Sprite,
+                     Size       => (C_int (Sprite_Width),
+                                    C_int (Sprite_Height)),
+                     BPP        => 32,
+                     Red_Mask   => 16#FF000000#,
+                     Green_Mask => 16#00FF0000#,
+                     Blue_Mask  => 16#0000FF00#,
+                     Alpha_Mask => 16#000000FF#);
                   Surface_Sprite.Set_Alpha_Blend (0);
-                  Surface_Sprite.Set_Blend_Mode  (SDL.Video.None);
-                  Source_Area := (X      => int (Sprite_Width  * (X - 1)),
-                                  Y      => int (Sprite_Height * (Y - 1)),
-                                  Width  => int (Sprite_Width),
-                                  Height => int (Sprite_Height));
-                  SDL.Video.Surfaces.Blit (Source      => Surface_Load,
-                                           Source_Area => Source_Area,
-                                           Self        => Surface_Sprite,
-                                           Self_Area   => Target_Area);
+                  Surface_Sprite.Set_Blend_Mode  (None);
+
+                  Source_Area := (X      => C_int (Sprite_Width  * (X - 1)),
+                                  Y      => C_int (Sprite_Height * (Y - 1)),
+                                  Width  => C_int (Sprite_Width),
+                                  Height => C_int (Sprite_Height));
+
+                  Surfaces.Blit (Source      => Surface_Load,
+                                 Source_Area => Source_Area,
+                                 Self        => Surface_Sprite,
+                                 Self_Area   => Target_Area);
+
                   Surface_Sprite.Set_Alpha_Blend (0); --  (SDL_ALPHA_OPAQUE);
-                  Surface_Sprite.Set_Blend_Mode  (SDL.Video.None);
+                  Surface_Sprite.Set_Blend_Mode  (None);
                   --  SDL_SRCALPHA or SDL_RLEACCEL);
-                  Sprite.Surface := Surface_Sprite;
+                  Sprite.Surfac := Surface_Sprite;
                --                      s->surface = SDL_DisplayFormatAlpha(tmp2);
 --                      if(!s->surface)
 --                      {
@@ -409,12 +432,14 @@ package body Engines is
       end loop;
    end Run_Timers;
 
+   --------------------
+   -- Test_Offscreen --
+   --------------------
 
    procedure Test_Offscreen (Engine : in out Game_Engine;
                              Object : in out Game_Object;
                              Sprite :        PIG_Sprite_Access)
    is
-      use SDL.C;
       Hot_X   : constant Pixels := (if Sprite /= null then Sprite.Hot_X  else 0);
       Hot_Y   : constant Pixels := (if Sprite /= null then Sprite.Hot_Y  else 0);
       Width   : constant Pixels := (if Sprite /= null then Sprite.Width  else 0);
@@ -799,18 +824,22 @@ package body Engines is
       Engine.Time := Engine.Time + Long_Float (Frames);
    end Pig_Animate;
 
+   ---------------
+   -- Pig_Dirty --
+   ---------------
 
    procedure Pig_Dirty (Engine : in out Game_Engine;
-                        Area   :        SDL_Rectangle)
+                        Area   :        Rectangle)
    is
-      use type SDL.C.int;
-      use SDL.Video.Rectangles;
+      function "=" (Left, Right : Rectangle) return Boolean
+      renames Rectangles."=";
+
       R : Rectangle;
    begin
       R.X      := 0;
       R.Y      := 0;
-      R.Width  := Engine.Surface.Size.Width;
-      R.Height := Engine.Surface.Size.Height;
+      R.Width  := Engine.Surfac.Size.Width;
+      R.Height := Engine.Surfac.Size.Height;
       if Area /= Null_Rectangle then
          Dirty.Intersect (Area, R);
       end if;
@@ -821,11 +850,13 @@ package body Engines is
 
    end Pig_Dirty;
 
+   ---------------
+   -- Tile_Area --
+   ---------------
 
    procedure Tile_Area (Engine : in out Game_Engine;
-                        Area   :        SDL_Rectangle)
+                        Area   :        Rectangle)
    is
-      use type SDL.C.int;
       Tile_Width  : Pixels renames Engine.Map.Tile_Width;
       Tile_Height : Pixels renames Engine.Map.Tile_Height;
       Area_Right  : constant Pixels := Pixels (Area.X + Area.Width);
@@ -842,37 +873,40 @@ package body Engines is
                                                 / Tile_Width);
 
    begin
-      Engine.Surface.Set_Clip_Rectangle ((X      => Area.X + Engine.View.X,
-                                          Y      => Area.Y + Engine.View.Y,
-                                          Width  => Area.Width,
-                                          Height => Area.Height));
+      Engine.Surfac.Set_Clip_Rectangle ((X      => Area.X + Engine.View.X,
+                                         Y      => Area.Y + Engine.View.Y,
+                                         Width  => Area.Width,
+                                         Height => Area.Height));
 
       for Y in Start_Y .. Max_Y loop
          for X in Start_X .. Max_X loop
             declare
-               use SDL.C;
+               subtype int is SDL.C.int;
                C2   : constant Tiles := Tiles (Engine.Map.Map (X, Y));
 
-               From : SDL_Rectangle :=
+               From : Rectangle :=
                  (X      => int (C2 mod Tilesperrow) * int (Tile_Width),
                   Y      => int (C2 / Tilesperrow)   * int (Tile_Height),
                   Width  => int (Tile_Width),
                   Height => int (Tile_Height));
 
-               To   : SDL_Rectangle :=
+               To   : Rectangle :=
                  (X      => int (Engine.View.X) + int (Pixels (X) * Tile_Width),
                   Y      => int (Engine.View.Y) + int (Pixels (Y) * Tile_Height),
                   others => 0);
             begin
-               SDL.Video.Surfaces.Blit (Source      => Engine.Map.Tile,
-                                        Source_Area => From,
-                                        Self        => Engine.Surface,
-                                        Self_Area   => To);
+               Surfaces.Blit (Source      => Engine.Map.Tile,
+                              Source_Area => From,
+                              Self        => Engine.Surfac,
+                              Self_Area   => To);
             end;
          end loop;
       end loop;
    end Tile_Area;
 
+   --------------------
+   -- Remove_Sprites --
+   --------------------
 
    procedure Remove_Sprites (Engine : in out Game_Engine)
      --  Remove all objects, using the information that
@@ -885,7 +919,7 @@ package body Engines is
      --  to avoid rendering the same tiles multiple times
      --  in the overlapping areas.
    is
-      use SDL.C;
+      subtype int is SDL.C.int;
    begin
       for Object of Engine.Objects loop
          if Object.Ip.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
@@ -893,7 +927,7 @@ package body Engines is
                Sprite : constant not null PIG_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Ip.Gimage));
 
-               Area   : SDL_Rectangle :=
+               Area   : Rectangle :=
                  (X      => int (Object.Ip.Gx) - int (Sprite.Hot_X),
                   Y      => int (Object.Ip.Gy) - int (Sprite.Hot_Y),
                   Width  => int (Sprite.Width),
@@ -914,20 +948,24 @@ package body Engines is
       end loop;
    end Remove_Sprites;
 
+   ------------------
+   -- Draw_Sprites --
+   ------------------
 
    procedure Draw_Sprites (Engine : in out Game_Engine)
    is
-      Table  : not null Dirty.Table_Access renames Engine.Workdirty;
-      Fframe : constant Float := Float (Engine.Time - Long_Float'Floor (Engine.Time));
+      Old_Dirty : constant Dirty.Table_Access := Engine.Workdirty;
+      Fframe    : constant Float := Float (Engine.Time
+                                          - Long_Float'Floor (Engine.Time));
    begin
-      Engine.Surface.Set_Clip_Rectangle (Engine.View);
+      Engine.Surfac.Set_Clip_Rectangle (Engine.View);
 
       --  Swap the work and display/back page dirtytables
       Engine.Workdirty               := Engine.Pagedirty (Engine.Page);
-      Engine.Pagedirty (Engine.Page) := Table;
+      Engine.Pagedirty (Engine.Page) := Old_Dirty;
 
       --  Clear the display/back page dirtytable
-      Table.Last := 0;
+      Engine.Workdirty.Last := 0;
 
       --  Update positions and render all objects
       for Object of Engine.Objects loop
@@ -945,36 +983,42 @@ package body Engines is
          --  Render the sprite!
          if Object.Ip.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
             declare
-               use SDL.C;
+               subtype int is SDL.C.int;
 
                Sprite      : constant not null PIG_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Ip.Gimage));
 
-               Source_Area : SDL_Rectangle := (0, 0, 0, 0);
+               Source_Area : Rectangle := (0, 0, 0, 0);
 
-               Target_Area : SDL_Rectangle :=
-                 (X => int (Object.Ip.Gx - Float (Sprite.Hot_X) + Float (Engine.View.X)),
-                  Y => int (Object.Ip.Gy - Float (Sprite.Hot_Y) + Float (Engine.View.Y)),
+               Target_Area : Rectangle :=
+                 (X => int (Object.Ip.Gx - Float (Sprite.Hot_X)
+                              + Float (Engine.View.X)),
+                  Y => int (Object.Ip.Gy - Float (Sprite.Hot_Y)
+                              + Float (Engine.View.Y)),
                   others => 0);
             begin
-               SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Object.Ip.Gimage).Surface,
-                                        Source_Area => Source_Area,
-                                        Self        => Engine.Surface,
-                                        Self_Area   => Target_Area);
+               Surfaces.Blit
+                 (Source      => Engine.Sprites (Object.Ip.Gimage).Surfac,
+                  Source_Area => Source_Area,
+                  Self        => Engine.Surfac,
+                  Self_Area   => Target_Area);
                --
                --  We use the clipped rect for the dirtyrect!
                --
                if Target_Area.Width /= 0 and Target_Area.Height /= 0 then
-                  Dirty.Add (Table.all, Target_Area);
+                  Dirty.Add (Engine.Workdirty.all, Target_Area);
                end if;
             end;
          end if;
       end loop;
 
       --  Merge the display/back page table into the work table
-      Dirty.Merge_Tables (Engine.Workdirty.all, Table.all);
+      Dirty.Merge_Tables (Engine.Workdirty.all, Old_Dirty.all);
    end Draw_Sprites;
 
+   -----------------
+   -- Pig_Refresh --
+   -----------------
 
    procedure Pig_Refresh (Engine : in out Game_Engine) is
    begin
@@ -982,9 +1026,11 @@ package body Engines is
       Draw_Sprites   (Engine);
    end Pig_Refresh;
 
+   ---------------------
+   -- Pig_Refresh_All --
+   ---------------------
 
    procedure Pig_Refresh_All (Engine : in out Game_Engine) is
-      use SDL.Video.Rectangles;
    begin
       Tile_Area (Engine, Engine.View);
       Pig_Dirty (Engine, Null_Rectangle);
@@ -1004,20 +1050,28 @@ package body Engines is
       end loop;
    end Clean_Object_List;
 
+   ----------------
+   -- Show_Rects --
+   ----------------
 
    procedure Show_Rects (Engine : in out Game_Engine;
                          Table  :        Dirty.Table_Type)
    is
-      use SDL.Video.Surfaces;
-      Color  : Interfaces.Unsigned_32;
+      package Pixel_Formats renames SDL.Video.Pixel_Formats;
+
+      subtype Pixel_Depths  is Surfaces.Pixel_Depths;
+      subtype Colour_Masks  is Surfaces.Colour_Masks;
+      subtype Raw_Pixel     is Interfaces.Unsigned_32;
+      subtype Format_Access is Pixel_Formats.Pixel_Format_Access;
+
+      Color : Raw_Pixel;
    begin
       if Engine.Buffer = Null_Surface then
          declare
-            use SDL.Video.Pixel_Formats;
-            Format : constant not null Pixel_Format_Access :=
+            Format : constant not null Format_Access :=
               Engine.Screen.Pixel_Format;
          begin
-            SDL.Video.Surfaces.Makers.Create --  RGBSurface
+            Surfaces.Makers.Create --  RGBSurface
               (Engine.Buffer,
 --            SDL_SWSURFACE,
                Engine.Screen.Size, -- .Width, Pe.Screen.Size.Height,
@@ -1030,7 +1084,7 @@ package body Engines is
          if Engine.Buffer = Null_Surface then
             return;
          end if;
-         Engine.Surface := Engine.Buffer;
+         Engine.Surfac := Engine.Buffer;
          Tile_Area (Engine, Engine.View);
       end if;
       if Engine.Buffer = Null_Surface then
@@ -1041,9 +1095,8 @@ package body Engines is
 
       for I in 1 .. Table.Last loop
          declare
-            use type SDL.C.int;
-            R  : SDL_Rectangle;
-            R2 : SDL_Rectangle;
+            R  : Rectangle;
+            R2 : Rectangle;
          begin
             R        := Table.Rects (I);
             R.X      := R.X - 32;
@@ -1051,18 +1104,19 @@ package body Engines is
             R.Width  := R.Width  + 64;
             R.Height := R.Height + 64;
             R2 := R;
-            SDL.Video.Surfaces.Blit (Source      => Engine.Buffer,
-                                     Source_Area => R2,
-                                     Self        => Engine.Screen,
-                                     Self_Area   => R);
+            Surfaces.Blit (Source      => Engine.Buffer,
+                           Source_Area => R2,
+                           Self        => Engine.Screen,
+                           Self_Area   => R);
          end;
       end loop;
 
-      Color := SDL.Video.Pixel_Formats.To_Pixel (Engine.Screen.Pixel_Format, 255, 0, 255);
+      Color := Pixel_Formats.To_Pixel
+        (Engine.Screen.Pixel_Format, 255, 0, 255);
+
       for I in 1 .. Table.Last loop
          declare
-            use SDL.C;
-            R : SDL_Rectangle;
+            R : Rectangle;
          begin
             R := Table.Rects (I);
             R.Height := 1;
@@ -1081,12 +1135,13 @@ package body Engines is
       end loop;
    end Show_Rects;
 
+   --------------
+   -- Pig_Flip --
+   --------------
 
    procedure Pig_Flip (Engine : in out Game_Engine;
-                       Window : in out SDL_Window)
+                       Win    : in out Window)
    is
-      use SDL.Video.Surfaces;
-      use SDL.Video.Rectangles;
       Table : Dirty.Table_Type renames Engine.Workdirty.all;
    begin
 --      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
@@ -1095,7 +1150,6 @@ package body Engines is
          Show_Rects (Engine, Table);
          for I in 1 .. Table.Last loop
             declare
-               use type SDL.C.int;
                Rect : Rectangle renames Table.Rects (I);
             begin
                Rect.X      := Rect.X - 32;
@@ -1106,13 +1160,13 @@ package body Engines is
             end;
          end loop;
 
-      elsif Engine.Surface = Engine.Buffer then
+      elsif Engine.Surfac = Engine.Buffer then
          for I in 1 .. Table.Last loop
             declare
                Rect_Copy : Rectangle := Table.Rects (I);
             begin
-               SDL.Video.Surfaces.Blit (Engine.Screen, Table.Rects (I),
-                                        Engine.Buffer, Rect_Copy);
+               Surfaces.Blit (Engine.Screen, Table.Rects (I),
+                              Engine.Buffer, Rect_Copy);
             end;
          end loop;
       end if;
@@ -1124,38 +1178,41 @@ package body Engines is
             Engine.Page := 1 - Engine.Page;
          end if;
       else
-         Window.Update_Surface_Rectangles (Table.Rects.all);
+         Win.Update_Surface_Rectangles (Table.Rects.all);
       end if;
 
       if Engine.Direct then
-         Engine.Surface := Engine.Screen;
+         Engine.Surfac := Engine.Screen;
       elsif Engine.Buffer = Null_Surface then
-         Engine.Surface := Engine.Screen;
+         Engine.Surfac := Engine.Screen;
       else
-         Engine.Surface := Engine.Buffer;
+         Engine.Surfac := Engine.Buffer;
       end if;
 
    end Pig_Flip;
 
+   ----------------------
+   -- Pig_Draw_Sprites --
+   ----------------------
 
    procedure Pig_Draw_Sprite (Engine : in out Game_Engine;
                               Frame  :        Sprite_Index;
                               X, Y   :        Pixels)
    is
-      use SDL.C;
-      DR : SDL_Rectangle;
-      SA : SDL_Rectangle := (0, 0, 0, 0);
+      subtype int is SDL.C.int;
+      DR : Rectangle;
+      SA : Rectangle := (0, 0, 0, 0);
    begin
       --      if(frame >= pe->nsprites)
 --              return;
       DR.X := int (X - Engine.Sprites (Frame).Hot_X + Pixels (Engine.View.X));
       DR.Y := int (Y - Engine.Sprites (Frame).Hot_Y + Pixels (Engine.View.Y));
-      SDL.Video.Surfaces.Blit (Source      => Engine.Sprites (Frame).Surface,
-                               Source_Area => SA,
-                               Self        => Engine.Surface,
-                               Self_Area   => DR);
+      Surfaces.Blit (Source      => Engine.Sprites (Frame).Surfac,
+                     Source_Area => SA,
+                     Self        => Engine.Surfac,
+                     Self_Area   => DR);
    exception
-      when SDL.Video.Surfaces.Surface_Error =>
+      when Surfaces.Surface_Error =>
          Ada.Text_IO.Put_Line ("Surface_Error hit");
          raise;
    end Pig_Draw_Sprite;
@@ -1185,7 +1242,7 @@ package body Engines is
                                                0 .. Height - 1),
                  Tile_Width  => 0,
                  Tile_Height => 0,
-                 Tile        => SDL.Video.Surfaces.Null_Surface,
+                 Tile        => Null_Surface,
                  Hitinfo     => (others => (others => False))
                 );
 
@@ -1218,18 +1275,18 @@ package body Engines is
       pragma Unreferenced (Result);
 --  int pig_map_tiles(PIG_map *pm, const char *filename, int tw, int th)
 --  {
-      Surface : SDL_Surface;
+      Surfac : Surface;
    begin
       Map.Tile_Width  := Width;
       Map.Tile_Height := Height;
-      SDL.Images.IO.Create (Surface, Filename);
+      SDL.Images.IO.Create (Surfac, Filename);
 --      if(!tmp)
 --      {
 --              fprintf(stderr, "Could not load '%s'!\n", filename);
 --              return -1;
 --      }
 --      pm->tiles = SDL_DisplayFormat(tmp);
-      Map.Tile := Surface;
+      Map.Tile := Surfac;
       --      if(!pm->tiles)
 --      {
 --              fprintf(stderr, "Could not convert '%s'!\n", filename);
@@ -1267,7 +1324,6 @@ package body Engines is
                                   Trans :        String;
                                   Data  :        String)
    is
-      use Ada.Strings.Fixed;
       Z : Natural;
    begin
       --  Load the map
@@ -1279,7 +1335,7 @@ package body Engines is
                Position : Natural;
 --               F        : Character;
             begin
-               Position := Index (Trans, "" & C);
+               Position := Ada.Strings.Fixed.Index (Trans, "" & C);
 --                      f = strchr(trans, c);
 --                      if(!f)
                if Position = 0 then
