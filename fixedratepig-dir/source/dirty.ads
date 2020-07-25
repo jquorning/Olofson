@@ -13,12 +13,16 @@ with SDL.Video.Rectangles;
 package Dirty
   with Elaborate_Body
 is
-   use SDL.Video.Rectangles;
-   use type SDL.C.size_t;
+   package Rectangles renames SDL.Video.Rectangles;
 
+   subtype Rectangle is Rectangles.Rectangle;
+   subtype Index_Type is SDL.C.size_t;
    --  A table of dirtyrects for one display page
-   subtype Index_Type     is SDL.C.size_t;
-   type Rectangle_Arrays_Access is not null access Rectangle_Arrays;
+
+   Null_Rectangle : constant Rectangle := Rectangles.Null_Rectangle;
+
+   type Rectangle_Arrays_Access
+     is not null access Rectangles.Rectangle_Arrays;
 
    type Table_Type is record
       Rects : Rectangle_Arrays_Access;  --  Table of rects

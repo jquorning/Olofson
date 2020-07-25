@@ -21,10 +21,11 @@ package body Dirty is
 
    function Create (Size : Integer) return not null Table_Access
    is
+      subtype Arrays is Rectangles.Rectangle_Arrays;
    begin
       return
-        new Table_Type'(Rects => new Rectangle_Arrays'(1 .. Index_Type (Size)
-                                                         => Null_Rectangle),
+        new Table_Type'(Rects => new Arrays'(1 .. Index_Type (Size)
+                                               => Null_Rectangle),
                         Last => 0,
                         Best => 0);
    end Create;
@@ -88,6 +89,8 @@ package body Dirty is
    procedure Add (Table : in out Table_Type;
                   Rect  :        Rectangle)
    is
+      use type Index_Type;
+
       I         : Index_Type := 0;
       Best_I    : Index_Type;
       Best_Loss : Integer;
