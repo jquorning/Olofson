@@ -110,7 +110,7 @@ package body Engines is
    procedure Initialize (Engine : in out Game_Engine)
    is
    begin
-      Engine.Self    := null;
+      Engine.Self := Engine'Unchecked_Access;
 
       --  Video stuff
       Engine.Screen  := Null_Surface;
@@ -229,7 +229,6 @@ package body Engines is
                     Pages  :        Positive)
    is
    begin
-      Engine.Self   := Self;
       Engine.Screen := Screen;
       Engine.Surfac := Screen;
 
@@ -1231,7 +1230,7 @@ package body Engines is
    --    Map
    ------------------------------------------------------------
 
-   function Pig_Map_Open (Engine : Game_Engine_Class;
+   function Pig_Map_Open (Engine : not null Engine_Class_Access;
                           Width  : Tiles;
                           Height : Tiles)
                          return not null Pig_Map_Access
@@ -1415,14 +1414,15 @@ package body Engines is
    end Free_Object;
 
 
-   function Open_Object (Engine : in out Game_Engine'Class;
+   function Open_Object (Engine : in out Game_Engine;
                          X, Y   :        Pixels;
                          Last   :        Boolean)
                         return not null Object_Access
    is
-      Object : constant not null Object_Access := Get_Object (Engine.Self.all);
+      Base   : constant Engine_Access := Engine_Access (Engine.Self);
+      Object : constant not null Object_Access := Get_Object (Base.all);
    begin
-      Object.Owner    := Game_Engine_Class (Engine.Self);
+      Object.Owner    := Engine.Self;
       Object.Tilemask := All_Sides;
       Object.Hitmask  := 0;
       Object.Hitgroup := 0;

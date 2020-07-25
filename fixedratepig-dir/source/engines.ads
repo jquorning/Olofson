@@ -152,11 +152,11 @@ is
 
    procedure Null_Handler (Object : in out Game_Object;
                            Event  :        Pig_Event) is null;
-   type Game_Engine_Class is access all Game_Engine'Class;
+   type Engine_Class_Access is access all Game_Engine'Class;
    type Object_Id    is new Natural;
 
    type Game_Object is record
-      Owner : Game_Engine_Class;
+      Owner : Engine_Class_Access;
 --        PIG_object      *next, *prev;
 
       Id       : Object_Id;     -- Unique ID. 0 means "free".
@@ -198,7 +198,7 @@ is
    type Hit_Array_Access is not null access Hit_Array;
 
    type PIG_Map is record
-      Owner       : Game_Engine_Class;
+      Owner       : Engine_Class_Access;
 
       Width       : Tiles;             --  Size of map (tiles)
       Height      : Tiles;
@@ -236,7 +236,7 @@ is
    type Game_Engine is
      new Ada.Finalization.Limited_Controlled
       with record
-         Self    : Engine_Access;
+         Self    : Engine_Class_Access;
 
          --  Video stuff
          Screen  : Surface;
@@ -386,7 +386,7 @@ is
    --
    --  Map
    --
-   function Pig_Map_Open (Engine : Game_Engine_Class;
+   function Pig_Map_Open (Engine : not null Engine_Class_Access;
                           Width  : Tiles;
                           Height : Tiles)
                          return not null Pig_Map_Access;
@@ -421,7 +421,7 @@ is
    --
    --  Object
    --
-   function Open_Object (Engine : in out Game_Engine'Class;
+   function Open_Object (Engine : in out Game_Engine;
                          X, Y   :        Pixels;
                          Last   :        Boolean)
                         return not null Object_Access;

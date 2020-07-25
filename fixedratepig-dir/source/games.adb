@@ -32,7 +32,7 @@ package body Games is
    subtype Pig_Events     is Engines.Pig_Events;
    subtype Sides          is Engines.Sides;
 
-   function Open_Object (Engine : in out Engines.Game_Engine'Class;
+   function Open_Object (Engine : in out Engines.Game_Engine;
                          X, Y   :        Pixels;
                          Last   :        Boolean)
                         return not null Object_Access
@@ -146,7 +146,7 @@ package body Games is
             use Engines;
             Map_Tiles_Result : Integer;
             Map : constant Pig_Map_Access :=
-              Pig_Map_Open (Game_Engine_Class (Game.Self), MAP_W, MAP_H);
+              Pig_Map_Open (Game.Self, MAP_W, MAP_H);
          begin
             Pig_Map_Tiles (Map.all, Asset_Dir & "tiles.png",
                            TILE_W, TILE_H, Map_Tiles_Result);
