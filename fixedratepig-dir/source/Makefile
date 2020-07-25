@@ -3,10 +3,7 @@
 ##
 
 all:
-	cd ..; gprbuild -k pig.gpr
+	gprbuild -k ../../fixedratepig.gpr
 
 clean:
-	cd ..; gprclean -q pig.gpr
-
-engine:
-	cd ..; gprbuild -k pig.gpr source/engines.adb
+	gprclean -q ../../fixedratepig.gpr
