@@ -225,7 +225,8 @@ is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Object_Access);
 
    type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
-   type Dirty_Array  is array (0 .. 1) of Dirty.Table_Access;
+   type Table_Access is access Dirty.Dirty_Table;
+   type Dirty_Array  is array (0 .. 1) of Table_Access;
    type Sprite_Array_Access is access Sprite_Array;
 
    type Game_Engine is
@@ -243,7 +244,7 @@ is
         --  Dirty
         Page      : Integer range 0 .. 1;      --  Current page (double buffer)
         Pagedirty : Dirty_Array;               --  One table for each page
-        Workdirty : Dirty.Table_Access;        --  The work dirtytable
+        Workdirty : Table_Access;              --  The work dirtytable
 
         --  "Live" switches
         Interpolation   : Boolean;

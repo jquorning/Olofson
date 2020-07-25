@@ -24,22 +24,23 @@ is
    type Rectangle_Arrays_Access
      is not null access Rectangles.Rectangle_Arrays;
 
-   type Table_Type is record
+   type Dirty_Table is record
       Rects : Rectangle_Arrays_Access;  --  Table of rects
       Last  : Index_Type;               --  # of rects currently used
       Best  : Index_Type;               --  Merge testing starts here!
    end record;
-   type Table_Access is access all Table_Type;
 
-   function Create (Size : Integer) return not null Table_Access;
-   procedure Close (Table : in out Table_Access);
+   procedure Create (Table : out Dirty_Table;
+                     Size  :     Integer);
 
-   procedure Add (Table : in out Table_Type;
+   procedure Close (Table : in out Dirty_Table);
+
+   procedure Add (Table : in out Dirty_Table;
                   Rect  :        Rectangle);
    --  Add rectangle Rect to Table.
 
-   procedure Merge_Tables (Table : in out Table_Type;
-                           From  :        Table_Type);
+   procedure Merge_Tables (Table : in out Dirty_Table;
+                           From  :        Dirty_Table);
    --  Merge From into Table.
 
    procedure Merge (From :        Rectangle;

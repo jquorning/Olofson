@@ -18,26 +18,36 @@ package body Dirty is
    --  bigger than the larger of the two input rects,
    --  accept it as Perfect.
 
+   ------------
+   -- Create --
+   ------------
 
-   function Create (Size : Integer) return not null Table_Access
+   procedure Create (Table : out Dirty_Table;
+                     Size  :     Integer)
    is
       subtype Arrays is Rectangles.Rectangle_Arrays;
    begin
-      return
-        new Table_Type'(Rects => new Arrays'(1 .. Index_Type (Size)
-                                               => Null_Rectangle),
-                        Last => 0,
-                        Best => 0);
+      Table :=
+        (Rects => new Arrays'(1 .. Index_Type (Size)
+                                => Null_Rectangle),
+         Last => 0,
+         Best => 0);
    end Create;
 
+   -----------
+   -- Close --
+   -----------
 
-   procedure Close (Table : in out Table_Access) is
+   procedure Close (Table : in out Dirty_Table) is
    begin
       null;
 --          free(pdt->rects);
 --          free(pdt);
    end Close;
 
+   -----------
+   -- Merge --
+   -----------
 
    procedure Merge (From :        Rectangle;
                     To   : in out Rectangle)
@@ -54,6 +64,9 @@ package body Dirty is
       To.Height := Y2 - Y1;
    end Merge;
 
+   ---------------
+   -- Intersect --
+   ---------------
 
    procedure Intersect (From :        Rectangle;
                         To   : in out Rectangle)
@@ -85,8 +98,11 @@ package body Dirty is
       end;
    end Intersect;
 
+   ---------
+   -- Add --
+   ---------
 
-   procedure Add (Table : in out Table_Type;
+   procedure Add (Table : in out Dirty_Table;
                   Rect  :        Rectangle)
    is
       use type Index_Type;
@@ -159,9 +175,12 @@ package body Dirty is
       Merge (Rect, Table.Rects (Best_I));
    end Add;
 
+   ------------------
+   -- Merge_Tables --
+   ------------------
 
-   procedure Merge_Tables (Table : in out Table_Type;
-                           From  :        Table_Type)
+   procedure Merge_Tables (Table : in out Dirty_Table;
+                           From  :        Dirty_Table)
    is
    begin
       for I in 1 .. From.Last loop

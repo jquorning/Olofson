@@ -26,6 +26,7 @@ package body Engines is
    package Rectangles renames SDL.Video.Rectangles;
    package Surfaces   renames SDL.Video.Surfaces;
 
+   subtype Dirty_Table is Dirty.Dirty_Table;
    subtype int is SDL.C.int;
 
    Null_Rectangle : constant Rectangle := Rectangles.Null_Rectangle;
@@ -84,7 +85,7 @@ package body Engines is
    procedure Draw_Sprites (Engine : in out Game_Engine);
 
    procedure Show_Rects (Engine : in out Game_Engine;
-                         Table  :        Dirty.Table_Type);
+                         Table  :        Dirty_Table);
 
    function Get_Object (Engine : in out Game_Engine)
                        return not null Object_Access;
@@ -124,11 +125,12 @@ package body Engines is
       Engine.Page := 0;
       --  Current page (double buffer)
 
-      Engine.Pagedirty := (0 => Dirty.Create (Size => 128),
-                           1 => null);
+      Dirty.Create (Engine.Pagedirty (0).all, Size => 128);
+      Dirty.Create (Engine.Pagedirty (1).all, Size =>   0);
+--      Engine.Pagedirty (1).all := null;
       --  One table for each page
 
-      Engine.Workdirty := Dirty.Create (Size => 256);
+      Dirty.Create (Engine.Workdirty.all, Size => 256);
       --  The work dirtytable
 
       --  "Live" switches
@@ -190,37 +192,41 @@ package body Engines is
    procedure Finalize (Engine : in out Game_Engine) is
       use Dirty;
    begin
---  {
---      if(pe->sprites)
---      {
---              int i;
---              for(i = 0; i < pe->nsprites; ++i)
---                      if(pe->sprites[i])
---                      {
---                              if(pe->sprites[i]->surface)
---                                      SDL_FreeSurface(pe->sprites[i]->surface);
---                              free(pe->sprites[i]);
---                      }
---              free(pe->sprites);
---      }
---      while(pe->objects)
---              close_object(pe->objects);
---      if(pe->map)
---              pig_map_close(pe->map);
---      if(pe->buffer)
---              SDL_FreeSurface(pe->buffer);
+      --  {
+      --      if(pe->sprites)
+      --      {
+      --              int i;
+      --              for(i = 0; i < pe->nsprites; ++i)
+      --                      if(pe->sprites[i])
+      --                      {
+      --                              if(pe->sprites[i]->surface)
+      --                                      SDL_FreeSurface(pe->sprites[i]->surface);
+      --                              free(pe->sprites[i]);
+      --                      }
+      --              free(pe->sprites);
+      --      }
+      --      while(pe->objects)
+      --              close_object(pe->objects);
+      --      if(pe->map)
+      --              pig_map_close(pe->map);
+      --      if(pe->buffer)
+      --              SDL_FreeSurface(pe->buffer);
       if Engine.Pagedirty (0) /= null then
-         Dirty.Close (Engine.Pagedirty (0));
+         Dirty.Close (Engine.Pagedirty (0).all);
       end if;
       if Engine.Pagedirty (1) /= null then
-         Dirty.Close (Engine.Pagedirty (1));
+         Dirty.Close (Engine.Pagedirty (1).all);
       end if;
       if Engine.Workdirty /= null then
-         Dirty.Close (Engine.Workdirty);
+         Dirty.Close (Engine.Workdirty.all);
       end if;
---      free(pe);
---   end Pig_Close;
+      --      free(pe);
+      --   end Pig_Close;
    end Finalize;
+
+   -----------
+   -- Setup --
+   -----------
 
    procedure Setup (Engine : in out Game_Engine;
                     Self   :        Engine_Access;
@@ -230,10 +236,10 @@ package body Engines is
    begin
       Engine.Self   := Self;
       Engine.Screen := Screen;
-      Engine.Surfac := Screen;  -- JQ ???
+      Engine.Surfac := Screen;
 
       if Pages > 1 then
-         Engine.Pagedirty (1) := Dirty.Create (Size => 128);
+         Dirty.Create (Engine.Pagedirty (1).all, Size => 128);
       end if;
    end Setup;
 
@@ -960,7 +966,7 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out Game_Engine)
    is
-      Old_Dirty : constant Dirty.Table_Access := Engine.Workdirty;
+      Old_Dirty : constant Table_Access := Engine.Workdirty;
       Fframe    : constant Float := Float (Engine.Time
                                           - Long_Float'Floor (Engine.Time));
    begin
@@ -1061,7 +1067,7 @@ package body Engines is
    ----------------
 
    procedure Show_Rects (Engine : in out Game_Engine;
-                         Table  :        Dirty.Table_Type)
+                         Table  :        Dirty_Table)
    is
       package Pixel_Formats renames SDL.Video.Pixel_Formats;
 
@@ -1148,7 +1154,7 @@ package body Engines is
    procedure Pig_Flip (Engine : in out Game_Engine;
                        Win    : in out Window)
    is
-      Table : Dirty.Table_Type renames Engine.Workdirty.all;
+      Table : Dirty_Table renames Engine.Workdirty.all;
    begin
 --      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
 
