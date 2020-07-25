@@ -190,7 +190,6 @@ package body Engines is
 
    overriding
    procedure Finalize (Engine : in out Game_Engine) is
-      use Dirty;
    begin
       --  {
       --      if(pe->sprites)

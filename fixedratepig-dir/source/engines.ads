@@ -225,9 +225,11 @@ is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Object_Access);
 
    type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
-   type Table_Access is access Dirty.Dirty_Table;
-   type Dirty_Array  is array (0 .. 1) of Table_Access;
    type Sprite_Array_Access is access Sprite_Array;
+
+   type Dirty_Index is range 0 .. 1;
+   type Table_Access is access Dirty.Dirty_Table;
+   type Dirty_Array  is array (Dirty_Index) of Table_Access;
 
    type Game_Engine is
      new Ada.Finalization.Limited_Controlled
@@ -242,9 +244,9 @@ is
         View    : Rectangle;     --  Viewport pos & size (pixels)
 
         --  Dirty
-        Page      : Integer range 0 .. 1;      --  Current page (double buffer)
-        Pagedirty : Dirty_Array;               --  One table for each page
-        Workdirty : Table_Access;              --  The work dirtytable
+        Page      : Dirty_Index;    --  Current page (double buffer)
+        Pagedirty : Dirty_Array;    --  One table for each page
+        Workdirty : Table_Access;   --  The work dirtytable
 
         --  "Live" switches
         Interpolation   : Boolean;
