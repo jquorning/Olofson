@@ -197,8 +197,8 @@ package body Parallax_4 is
       Border    : Rectangle;
 
       Flags     : constant Window_Flags := (if Full_Screen
-                                              then SDL.Video.Windows.Full_Screen
-                                              else 0);
+                                            then SDL.Video.Windows.Full_Screen
+                                            else 0);
 
       --  subtype Verbosity is Integer range 0 .. 3;
       --  Bpp           : Integer   := 0;
@@ -229,7 +229,7 @@ package body Parallax_4 is
 
       --  Enable audio to prevent crash at program exit
       if not SDL.Initialise (SDL.Enable_Audio) then
-         raise Program_Error with "Can not initialise SDL2";
+         raise Program_Error with "Can not initialise SDLAda";
       end if;
 
       SDL.Video.Windows.Makers.Create (Window,
@@ -239,8 +239,6 @@ package body Parallax_4 is
                                        Flags    => Flags);
       Screen := Window.Get_Surface;
       Border := Screen.Clip_Rectangle;
---      SDL_WM_SetCaption("Parallax Scrolling 3 - Overdraw", "Parallax 3");
---      SDL_ShowCursor(0);
 
       SDL.Images.IO.Create (Tiles_Bmp, "parallax_4/assets/tiles.bmp");
 --      tiles = SDL_DisplayFormat(tiles_bmp);
@@ -459,10 +457,10 @@ package body Parallax_4 is
          end if;
 
             --  Draw "title" tile in upper left corner
---              SDL_SetClipRect(screen, NULL);
          declare
             Dummy_Pixels : Integer;
          begin
+            --  Screen.Set_Clip_Rectangle (Null_Rectangle);
             Draw_Tile (Screen, Tiles, 2, 2, '4', Dummy_Pixels);
          end;
 
@@ -633,60 +631,67 @@ package body Parallax_4 is
       Pos        : Rectangle;
       Local_Clip : Rectangle;
    begin
-      --  Set up clipping
-      --  (Note that we must first clip "rect" to the
-      --  current cliprect of the screen - or we'll screw
-      --  clipping up as soon as we have more than two
-      --  layers!)
 
-      if Rect /= SDL.Video.Rectangles.Null_Rectangle then
-
-         Pos        := Screen.Clip_Rectangle;
-         Local_Clip := Rect;
-
-         --  Convert to (x2,y2)
-         Pos.Width  := Pos.Width  + Pos.X;
-         Pos.Height := Pos.Height + Pos.Y;
-         Local_Clip.Width  := Local_Clip.Width  + Local_Clip.X;
-         Local_Clip.Height := Local_Clip.Height + Local_Clip.Y;
-
-         Local_Clip.X      := C.int'Min (Local_Clip.X, Pos.X);
-         Local_Clip.Y      := C.int'Min (Local_Clip.Y, Pos.Y);
-         Local_Clip.Width  := C.int'Min (Local_Clip.Width,  Pos.Width);
-         Local_Clip.Height := C.int'Min (Local_Clip.Height, Pos.Height);
-
-         --  Convert result back to w, h
-         Local_Clip.Width  := Local_Clip.Width  - Local_Clip.X;
-         Local_Clip.Height := Local_Clip.Height - Local_Clip.Y;
-
-         --  Check if we actually have an area left!
-         if Local_Clip.Width = 0 or Local_Clip.Height = 0 then
-            return;
-         end if;
-
-         --  Set the final clip rect
-         Screen.Set_Clip_Rectangle (Local_Clip);
-
-      else
+      if Rect = Null_Rectangle then
          Screen.Set_Clip_Rectangle (Null_Rectangle);
          Local_Clip := Screen.Clip_Rectangle;
+      else
+         --  Set up clipping
+         --  (Note that we must first clip "rect" to the
+         --  current cliprect of the screen - or we'll screw
+         --  clipping up as soon as we have more than two
+         --  layers!)
+
+         declare
+            Clip_Width, Clip_Height : Integer;
+         begin
+            Pos        := Screen.Clip_Rectangle;
+            Local_Clip := Rect;
+
+            --  Convert to (x2,y2)
+            Pos.Width  := Pos.Width  + Pos.X;
+            Pos.Height := Pos.Height + Pos.Y;
+            Clip_Width  := Integer (C.int'Min (Local_Clip.Width  + Local_Clip.X,
+                                              Pos.Width));
+            Clip_Height := Integer (C.int'Min (Local_Clip.Height + Local_Clip.Y,
+                                               Pos.Height));
+
+            Local_Clip.X      := C.int'Max (Local_Clip.X, Pos.X);
+            Local_Clip.Y      := C.int'Max (Local_Clip.Y, Pos.Y);
+
+            --  Convert result back to w, h
+            Clip_Width  := Clip_Width  - Integer (Local_Clip.X);
+            Clip_Height := Clip_Height - Integer (Local_Clip.Y);
+
+            --  Check if we actually have an area left!
+            if Clip_Width <= 0 or Clip_Height <= 0 then
+               return;
+            end if;
+
+            Local_Clip.Width  := C.int (Clip_Width);
+            Local_Clip.Height := C.int (Clip_Height);
+
+            Screen.Set_Clip_Rectangle (Local_Clip);
+         end;
       end if;
 
       declare
          --  Position of clip rect in map space
-         Map_Pos_X0 : constant Integer := Integer (Layer.Pos_X + Float (Screen.Clip_Rectangle.X));
-         Map_Pos_Y0 : constant Integer := Integer (Layer.Pos_Y + Float (Screen.Clip_Rectangle.Y));
+         Map_Pos_X0 : constant Integer
+           := Integer (Layer.Pos_X + Float (Screen.Clip_Rectangle.X));
+         Map_Pos_Y0 : constant Integer
+           := Integer (Layer.Pos_Y + Float (Screen.Clip_Rectangle.Y));
 
          --  The calculations would break with negative map coords...
          Map_Pos_X  : constant Integer := Map_Pos_X0 +
            (if Map_Pos_X0 < 0
-              then Map_Pos_X0 + MAP_W * TILE_W * (-Map_Pos_X0 / (MAP_W * TILE_W) + 1)
-              else 0);
+            then MAP_W * TILE_W * (-Map_Pos_X0 / (MAP_W * TILE_W) + 1)
+            else 0);
 
          Map_Pos_Y  : constant Integer := Map_Pos_Y0 +
-             (if Map_Pos_Y0 < 0
-                then Map_Pos_Y0 + MAP_H * TILE_H * (-Map_Pos_Y0 / (MAP_H * TILE_H) + 1)
-                else 0);
+           (if Map_Pos_Y0 < 0
+            then MAP_H * TILE_H * (-Map_Pos_Y0 / (MAP_H * TILE_H) + 1)
+            else 0);
 
          --  Fine position - pixel offset; up to (1 tile - 1 pixel)
          Fine_X : constant Integer := Map_Pos_X mod TILE_W;
@@ -750,6 +755,7 @@ package body Parallax_4 is
                   if Kind /= Opaque and Layer.Next /= null then
 
                      Layer.Recursions := Layer.Recursions + 1;
+                     Pos.Width := C.int (Run_W * TILE_W);
                      --  Recursive call !!!
                      Layer_Render (Layer.Next.all, Screen, Pos);
                      Screen.Set_Clip_Rectangle (Local_Clip);
@@ -783,8 +789,6 @@ package body Parallax_4 is
                      Pos.X := Pos.X + TILE_W;
                   end loop;
                end;
-               M_X   := M_X + 1;
-               Pos.X := Pos.X + TILE_W;
             end loop;
             M_Y   := M_Y + 1;
             Pos.Y := Pos.Y + TILE_H;
