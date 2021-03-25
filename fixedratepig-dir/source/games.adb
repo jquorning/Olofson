@@ -1361,36 +1361,42 @@ package body Games is
       Logic_FPS  : constant Float := 20.0;
       --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
       use type SDL.Init_Flags;
-   begin
-      if not SDL.Initialise (SDL.Enable_Screen or SDL.Enable_Events) then
-         Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                               "Could not initialise SDL library.");
-         return;
-      end if;
+      Sdl_Flags : constant := (SDL.Enable_Screen
+                                 + SDL.Enable_Audio -- Workaround, clean cleanup
+                                 + SDL.Enable_Events);
+      procedure Sdl_Initialise;
 
+      procedure Sdl_Initialise is
       begin
-         SDL.Video.Windows.Makers.Create (Window, Width => SCREEN_W, Height => SCREEN_H,
-                                          X => 10, Y => 10, Title => "Fixed Rate Pig Game");
-         --  bpp, Flags);
-         --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
---         Screen := Window.Get_Surface;
---         Screen.Fill (Area   => (0, 0,
---                                 Width  => Screen.Size.Width,
---                                 Height => Screen.Size.Height),
---                      Colour => 16#00_00_00_00#);
---      exception
---         when others => --  if Screen = null then
---            Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
---                                  "Failed to open screen!");
---            return; -- 1;
-      end; -- if;
+         if not SDL.Initialise (Sdl_Flags) then
+            raise Program_Error with "Could not initialise SDL library.";
+         end if;
+      end Sdl_Initialise;
 
-      --   SDL_WM_SetCaption ("Fixed Rate Pig", "Pig");
-      --   SDL_ShowCursor (0);
+   begin
+
+      Sdl_Initialise;
 
       declare
---         Game_Ptr : constant Game_Access := Create_Game (Screen); -- Class; -- Game_State_Access;
-         Game : aliased Game_State := Create; --  renames Game_Ptr.all;
+         use SDL.Video.Windows;
+      begin
+         Makers.Create
+           (Window,
+            Title    => "Fixed Rate Pig Game",
+            Position => (10, 10),
+            Size     => (SCREEN_W, SCREEN_H),
+            Flags    => SDL.Video.Windows.Windowed);
+         --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
+         Screen := Window.Get_Surface;
+
+         Screen.Fill (Area   => (0, 0,
+                                 Width  => Screen.Size.Width,
+                                 Height => Screen.Size.Height),
+                      Colour => 16#00_00_00_00#);
+      end;
+
+      declare
+         Game : aliased Game_State := Create;
       begin
          Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
                      Screen => Screen,
