@@ -473,7 +473,7 @@ package body Parallax_3 is
          Window.Update_Surface;
 
          --  Let operating system breath
-         delay 0.001;
+         delay 0.010;
       end loop;
 
       Put_Line ("Statistics: (All figures per rendered frame.)");
