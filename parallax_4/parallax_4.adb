@@ -375,11 +375,12 @@ package body Parallax_4 is
          --  Set background velocity
          declare
             use Ada.Numerics.Elementary_Functions;
+            T : constant Float := Float (Time);
          begin
             if Num_Of_Layers > 1 then
                Layer_Vel (Layers (Layers'Last),
-                          Velocity_Type (Sin (Float (Time) * 0.00011)) * BACKGROUND_VEL,
-                          Velocity_Type (Cos (Float (Time) * 0.00013)) * BACKGROUND_VEL);
+                          Velocity_Type (Sin (T * 0.00011)) * BACKGROUND_VEL,
+                          Velocity_Type (Cos (T * 0.00013)) * BACKGROUND_VEL);
             end if;
          end;
 
