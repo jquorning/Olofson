@@ -687,21 +687,10 @@ package body Parallax_4 is
 
       declare
          --  Position of clip rect in map space
-         Map_Pos_X0 : constant Coordinate
+         Map_Pos_X : constant Coordinate
            := Coordinate (Layer.Pos_X) + Screen.Clip_Rectangle.X;
-         Map_Pos_Y0 : constant Coordinate
+         Map_Pos_Y : constant Coordinate
            := Coordinate (Layer.Pos_Y) + Screen.Clip_Rectangle.Y;
-
-         --  The calculations would break with negative map coords...
-         Map_Pos_X  : constant Coordinate := Map_Pos_X0 +
-           (if Map_Pos_X0 < 0
-            then MAP_W * TILE_W * (-Map_Pos_X0 / (MAP_W * TILE_W) + 1)
-            else 0);
-
-         Map_Pos_Y  : constant Coordinate := Map_Pos_Y0 +
-           (if Map_Pos_Y0 < 0
-            then MAP_H * TILE_H * (-Map_Pos_Y0 / (MAP_H * TILE_H) + 1)
-            else 0);
 
          --  Fine position - pixel offset; up to (1 tile - 1 pixel)
          Fine_X : constant Coordinate := Map_Pos_X mod TILE_W;
