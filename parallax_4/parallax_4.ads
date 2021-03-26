@@ -15,9 +15,6 @@ with SDL.Video.Rectangles;
 
 package Parallax_4 is
 
-
-   --  Definitions...
-
    --  foreground and background velocities in pixels/sec
    FOREGROUND_VEL_X : constant := 100.0;
    FOREGROUND_VEL_Y : constant :=  50.0;
@@ -60,16 +57,15 @@ package Parallax_4 is
    subtype Surface   is SDL.Video.Surfaces.Surface;
    subtype Rectangle is SDL.Video.Rectangles.Rectangle;
 
-   type Layer_Type;
-   type Layer_Access is access all Layer_Type;
+   type Layer_Index is new Natural;
 
    type Velocity_Type is new Float;
    type Position_Type is new Float;
 
    type Layer_Type is
       record
-        --  Next layer in recursion order
-        Next : Layer_Access;
+         --  Next layer in recursion order
+         Next : Layer_Index;
 
         --  Position and speed
         Pos_X, Pos_Y : Position_Type;
@@ -83,9 +79,9 @@ package Parallax_4 is
         Tiles        : Surface;
         Opaque_Tiles : Surface;
 
-        --  Position link
-        Link : Layer_Access;
-        Ratio : Float;
+         --  Position link
+         Link  : Layer_Index;
+         Ratio : Float;
 
         --  Statistics
         Calls      : Integer;
@@ -94,6 +90,8 @@ package Parallax_4 is
         Pixels     : Integer;
       end record;
 
+   type Layer_Set is array (Layer_Index range <>) of Layer_Type;
+
    procedure Layer_Init (Layer        : out Layer_Type;
                          Map          :     Map_Data_Access;
                          Tiles        :     Surface;
@@ -101,7 +99,7 @@ package Parallax_4 is
    --  Initialize layer; set up map and tile graphics data.
 
    procedure Layer_Next (Layer      : in out Layer_Type;
-                         Next_Layer :        Layer_Access);
+                         Next_Layer :        Layer_Index);
    --  Tell a layer which layer is next, or under this layer.
 
    procedure Layer_Pos (Layer : in out Layer_Type;
@@ -112,7 +110,8 @@ package Parallax_4 is
                         X, Y  :        Velocity_Type);
    --  Set velocity.
 
-   procedure Layer_Animate (Layer   : in out Layer_Type;
+   procedure Layer_Animate (Set     : in out Layer_Set;
+                            Layer   : in out Layer_Type;
                             Delta_T :        Duration);
    --  Update animation (apply the velocity, that is).
 
@@ -120,11 +119,12 @@ package Parallax_4 is
    --  Bounce at map limits.
 
    procedure Layer_Link (Layer    : in out Layer_Type;
-                         To_Layer :        Layer_Access;
+                         To_Layer :        Layer_Index;
                          Ratio    :        Float);
    --  Link the position of this layer to another layer, w/ scale ratio.
 
-   procedure Layer_Render (Layer  : in out Layer_Type;
+   procedure Layer_Render (Set    : in out Layer_Set;
+                           Layer  : in out Layer_Type;
                            Screen : in out Surface;
                            Rect   :        Rectangle);
    --  Render layer to the specified surface,

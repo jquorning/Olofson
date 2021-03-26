@@ -201,8 +201,7 @@ package body Parallax_4 is
       Flags     : constant Window_Flags := (if Full_Screen
                                             then SDL.Video.Windows.Full_Screen
                                             else 0);
-
-      Layers : array (0 .. Num_Of_Layers - 1) of aliased Layer_Type;
+      Layers     : Layer_Set (1 .. Layer_Index (Num_Of_Layers));
 
       Total_Blits      : Natural;
       Total_Recursions : Natural;
@@ -253,9 +252,9 @@ package body Parallax_4 is
       if Num_Of_Layers > 1 then
 
          --  Assign maps and tile palettes to parallax layers
-         Layer_Init (Layers (0), Foreground_Map'Access, Tiles, Otiles);
-         for I in 1 .. Num_Of_Layers - 2 loop
-            if (I mod 2 = 1) and not No_Planets then
+         Layer_Init (Layers (Layers'First), Foreground_Map'Access, Tiles, Otiles);
+         for I in Layers'First + 1 .. Layers'Last - 1 loop
+            if (I mod 2 = 0) and not No_Planets then
                Layer_Init (Layers (I), Middle_Map'Access,
                            Tiles, Otiles);
             else
@@ -263,25 +262,25 @@ package body Parallax_4 is
                            Tiles, Otiles);
             end if;
          end loop;
-         Layer_Init (Layers (Num_Of_Layers - 1), Background_Map'Access,
+         Layer_Init (Layers (Layers'Last), Background_Map'Access,
                      Tiles, Otiles);
 
          --  Set up the depth order for the
          --  recursive rendering algorithm.
-
-         for I in 0 .. Num_Of_Layers - 2 loop
-            Layer_Next (Layers (I), Layers (I + 1)'Unchecked_Access);
+         for I in Layers'First .. Layers'Last - 1 loop
+            Layer_Next (Layers (I), I + 1);
          end loop;
       else
-         Layer_Init (Layers (0), Single_Map'Access, Tiles, Otiles);
+         Layer_Init (Layers (Layers'First), Single_Map'Access, Tiles, Otiles);
       end if;
 
-      if Bounce_Around and (Num_Of_Layers > 1) then
+      if Bounce_Around and Num_Of_Layers > 1 then
 
-         for I in 0 .. Num_Of_Layers - 2 loop
+         for I in Layers'First .. Layers'Last - 1 loop
             declare
                use Ada.Numerics.Elementary_Functions;
-               A : constant Float := 1.0 + Float (I) * 2.0 * 3.1415 / Float (Num_Of_Layers);
+               N : constant Float := Float (Num_Of_Layers);
+               A : constant Float := 1.0 + Float (I) * 2.0 * 3.1415 / N;
                V : constant Velocity_Type := 200.0 / Velocity_Type (I + 1);
             begin
                Layer_Vel (Layers (I),
@@ -295,14 +294,14 @@ package body Parallax_4 is
 
       else
          --  Set foreground scrolling speed and enable "bounce mode"
-         Layer_Vel (Layers (0), FOREGROUND_VEL_X, FOREGROUND_VEL_Y);
+         Layer_Vel (Layers (Layers'First), FOREGROUND_VEL_X, FOREGROUND_VEL_Y);
          if not Wrap then
-            Layer_Limit_Bounce (Layers (0));
+            Layer_Limit_Bounce (Layers (Layers'First));
          end if;
 
          --  Link all intermediate levels to the foreground layer
-         for I in 1 .. Num_Of_Layers - 2 loop
-            Layer_Link (Layers (I), Layers (0)'Unchecked_Access, 1.5 / Float (I + 1));
+         for I in Layers'First + 1 .. Layers'Last - 1 loop
+            Layer_Link (Layers (I), Layers'First, 1.5 / Float (I + 1));
          end loop;
       end if;
 
@@ -378,24 +377,24 @@ package body Parallax_4 is
             use Ada.Numerics.Elementary_Functions;
          begin
             if Num_Of_Layers > 1 then
-               Layer_Vel (Layers (Num_Of_Layers - 1),
+               Layer_Vel (Layers (Layers'Last),
                           Velocity_Type (Sin (Float (Time) * 0.00011)) * BACKGROUND_VEL,
                           Velocity_Type (Cos (Float (Time) * 0.00013)) * BACKGROUND_VEL);
             end if;
          end;
 
          --  Animate all layers
-         for I in 0 .. Num_Of_Layers - 1 loop
-            Layer_Animate (Layers (I), Delta_Time);
+         for I in Layers'Range loop
+            Layer_Animate (Layers, Layers (I), Delta_Time);
          end loop;
 
          --  Reset rendering statistics
-         for I in 0 .. Num_Of_Layers - 1 loop
+         for I in Layers'Range loop
             Layer_Reset_Stats (Layers (I));
          end loop;
 
          --  Render layers (recursive!)
-         Layer_Render (Layers (0), Screen, Border);
+         Layer_Render (Layers, Layers (Layers'First), Screen, Border);
 
          Total_Blits      := 0;
          Total_Recursions := 0;
@@ -407,8 +406,8 @@ package body Parallax_4 is
          end if;
 
          if Verbose = 3 then
-            for I in 0 .. Num_Of_Layers - 1 loop
-               Natural_IO.Put (I);
+            for I in Layers'Range loop
+               Put (I'Image);
                Natural_IO.Put (Layers (I).Blits);
                Natural_IO.Put (Layers (I).Recursions);
                Natural_IO.Put (Layers (I).Pixels);
@@ -416,7 +415,7 @@ package body Parallax_4 is
             end loop;
          end if;
 
-         for I in 0 .. Num_Of_Layers - 1 loop
+         for I in Layers'Range loop
             Total_Blits      := Total_Blits + Layers (I).Blits;
             Total_Recursions := Total_Recursions + Layers (I).Recursions;
             Total_Pixels     := Total_Pixels + Layers (I).Pixels;
@@ -490,7 +489,7 @@ package body Parallax_4 is
                          Tiles        :     Surface;
                          Opaque_Tiles :     Surface) is
    begin
-      Layer := (Next         => null,
+      Layer := (Next         => 0,
                 Pos_X        => 0.0,
                 Pos_Y        => 0.0,
                 Vel_X        => 0.0,
@@ -498,17 +497,18 @@ package body Parallax_4 is
                 Map          => Map,
                 Tiles        => Tiles,
                 Opaque_Tiles => Opaque_Tiles,
-                Link         => null,
+                Link         => 0,
                 Flags        => (others => False),
                 Ratio        => 1.0,
                 others       => 0);
    end Layer_Init;
+
    ----------
    -- Next --
    ----------
 
    procedure Layer_Next (Layer      : in out Layer_Type;
-                         Next_Layer :        Layer_Access) is
+                         Next_Layer :        Layer_Index) is
    begin
       Layer.Next := Next_Layer;
    end Layer_Next;
@@ -574,7 +574,8 @@ package body Parallax_4 is
    -- Animate --
    -------------
 
-   procedure Layer_Animate (Layer   : in out Layer_Type;
+   procedure Layer_Animate (Set     : in out Layer_Set;
+                            Layer   : in out Layer_Type;
                             Delta_T :        Duration)
    is
       function "*" (Left : Duration; Right : Velocity_Type) return Position_Type;
@@ -584,8 +585,8 @@ package body Parallax_4 is
       end "*";
    begin
       if Layer.Flags.Linked then
-         Layer.Pos_X := Layer.Link.Pos_X * Position_Type (Layer.Ratio);
-         Layer.Pos_Y := Layer.Link.Pos_Y * Position_Type (Layer.Ratio);
+         Layer.Pos_X := Set (Layer.Link).Pos_X * Position_Type (Layer.Ratio);
+         Layer.Pos_Y := Set (Layer.Link).Pos_Y * Position_Type (Layer.Ratio);
       else
          Layer.Pos_X := Layer.Pos_X + Delta_T * Layer.Vel_X;
          Layer.Pos_Y := Layer.Pos_Y + Delta_T * Layer.Vel_Y;
@@ -606,7 +607,7 @@ package body Parallax_4 is
    ----------
 
    procedure Layer_Link (Layer    : in out Layer_Type;
-                         To_Layer :        Layer_Access;
+                         To_Layer :        Layer_Index;
                          Ratio    :        Float) is
    begin
       Layer.Flags.Linked := True;
@@ -623,7 +624,8 @@ package body Parallax_4 is
    --  runs of transparent and partially transparent
    --  tiles before recursing down.
 
-   procedure Layer_Render (Layer  : in out Layer_Type;
+   procedure Layer_Render (Set    : in out Layer_Set;
+                           Layer  : in out Layer_Type;
                            Screen : in out Surface;
                            Rect   :        Rectangle)
    is
@@ -743,12 +745,12 @@ package body Parallax_4 is
                   end if;
 
                   --  Recurse to next layer
-                  if Kind /= Opaque and Layer.Next /= null then
+                  if Kind /= Opaque and Layer.Next /= 0 then
 
                      Layer.Recursions := Layer.Recursions + 1;
                      Pos.Width := C.int (Run_W * TILE_W);
                      --  Recursive call !!!
-                     Layer_Render (Layer.Next.all, Screen, Pos);
+                     Layer_Render (Set, Set (Layer.Next), Screen, Pos);
                      Screen.Set_Clip_Rectangle (Local_Clip);
                   end if;
 
