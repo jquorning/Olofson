@@ -653,7 +653,7 @@ package body Parallax_4 is
          --  layers!)
 
          declare
-            Clip_Width, Clip_Height : Integer;
+            Clip_Width, Clip_Height : Coordinate;
          begin
             Pos        := Screen.Clip_Rectangle;
             Local_Clip := Rect;
@@ -661,17 +661,17 @@ package body Parallax_4 is
             --  Convert to (x2,y2)
             Pos.Width  := Pos.Width  + Pos.X;
             Pos.Height := Pos.Height + Pos.Y;
-            Clip_Width  := Integer (C.int'Min (Local_Clip.Width  + Local_Clip.X,
-                                              Pos.Width));
-            Clip_Height := Integer (C.int'Min (Local_Clip.Height + Local_Clip.Y,
-                                               Pos.Height));
+            Clip_Width  := Coordinate'Min (Local_Clip.Width  + Local_Clip.X,
+                                           Pos.Width);
+            Clip_Height := Coordinate'Min (Local_Clip.Height + Local_Clip.Y,
+                                           Pos.Height);
 
-            Local_Clip.X      := C.int'Max (Local_Clip.X, Pos.X);
-            Local_Clip.Y      := C.int'Max (Local_Clip.Y, Pos.Y);
+            Local_Clip.X      := Coordinate'Max (Local_Clip.X, Pos.X);
+            Local_Clip.Y      := Coordinate'Max (Local_Clip.Y, Pos.Y);
 
             --  Convert result back to w, h
-            Clip_Width  := Clip_Width  - Integer (Local_Clip.X);
-            Clip_Height := Clip_Height - Integer (Local_Clip.Y);
+            Clip_Width  := Clip_Width  - Local_Clip.X;
+            Clip_Height := Clip_Height - Local_Clip.Y;
 
             --  Check if we actually have an area left!
             if Clip_Width <= 0 or Clip_Height <= 0 then
