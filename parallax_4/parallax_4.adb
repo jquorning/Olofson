@@ -125,6 +125,8 @@ package body Parallax_4 is
    --    ...And some code. :-)
    ------------------------------------------------------------
 
+   subtype Coordinate is SDL.Coordinate;
+
    type Tile_Kind is (Empty, Keyed, Opaque);
 
    function Tile_Mode (Tile : Tile_Raw_Type) return Tile_Kind;
@@ -132,7 +134,7 @@ package body Parallax_4 is
 
    procedure Draw_Tile (Screen : in out Surface;
                         Tiles  :        Surface;
-                        X, Y   :        Integer;
+                        X, Y   :        Coordinate;
                         Tile   :        Tile_Raw_Type;
                         Pixels :    out Integer);
 
@@ -149,7 +151,7 @@ package body Parallax_4 is
 
    procedure Draw_Tile (Screen : in out Surface;
                         Tiles  :        Surface;
-                        X, Y   :        Integer;
+                        X, Y   :        Coordinate;
                         Tile   :        Tile_Raw_Type;
                         Pixels :    out Integer)
    is
@@ -685,31 +687,31 @@ package body Parallax_4 is
 
       declare
          --  Position of clip rect in map space
-         Map_Pos_X0 : constant Integer
-           := Integer (Layer.Pos_X) + Integer (Screen.Clip_Rectangle.X);
-         Map_Pos_Y0 : constant Integer
-           := Integer (Layer.Pos_Y) + Integer (Screen.Clip_Rectangle.Y);
+         Map_Pos_X0 : constant Coordinate
+           := Coordinate (Layer.Pos_X) + Screen.Clip_Rectangle.X;
+         Map_Pos_Y0 : constant Coordinate
+           := Coordinate (Layer.Pos_Y) + Screen.Clip_Rectangle.Y;
 
          --  The calculations would break with negative map coords...
-         Map_Pos_X  : constant Integer := Map_Pos_X0 +
+         Map_Pos_X  : constant Coordinate := Map_Pos_X0 +
            (if Map_Pos_X0 < 0
             then MAP_W * TILE_W * (-Map_Pos_X0 / (MAP_W * TILE_W) + 1)
             else 0);
 
-         Map_Pos_Y  : constant Integer := Map_Pos_Y0 +
+         Map_Pos_Y  : constant Coordinate := Map_Pos_Y0 +
            (if Map_Pos_Y0 < 0
             then MAP_H * TILE_H * (-Map_Pos_Y0 / (MAP_H * TILE_H) + 1)
             else 0);
 
          --  Fine position - pixel offset; up to (1 tile - 1 pixel)
-         Fine_X : constant Integer := Map_Pos_X mod TILE_W;
-         Fine_Y : constant Integer := Map_Pos_Y mod TILE_H;
+         Fine_X : constant Coordinate := Map_Pos_X mod TILE_W;
+         Fine_Y : constant Coordinate := Map_Pos_Y mod TILE_H;
 
          --  Draw all visible tiles
-         Max_X : constant Integer := Integer (Screen.Clip_Rectangle.X
-                                                + Screen.Clip_Rectangle.Width);
-         Max_Y : constant Integer := Integer (Screen.Clip_Rectangle.Y
-                                                + Screen.Clip_Rectangle.Height);
+         Max_X : constant Coordinate
+           := Screen.Clip_Rectangle.X + Screen.Clip_Rectangle.Width;
+         Max_Y : constant Coordinate
+           := Screen.Clip_Rectangle.Y + Screen.Clip_Rectangle.Height;
 
          M_X      : Map_X_Type;
          M_Y      : Map_Y_Type;
@@ -723,12 +725,12 @@ package body Parallax_4 is
          Mx_Start := M_X;
 
          Pos.Height := TILE_H;
-         Pos.Y := Screen.Clip_Rectangle.Y - SDL.Coordinate (Fine_Y);
-         while Pos.Y < SDL.Coordinate (Max_Y) loop
+         Pos.Y := Screen.Clip_Rectangle.Y - Fine_Y;
+         while Pos.Y < Max_Y loop
             M_X   := Mx_Start;
             M_Y   := M_Y mod MAP_H;
-            Pos.X := Screen.Clip_Rectangle.X - SDL.Coordinate (Fine_X);
-            while Pos.X < SDL.Coordinate (Max_X) loop
+            Pos.X := Screen.Clip_Rectangle.X - Fine_X;
+            while Pos.X < Max_X loop
                declare
                   Tile  : Tile_Raw_Type;
                   Kind  : Tile_Kind;
@@ -742,7 +744,7 @@ package body Parallax_4 is
                   --  (Kind will tell what kind of run it is)
                   Run_W := 1;
                   if Detect_Runs then
-                     while Integer (Pos.X) + Integer (Run_W) * TILE_W < Max_X loop
+                     while Pos.X + Coordinate (Run_W * TILE_W) < Max_X loop
                         declare
                            Sort : constant Tile_Raw_Type :=
                              Layer.Map (M_Y, (M_X + Run_W) mod MAP_W);
@@ -790,7 +792,7 @@ package body Parallax_4 is
                            Layer.Blits := Layer.Blits + 1;
 
                            Draw_Tile (Screen, Tiles,
-                                      Integer (Pos.X), Integer (Pos.Y),
+                                      Pos.X, Pos.Y,
                                       Tile, Pixels);
                            Layer.Pixels := Layer.Pixels + Pixels;
                         end;
