@@ -127,16 +127,16 @@ package body Parallax_4 is
 
    type Tile_Kind is (Empty, Keyed, Opaque);
 
-   function Tile_Mode (Tile : Character) return Tile_Kind;
+   function Tile_Mode (Tile : Tile_Raw_Type) return Tile_Kind;
    --  Checks if tile is opaqe, empty or color keyed
 
    procedure Draw_Tile (Screen : in out Surface;
                         Tiles  :        Surface;
                         X, Y   :        Integer;
-                        Tile   :        Character;
+                        Tile   :        Tile_Raw_Type;
                         Pixels :    out Integer);
 
-   function Tile_Mode (Tile : Character) return Tile_Kind is
+   function Tile_Mode (Tile : Tile_Raw_Type) return Tile_Kind is
    begin
       case Tile is
          when '0' =>        return Opaque;
@@ -150,7 +150,7 @@ package body Parallax_4 is
    procedure Draw_Tile (Screen : in out Surface;
                         Tiles  :        Surface;
                         X, Y   :        Integer;
-                        Tile   :        Character;
+                        Tile   :        Tile_Raw_Type;
                         Pixels :    out Integer)
    is
       Source_Rect : Rectangle;
@@ -164,8 +164,8 @@ package body Parallax_4 is
       end if;
 
       Source_Rect.X := 0;      -- Only one column, so we never change this.
-      Source_Rect.Y := (Character'Pos (Tile)
-                               - Character'Pos ('0')) * TILE_H;
+      Source_Rect.Y := (Tile_Raw_Type'Pos (Tile)
+                          - Tile_Raw_Type'Pos ('0')) * TILE_H;
       --  Select tile from image!
 
       Source_Rect.Width  := TILE_W;
@@ -703,12 +703,14 @@ package body Parallax_4 is
          Max_Y : constant Integer := Integer (Screen.Clip_Rectangle.Y
                                                 + Screen.Clip_Rectangle.Height);
 
-         M_X, M_Y, Mx_Start : Integer;
+         M_X      : Map_X_Type;
+         M_Y      : Map_Y_Type;
+         Mx_Start : Map_X_Type;
       begin
 
          --  Position on map in tiles
-         M_X := Map_Pos_X / TILE_W;
-         M_Y := Map_Pos_Y / TILE_H;
+         M_X := Map_X_Type (Map_Pos_X / TILE_W);
+         M_Y := Map_Y_Type (Map_Pos_Y / TILE_H);
 
          Mx_Start := M_X;
 
@@ -720,9 +722,9 @@ package body Parallax_4 is
             Pos.X := Screen.Clip_Rectangle.X - SDL.Coordinate (Fine_X);
             while Pos.X < SDL.Coordinate (Max_X) loop
                declare
-                  Tile  : Character;
+                  Tile  : Tile_Raw_Type;
                   Kind  : Tile_Kind;
-                  Run_W : Integer;
+                  Run_W : Map_X_Type;
                begin
                   M_X  := M_X mod MAP_W;
                   Tile := Layer.Map (M_Y, M_X);
@@ -732,9 +734,9 @@ package body Parallax_4 is
                   --  (Kind will tell what kind of run it is)
                   Run_W := 1;
                   if Detect_Runs then
-                     while Integer (Pos.X) + Run_W * TILE_W < Max_X loop
+                     while Integer (Pos.X) + Integer (Run_W) * TILE_W < Max_X loop
                         declare
-                           Sort : constant Character :=
+                           Sort : constant Tile_Raw_Type :=
                              Layer.Map (M_Y, (M_X + Run_W) mod MAP_W);
                            TT   : Tile_Kind := Tile_Mode (Sort);
                         begin

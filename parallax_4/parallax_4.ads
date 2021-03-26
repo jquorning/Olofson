@@ -40,8 +40,14 @@ package Parallax_4 is
    MAP_W : constant := 16;
    MAP_H : constant := 16;
 
-   type Map_Data_Type is array (Integer range 0 .. MAP_H - 1,
-                                Integer range 0 .. MAP_W - 1) of Character;
+   type Map_X_Type is new Integer;
+   type Map_Y_Type is new Integer;
+   type Tile_Raw_Type is new Character;
+
+   type Map_Data_Type
+     is array (Map_Y_Type range 0 .. MAP_H - 1,
+               Map_X_Type range 0 .. MAP_W - 1) of Tile_Raw_Type;
+
    type Map_Data_Access is access all Map_Data_Type;
 
    type Flag_Type is
