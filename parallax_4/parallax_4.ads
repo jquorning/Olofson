@@ -50,6 +50,7 @@ package Parallax_4 is
 
    type Map_Data_Access is access all Map_Data_Type;
 
+   --  Flag definitions
    type Flag_Type is
       record
          Linked       : Boolean;
@@ -89,10 +90,6 @@ package Parallax_4 is
         Recursions : Integer;
         Pixels     : Integer;
       end record;
-
-   --  Flag definitions
-   TL_LIMIT_BOUNCE : constant := 16#00000001#;
-   TL_LINKED       : constant := 16#00000002#;
 
    procedure Layer_Init (Layer        : out Layer_Type;
                          Map          :     Map_Data_Access;
