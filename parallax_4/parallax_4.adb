@@ -290,9 +290,11 @@ package body Parallax_4 is
             declare
                use Ada.Numerics.Elementary_Functions;
                A : constant Float := 1.0 + Float (I) * 2.0 * 3.1415 / Float (Num_Of_Layers);
-               V : constant Float := 200.0 / Float (I + 1);
+               V : constant Velocity_Type := 200.0 / Velocity_Type (I + 1);
             begin
-               Layer_Vel (Layers (I), V * Cos (A), V * Sin (A));
+               Layer_Vel (Layers (I),
+                          V * Velocity_Type (Cos (A)),
+                          V * Velocity_Type (Sin (A)));
                if not Wrap then
                   Layer_Limit_Bounce (Layers (I));
                end if;
@@ -385,14 +387,14 @@ package body Parallax_4 is
          begin
             if Num_Of_Layers > 1 then
                Layer_Vel (Layers (Num_Of_Layers - 1),
-                          Sin (Float (Time) * 0.00011) * BACKGROUND_VEL,
-                          Cos (Float (Time) * 0.00013) * BACKGROUND_VEL);
+                          Velocity_Type (Sin (Float (Time) * 0.00011)) * BACKGROUND_VEL,
+                          Velocity_Type (Cos (Float (Time) * 0.00013)) * BACKGROUND_VEL);
             end if;
          end;
 
          --  Animate all layers
          for I in 0 .. Num_Of_Layers - 1 loop
-            Layer_Animate (Layers (I), Float (Delta_Time));
+            Layer_Animate (Layers (I), Delta_Time);
          end loop;
 
          --  Reset rendering statistics
@@ -524,7 +526,7 @@ package body Parallax_4 is
    ---------
 
    procedure Layer_Pos (Layer : in out Layer_Type;
-                        X, Y  :        Float) is
+                        X, Y  :        Position_Type) is
    begin
       Layer.Pos_X := X;
       Layer.Pos_Y := Y;
@@ -535,7 +537,7 @@ package body Parallax_4 is
    ---------
 
    procedure Layer_Vel (Layer : in out Layer_Type;
-                        X, Y  :        Float) is
+                        X, Y  :        Velocity_Type) is
    begin
       Layer.Vel_X := X;
       Layer.Vel_Y := Y;
@@ -545,8 +547,8 @@ package body Parallax_4 is
    --  Spec
 
    procedure X_Do_Limit_Bounce (Layer : in out Layer_Type) is
-      Max_X : constant Float := Float (MAP_W * TILE_W - SCREEN_W);
-      Max_Y : constant Float := Float (MAP_H * TILE_H - SCREEN_H);
+      Max_X : constant Position_Type := Position_Type (MAP_W * TILE_W - SCREEN_W);
+      Max_Y : constant Position_Type := Position_Type (MAP_H * TILE_H - SCREEN_H);
    begin
       if Layer.Pos_X >= Max_X then
 
@@ -580,15 +582,21 @@ package body Parallax_4 is
    -- Animate --
    -------------
 
-   procedure Layer_Animate (Layer : in out Layer_Type;
-                            DT    :        Float) is
+   procedure Layer_Animate (Layer   : in out Layer_Type;
+                            Delta_T :        Duration)
+   is
+      function "*" (Left : Duration; Right : Velocity_Type) return Position_Type;
+      function "*" (Left : Duration; Right : Velocity_Type) return Position_Type is
+      begin
+         return Position_Type (Left) * Position_Type (Right);
+      end "*";
    begin
       if Layer.Flags.Linked then
-         Layer.Pos_X := Layer.Link.Pos_X * Layer.Ratio;
-         Layer.Pos_Y := Layer.Link.Pos_Y * Layer.Ratio;
+         Layer.Pos_X := Layer.Link.Pos_X * Position_Type (Layer.Ratio);
+         Layer.Pos_Y := Layer.Link.Pos_Y * Position_Type (Layer.Ratio);
       else
-         Layer.Pos_X := Layer.Pos_X + DT * Layer.Vel_X;
-         Layer.Pos_Y := Layer.Pos_Y + DT * Layer.Vel_Y;
+         Layer.Pos_X := Layer.Pos_X + Delta_T * Layer.Vel_X;
+         Layer.Pos_Y := Layer.Pos_Y + Delta_T * Layer.Vel_Y;
          if Layer.Flags.Limit_Bounce then
             X_Do_Limit_Bounce (Layer);
          end if;
@@ -678,9 +686,9 @@ package body Parallax_4 is
       declare
          --  Position of clip rect in map space
          Map_Pos_X0 : constant Integer
-           := Integer (Layer.Pos_X + Float (Screen.Clip_Rectangle.X));
+           := Integer (Layer.Pos_X) + Integer (Screen.Clip_Rectangle.X);
          Map_Pos_Y0 : constant Integer
-           := Integer (Layer.Pos_Y + Float (Screen.Clip_Rectangle.Y));
+           := Integer (Layer.Pos_Y) + Integer (Screen.Clip_Rectangle.Y);
 
          --  The calculations would break with negative map coords...
          Map_Pos_X  : constant Integer := Map_Pos_X0 +

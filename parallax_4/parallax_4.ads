@@ -63,14 +63,17 @@ package Parallax_4 is
    type Layer_Type;
    type Layer_Access is access all Layer_Type;
 
+   type Velocity_Type is new Float;
+   type Position_Type is new Float;
+
    type Layer_Type is
       record
         --  Next layer in recursion order
         Next : Layer_Access;
 
         --  Position and speed
-        Pos_X, Pos_Y : Float;
-        Vel_X, Vel_Y : Float;
+        Pos_X, Pos_Y : Position_Type;
+        Vel_X, Vel_Y : Velocity_Type;
 
         --  Various flags
         Flags : Flag_Type;
@@ -102,15 +105,15 @@ package Parallax_4 is
    --  Tell a layer which layer is next, or under this layer.
 
    procedure Layer_Pos (Layer : in out Layer_Type;
-                        X, Y  :        Float);
+                        X, Y  :        Position_Type);
    --  Set position.
 
    procedure Layer_Vel (Layer : in out Layer_Type;
-                        X, Y  :        Float);
+                        X, Y  :        Velocity_Type);
    --  Set velocity.
 
-   procedure Layer_Animate (Layer : in out Layer_Type;
-                            DT    :        Float);
+   procedure Layer_Animate (Layer   : in out Layer_Type;
+                            Delta_T :        Duration);
    --  Update animation (apply the velocity, that is).
 
    procedure Layer_Limit_Bounce (Layer : in out Layer_Type);
