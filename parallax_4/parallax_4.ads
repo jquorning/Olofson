@@ -39,7 +39,7 @@ package Parallax_4 is
 
    type Map_X_Type is new Integer;
    type Map_Y_Type is new Integer;
-   type Tile_Raw_Type is new Character;
+   type Tile_Raw_Type is (' ', '0', '1', '2', '3', '4');
 
    type Map_Data_Type
      is array (Map_Y_Type range 0 .. MAP_H - 1,
