@@ -416,23 +416,15 @@ package body Parallax_4 is
             end loop;
          end if;
 
-         for I in Layers'Range loop
-            Total_Blits      := Total_Blits + Layers (I).Blits;
-            Total_Recursions := Total_Recursions + Layers (I).Recursions;
-            Total_Pixels     := Total_Pixels + Layers (I).Pixels;
+         for Layer of Layers loop
+            Total_Blits      := Total_Blits      + Layer.Blits;
+            Total_Recursions := Total_Recursions + Layer.Recursions;
+            Total_Pixels     := Total_Pixels     + Layer.Pixels;
          end loop;
 
-         if Total_Blits > Peak_Blits then
-            Peak_Blits := Total_Blits;
-         end if;
-
-         if Total_Recursions > Peak_Recursions then
-            Peak_Recursions := Total_Recursions;
-         end if;
-
-         if Total_Pixels > Peak_Pixels then
-            Peak_Pixels := Total_Pixels;
-         end if;
+         Peak_Blits      := Natural'Max (Peak_Blits,      Total_Blits);
+         Peak_Recursions := Natural'Max (Peak_Recursions, Total_Recursions);
+         Peak_Pixels     := Natural'Max (Peak_Pixels,     Total_Pixels);
 
          if Verbose >= 2 then
             Put ("TOTAL:  ");
