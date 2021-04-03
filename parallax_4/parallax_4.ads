@@ -111,7 +111,7 @@ package Parallax_4 is
    --  Set velocity.
 
    procedure Layer_Animate (Set     : in out Layer_Set;
-                            Layer   : in out Layer_Type;
+                            Index   :        Layer_Index;
                             Delta_T :        Duration);
    --  Update animation (apply the velocity, that is).
 
@@ -124,7 +124,7 @@ package Parallax_4 is
    --  Link the position of this layer to another layer, w/ scale ratio.
 
    procedure Layer_Render (Set    : in out Layer_Set;
-                           Layer  : in out Layer_Type;
+                           Index  :        Layer_Index;
                            Screen : in out Surface;
                            Rect   :        Rectangle);
    --  Render layer to the specified surface,

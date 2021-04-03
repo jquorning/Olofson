@@ -280,8 +280,8 @@ package body Parallax_4 is
             declare
                use Ada.Numerics.Elementary_Functions;
                N : constant Float := Float (Num_Of_Layers);
-               A : constant Float := 1.0 + Float (I) * 2.0 * 3.1415 / N;
-               V : constant Velocity_Type := 200.0 / Velocity_Type (I + 1);
+               A : constant Float := 1.0 + Float (I - 1) * 2.0 * 3.1415 / N;
+               V : constant Velocity_Type := 200.0 / Velocity_Type (I);
             begin
                Layer_Vel (Layers (I),
                           V * Velocity_Type (Cos (A)),
@@ -301,7 +301,7 @@ package body Parallax_4 is
 
          --  Link all intermediate levels to the foreground layer
          for I in Layers'First + 1 .. Layers'Last - 1 loop
-            Layer_Link (Layers (I), Layers'First, 1.5 / Float (I + 1));
+            Layer_Link (Layers (I), Layers'First, 1.5 / Float (I));
          end loop;
       end if;
 
@@ -386,7 +386,7 @@ package body Parallax_4 is
 
          --  Animate all layers
          for I in Layers'Range loop
-            Layer_Animate (Layers, Layers (I), Delta_Time);
+            Layer_Animate (Layers, I, Delta_Time);
          end loop;
 
          --  Reset rendering statistics
@@ -395,7 +395,7 @@ package body Parallax_4 is
          end loop;
 
          --  Render layers (recursive!)
-         Layer_Render (Layers, Layers (Layers'First), Screen, Border);
+         Layer_Render (Layers, Layers'First, Screen, Border);
 
          Total_Blits      := 0;
          Total_Recursions := 0;
@@ -568,7 +568,7 @@ package body Parallax_4 is
    -------------
 
    procedure Layer_Animate (Set     : in out Layer_Set;
-                            Layer   : in out Layer_Type;
+                            Index   :        Layer_Index;
                             Delta_T :        Duration)
    is
       function "*" (Left : Duration; Right : Velocity_Type) return Position_Type;
@@ -576,6 +576,8 @@ package body Parallax_4 is
       begin
          return Position_Type (Left) * Position_Type (Right);
       end "*";
+
+      Layer : Layer_Type renames Set (Index);
    begin
       if Layer.Flags.Linked then
          Layer.Pos_X := Set (Layer.Link).Pos_X * Position_Type (Layer.Ratio);
@@ -618,11 +620,12 @@ package body Parallax_4 is
    --  tiles before recursing down.
 
    procedure Layer_Render (Set    : in out Layer_Set;
-                           Layer  : in out Layer_Type;
+                           Index  :        Layer_Index;
                            Screen : in out Surface;
                            Rect   :        Rectangle)
    is
       use SDL.Video.Rectangles, SDL.C;
+      Layer      : Layer_Type renames Set (Index);
       Pos        : Rectangle;
       Local_Clip : Rectangle;
    begin
@@ -743,7 +746,7 @@ package body Parallax_4 is
                      Layer.Recursions := Layer.Recursions + 1;
                      Pos.Width := C.int (Run_W * TILE_W);
                      --  Recursive call !!!
-                     Layer_Render (Set, Set (Layer.Next), Screen, Pos);
+                     Layer_Render (Set, Layer.Next, Screen, Pos);
                      Screen.Set_Clip_Rectangle (Local_Clip);
                   end if;
 
