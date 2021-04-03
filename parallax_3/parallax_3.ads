@@ -25,8 +25,8 @@ package Parallax_3 is
    BACKGROUND_VEL   : constant := 100.0;
 
    --  Size of the screen in pixels
-   SCREEN_W : constant := 320;
-   SCREEN_H : constant := 240;
+   SCREEN_W : constant := 600;
+   SCREEN_H : constant := 400;
 
    --  Size of one background tile in pixels
    TILE_W : constant := 48;
