@@ -1265,7 +1265,6 @@ package body Engines is
          raise;
    end Pig_Draw_Sprite;
 
-
    ------------------------------------------------------------
    --    Map
    ------------------------------------------------------------
@@ -1359,31 +1358,27 @@ package body Engines is
    -----------------------
 
    procedure Pig_Map_Collisions (Map   : in out PIG_Map;
-                                 First :        Natural;
+                                 First :        Tile_Index;
                                  Count :        Natural;
                                  Hit   :        Sides)
    is
---  void pig_map_collisions(PIG_map *pm, unsigned first, unsigned count, PIG_sides sides)
---  {
---      int i;
+      Count_2 : Tile_Index := Tile_Index (Count);
    begin
-      --      if(first > 255)
---              return;
---      if(first + count > 255)
---              count = 255 - first;
---      for(i = first; i < first + count; ++i)
---              pm->hitinfo[i] = sides;
-      null;
+
+      if First + Count_2 > 255 then
+         Count_2 := 255 - First;
+      end if;
+
+      for I in First .. First + Count_2 - 1 loop
+         Map.Hitinfo (I) := Hit;
+      end loop;
+
    end Pig_Map_Collisions;
 
    -------------------------
    -- Pig_Map_From_String --
    -------------------------
 
-   --  Load a map from a string (one byte/tile). 'trans'
-   --  is a string used for translating 'data' into integer
-   --  tile indices. Each position in 'trans' corresponds
-   --  to one tile in the tile palette.
    procedure Pig_Map_From_String (Map   : in out PIG_Map;
                                   Trans :        String;
                                   Data  :        String)
@@ -1408,8 +1403,7 @@ package body Engines is
                                           " the translation string!");
                   raise Constraint_Error;
                end if;
-               --  Map.Map (Z) := Trans (Position);  -- F - Trans;
-               Map.Map (X, Y) := Tile_Index (Character'Pos (Trans (Position)));  -- F - Trans;
+               Map.Map (X, Y) := Tile_Index (Position - Trans'First);
                Z := Z + 1;
             end;
          end loop;
@@ -1422,13 +1416,13 @@ package body Engines is
               Map.Hitinfo (Map.Map (X, Y));
          end loop;
       end loop;
+
    exception
       when Constraint_Error =>
          Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                "Map string too short!");
          raise;
    end Pig_Map_From_String;
-
 
    ------------------------------------------------------------
    --      Object

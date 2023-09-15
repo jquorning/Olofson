@@ -49,6 +49,8 @@ is
    type Key_Used  is (Up, Down, Left, Right);
    type Key_Array is array (Key_Used) of Boolean;
 
+   type Game_Level is new Natural;
+
    type Game_State is
      new Game_Engine
      with record
@@ -71,24 +73,24 @@ is
 
         --  Global game state
         Running           : Boolean;
-        Level             : Integer;
-        Lives             : Integer;
+        Level             : Game_Level;
+        Lives             : Natural;
         Lives_Wobble      : Float;
         Lives_Wobble_Time : Duration;
-        Score             : Integer;
+        Score             : Natural;
         Score_Wobble      : Float;
         Score_Wobble_Time : Duration;
         Dashboard_Time    : Duration;
-        Fun_Count         : Integer;
+        Fun_Count         : Natural;
         Enemycount        : Integer;
-        Messages          : Integer;
+        Messages          : Natural;
 
         --  Objects
         Player            : Object_Access;
 
         --  Statistics
-        Logic_Frames      : Integer;
-        Rendered_Frames   : Integer;
+        Logic_Frames      : Natural;
+        Rendered_Frames   : Natural;
 
         Start_Time        : Ada.Real_Time.Time;
    end record;
