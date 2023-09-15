@@ -22,6 +22,10 @@ gprbuild fixedratepig.gpr -XSDL_PLATFORM=macosx
 
 ![Parallax on Linux](screenshots/linux.png)
 
-## Original
+## Origin
 
-The originals are found [here](http://olofson.net/examples.html).
+The originals are found [here](http://olofson.net/examples.html)
+and 1.0 version of pig [here](http://olofson.net/mixed.html) or in 
+1.1 version [here]((http://www.olofson.net/pig/).
+[YouTube video](https://www.youtube.com/watch?app=desktop&v=VvgSGAuxCvg)
+
