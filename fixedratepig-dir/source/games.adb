@@ -1539,7 +1539,7 @@ package body Games is
 
                Last_Tick := Tick2;
                if Game.Nice then
-                  delay 0.010;
+                  delay 0.050;
                end if;
             end;
          end loop;
