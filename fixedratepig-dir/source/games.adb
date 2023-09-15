@@ -9,7 +9,6 @@
 --  software, or work derived from it, under other terms.
 
 with Ada.Text_IO;
-with Ada.Strings.Unbounded;
 with Ada.Numerics.Elementary_Functions;
 with Ada.Characters.Handling;
 
@@ -217,6 +216,9 @@ package body Games is
       Object.Hitmask := GROUP_POWERUP + GROUP_ENEMY;
    end New_Player;
 
+   ----------------
+   -- New_Player --
+   ----------------
 
    procedure New_Player (Game : in out Game_State) is
       Dummy : Object_Access;
@@ -224,6 +226,9 @@ package body Games is
       New_Player (Game, Dummy);
    end New_Player;
 
+   -----------------
+   -- New_Powerup --
+   -----------------
 
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   :        Pixels;
@@ -243,6 +248,9 @@ package body Games is
       Object.Hitgroup := GROUP_POWERUP;
    end New_Powerup;
 
+   -----------------
+   -- New_Powerup --
+   -----------------
 
    procedure New_Powerup (Game  : in out Game_State;
                           X, Y  :        Pixels;
@@ -254,6 +262,9 @@ package body Games is
       New_Powerup (Game, X, Y, Speed, Kind, Dummy);
    end New_Powerup;
 
+   --------------
+   -- New_Star --
+   --------------
 
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
@@ -271,6 +282,9 @@ package body Games is
       Object.Handler := Star_Handler'Access;
    end New_Star;
 
+   ---------------
+   -- New_Start --
+   ---------------
 
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
@@ -281,6 +295,9 @@ package body Games is
       New_Star (Game, X, Y, Vx, Vy, Dummy);
    end New_Star;
 
+   --------------
+   -- New_Evil --
+   --------------
 
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   :        Pixels;
@@ -301,6 +318,9 @@ package body Games is
       Object.Hitgroup := GROUP_ENEMY;
    end New_Evil;
 
+   ---------------
+   -- New_Slime --
+   ---------------
 
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Pixels;
@@ -320,6 +340,9 @@ package body Games is
       Object.Hitgroup := GROUP_ENEMY;
    end New_Slime;
 
+   --------------------
+   -- New_Chain_Head --
+   --------------------
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     :        Pixels;
@@ -335,6 +358,9 @@ package body Games is
       Object.Target  := Target_X;
    end New_Chain_Head;
 
+   --------------------
+   -- New_Chain_Link --
+   --------------------
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   :        Pixels;
@@ -376,6 +402,9 @@ package body Games is
       end if;
    end Inc_Score_Nobonus;
 
+   ---------------
+   -- Inc_Score --
+   ---------------
 
    procedure Inc_Score (Game : in out Game_State;
                         V    :        Integer)
@@ -390,6 +419,9 @@ package body Games is
       end if;
    end Inc_Score;
 
+   -------------
+   -- Message --
+   -------------
 
    procedure Message (Game : in out Game_State;
                       Text :        String)
@@ -883,6 +915,9 @@ package body Games is
       end case;
    end Slime_Handler;
 
+   ------------------------
+   -- Chain_Head_Handler --
+   ------------------------
 
    procedure Chain_Head_Handler (Object : in out Game_Object;
                                  Event  :        Pig_Event)
@@ -973,25 +1008,26 @@ package body Games is
    procedure Load_Level (Game : in out Game_State;
                          Map  :        Map_Type)
    is
-      use Ada.Strings.Unbounded;
-      M, K  : Unbounded_String;
+      M     : String (1 .. 25 * 17);
+      K     : String (1 .. 48);      -- Tile types in Map
       Dummy : Object_Access;
    begin
-      Game.Level := Integer (Map);
+      Game.Level := Game_Level (Map);
       Game.Unlink_All_Objects;
       Game.Enemycount := 0;
       Game.Messages   := 0;
 
       case Map is
          when 1 | 2 | 4 =>
-            K := To_Unbounded_String
-              ("abcd" & "efgh" & "ijkl" &  --  Red, green, yellov
+            K :=
+              ("abcd" & "efgh" & "ijkl" &  --  Red, green, yellow
                  "0123456789ABCDEFG"  &    --  Sky
-                 "xyz");                   --  Single R, G, Y
+                 "xyz" &                   --  Single R, G, Y
+                 "................");
 
          when 0 | 3 =>
-            K := To_Unbounded_String
-              ("abcd" & "efgh" & "ijkl" &  --  Red, green, yellov
+            K :=
+              ("abcd" & "efgh" & "ijkl" &  --  Red, green, yellow
                  "................."  &
                  "xyz"                &    --  Single R, G, Y
                  "-+012345..ABCDEF");      --  Night sky
@@ -1000,8 +1036,8 @@ package body Games is
       case Map is
 
          when 0 =>
-            M := To_Unbounded_String
-              ("-------------ad----------" &
+            M :=
+                ("-------------ad----------" &
                  "-abcd-x-ad--ad-abcd-acd--" &
                  "-x----x--abcd--x----x--x-" &
                  "-abd--x---ad---abd--x--x-" &
@@ -1020,8 +1056,8 @@ package body Games is
                  "-------------------------");
 
          when 1 =>
-            M := To_Unbounded_String
-              ("0000000000000000000000000" &
+            M :=
+                ("0000000000000000000000000" &
                  "1111111111111111111111111" &
                  "2222222222222222222222222" &
                  "3333333333333333333333333" &
@@ -1044,8 +1080,8 @@ package body Games is
             New_Evil (Game, 19, 0, 7, Dummy);
 
          when 2 =>
-            M := To_Unbounded_String
-              ("0000000000000000000000000" &
+            M :=
+                ("0000000000000000000000000" &
                  "1111111111111111111111111" &
                  "2222222222222222222222222" &
                  "3333333333333333333333333" &
@@ -1068,8 +1104,8 @@ package body Games is
             New_Evil  (Game, 16, 0, -7, Dummy);
 
          when 3 =>
-            M := To_Unbounded_String
-              ("-------------------------" &
+            M :=
+                ("-------------------------" &
                  "-------------------------" &
                  "-------------------------" &
                  "-------------------------" &
@@ -1093,8 +1129,8 @@ package body Games is
             New_Evil  (Game, 15,  0,  7, Dummy);
 
          when 4 =>
-            M := To_Unbounded_String
-              ("0000000000000000000000000" &
+            M :=
+                ("0000000000000000000000000" &
                  "1111111111111111111111111" &
                  "2222222222222222222222222" &
                  "3333333333333333333333333" &
@@ -1123,7 +1159,7 @@ package body Games is
             New_Slime (Game,  1, 0,  16, Dummy);
             New_Slime (Game, 24, 0, -14, Dummy);
       end case;
-      Engines.Pig_Map_From_String (Game.Map.all, To_String (K), To_String (M));
+      Engines.Pig_Map_From_String (Game.Map.all, Trans => K, Data => M);
       Game.Refresh_Screen := Game.Pages;
    end Load_Level;
 
@@ -1167,6 +1203,9 @@ package body Games is
       end if;
    end Before_Objects;
 
+   ---------------
+   -- Dashboard --
+   ---------------
 
    procedure Dashboard (Game : in out Game_State)
    is
@@ -1255,10 +1294,13 @@ package body Games is
       Game.Pig_Dirty (Clip);
    end Dashboard;
 
-
    ----------------------------------------------------------
    --        Game logic event handlers
    ----------------------------------------------------------
+
+   ----------------
+   -- Start_Game --
+   ----------------
 
    procedure Start_Game (Game : in out Game_State)
    is
@@ -1277,10 +1319,13 @@ package body Games is
       Game.Player := Player;
    end Start_Game;
 
-
    ----------------------------------------------------------
    --        Input; events and game control keys
    ----------------------------------------------------------
+
+   ------------------
+   -- Handle_Input --
+   ------------------
 
    procedure Handle_Input (Game  : in out Game_State;
                            Event : in out SDL.Events.Events.Events)
@@ -1336,6 +1381,9 @@ package body Games is
       end case;
    end Handle_Input;
 
+   -----------------
+   -- Handle_Keys --
+   -----------------
 
    procedure Handle_Keys (Game : in out Game_State)
    is
@@ -1491,7 +1539,7 @@ package body Games is
 
                Last_Tick := Tick2;
                if Game.Nice then
-                  delay 0.010;
+                  delay 0.050;
                end if;
             end;
          end loop;
@@ -1520,6 +1568,5 @@ package body Games is
          end Print_Some_Statistics;
       end;
    end Play_Game;
-
 
 end Games;

@@ -401,7 +401,7 @@ is
    --  Load a tile palette image
 
    procedure Pig_Map_Collisions (Map   : in out PIG_Map;
-                                 First :        Natural;
+                                 First :        Tile_Index;
                                  Count :        Natural;
                                  Hit   :        Sides);
    --  Set tile collision info for 'count' tiles, starting at

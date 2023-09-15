@@ -1,0 +1,22 @@
+name = "olofson"
+description = "Shiny new project"
+version = "0.1.0-dev"
+
+project-files = [
+	      "parallax_3.gpr",
+	      "parallax_4.gpr",
+	      "ballfield.gpr",
+	      "fixedratepig.gpr"
+	      ]
+executables = [
+	    "parallax3",
+	    "parallax4",
+	    "ballfield",
+	    "fixedratepig"
+	    ]
+authors = ["Jesper Quorning"]
+maintainers = ["Jesper Quorning <jesper.quorning@gmail.com>"]
+maintainers-logins = ["jquorning"]
+
+[[depends-on]]
+sdlada = "^2.5.5"
