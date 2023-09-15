@@ -9,6 +9,17 @@ SDL2 demos using the SDLAda binding.
 * GPRbuild
 * [SDLAda](https://github.com/Lucretia/sdlada)
 
+## Build and run with Alire
+
+```sh
+alr get --build olofson
+cd olofson_*
+alr run parallax3
+alr run parallax4
+alr run ballfield
+alr run fixratepig
+```
+
 ## Build
 
 ```sh
