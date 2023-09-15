@@ -182,6 +182,9 @@ package body Engines is
       --      return Engine;
    end Initialize; -- Clean_Engine;
 
+   --------------
+   -- Finalize --
+   --------------
 
    overriding
    procedure Finalize (Engine : in out Game_Engine) is
@@ -237,6 +240,10 @@ package body Engines is
       end if;
    end Setup;
 
+   ------------------
+   -- Set_Viewport --
+   ------------------
+
    procedure Set_Viewport (Engine : in out Game_Engine'Class;
                            X, Y   :        Pixels;
                            Width  :        Pixels;
@@ -250,6 +257,9 @@ package body Engines is
                       Height => int (Height));
    end Set_Viewport;
 
+   --------------------
+   -- Create_Sprites --
+   --------------------
 
    procedure Create_Sprites (Engine        : in out Game_Engine'Class;
                              Filename      :        String;
@@ -343,6 +353,9 @@ package body Engines is
       end;
    end Create_Sprites;
 
+   -----------------
+   -- Set_Hotspot --
+   -----------------
 
    procedure Set_Hotspot (Engine : in out Game_Engine'Class;
                           Frame  :        Sprite_Index;
@@ -376,6 +389,9 @@ package body Engines is
       end;
    end Set_Hotspot;
 
+   ----------------
+   -- Pig_Radius --
+   ----------------
 
    procedure Pig_Radius (Engine : in out Game_Engine;
                          Frame  :        Sprite_Index;
@@ -388,6 +404,9 @@ package body Engines is
 --      return 0;
    end Pig_Radius;
 
+   ---------------
+   -- Pig_Start --
+   ---------------
 
    procedure Pig_Start (Engine : in out Game_Engine;
                         Frame  :        Integer)
@@ -404,6 +423,9 @@ package body Engines is
       end loop;
    end Pig_Start;
 
+   ----------------
+   -- Run_Timers --
+   ----------------
 
    procedure Run_Timers (Engine : in out Game_Engine'Class;
                          Object : in out Game_Object)
@@ -492,6 +514,9 @@ package body Engines is
       Object.Handler (Object, Event);
    end Test_Offscreen;
 
+   -----------------------
+   -- Sprite_Sprite_One --
+   -----------------------
 
    procedure Sprite_Sprite_One (Object   : not null Object_Access;
                                 Object_2 : not null Object_Access;
@@ -550,6 +575,9 @@ package body Engines is
       end if;
    end Sprite_Sprite_One;
 
+   ------------------------
+   -- Test_Sprite_Sprite --
+   ------------------------
 
    procedure Test_Sprite_Sprite (Engine : in out   Game_Engine;
                                  Object : not null Object_Access;
@@ -708,6 +736,9 @@ package body Engines is
       return Ci2.Hit;
    end Pig_Test_Map_Vector;
 
+   ---------------------
+   -- Test_Sprite_Map --
+   ---------------------
 
    procedure Test_Sprite_Map (Engine : in out Game_Engine;
                               Object : in out Game_Object;
@@ -728,6 +759,9 @@ package body Engines is
       end if;
    end Test_Sprite_Map;
 
+   ---------------
+   -- Run_Logic --
+   ---------------
 
    procedure Run_Logic (Engine : in out Game_Engine'Class)
    is
@@ -817,6 +851,9 @@ package body Engines is
 
    end Run_Logic;
 
+   -----------------
+   -- Pig_Animate --
+   -----------------
 
    procedure Pig_Animate (Engine : in out Game_Engine'Class;
                           Frames :        Float)
@@ -1045,6 +1082,9 @@ package body Engines is
       Draw_Sprites (Engine);
    end Pig_Refresh_All;
 
+   -----------------------
+   -- Clean_Object_List --
+   -----------------------
 
    procedure Clean_Object_List (Engine : in out Game_Engine) is
       use Object_Lists;
@@ -1230,6 +1270,10 @@ package body Engines is
    --    Map
    ------------------------------------------------------------
 
+   ------------------
+   -- Pig_Map_Open --
+   ------------------
+
    function Pig_Map_Open (Engine : not null Engine_Class_Access;
                           Width  : Tiles;
                           Height : Tiles)
@@ -1259,6 +1303,9 @@ package body Engines is
       return Engine.Map;
    end Pig_Map_Open;
 
+   -------------------
+   -- Pig_Map_Close --
+   -------------------
 
    procedure Pig_Map_Close (Map : in out PIG_Map) is
 --  void pig_map_close(PIG_map *pm)
@@ -1273,6 +1320,9 @@ package body Engines is
 --      pe->map = NULL;
    end Pig_Map_Close;
 
+   -------------------
+   -- Pig_Map_Tiles --
+   -------------------
 
    procedure Pig_Map_Tiles (Map      : in out PIG_Map;
                             Filename :        String;
@@ -1326,6 +1376,9 @@ package body Engines is
       null;
    end Pig_Map_Collisions;
 
+   -------------------------
+   -- Pig_Map_From_String --
+   -------------------------
 
    --  Load a map from a string (one byte/tile). 'trans'
    --  is a string used for translating 'data' into integer
@@ -1381,6 +1434,10 @@ package body Engines is
    --      Object
    ------------------------------------------------------------
 
+   ----------------
+   -- Get_Object --
+   ----------------
+
    function Get_Object (Engine : in out Game_Engine) return not null Object_Access
    is
       Object : constant not null Object_Access := new Game_Object'(Clean_Object);
@@ -1403,6 +1460,9 @@ package body Engines is
       return Object;
    end Get_Object;
 
+   -----------------
+   -- Free_Object --
+   -----------------
 
    procedure Free_Object (Object : in out Game_Object) is
    begin
@@ -1413,6 +1473,9 @@ package body Engines is
       Object.Id := 0;
    end Free_Object;
 
+   -----------------
+   -- Open_Object --
+   -----------------
 
    function Open_Object (Engine : in out Game_Engine;
                          X, Y   :        Pixels;
@@ -1441,6 +1504,9 @@ package body Engines is
       return Object;
    end Open_Object;
 
+   ------------------
+   -- Close_Object --
+   ------------------
 
    procedure Close_Object (Object : in out Game_Object)
    is
@@ -1454,6 +1520,9 @@ package body Engines is
       Free_Object (Object);
    end Close_Object;
 
+   -------------------
+   -- Unlink_Object --
+   -------------------
 
    procedure Unlink_Object (Object : in out Game_Object) is
    begin
@@ -1467,6 +1536,9 @@ package body Engines is
       Object.Id := 0;     --  Mark for eventual removal and destruction
    end Unlink_Object;
 
+   ------------------------
+   -- Unlink_All_Objects --
+   ------------------------
 
    procedure Unlink_All_Objects (Engine : in out Game_Engine) is
    begin
@@ -1476,6 +1548,9 @@ package body Engines is
       null;
    end Unlink_All_Objects;
 
+   -----------------
+   -- Find_Object --
+   -----------------
 
    function Find_Object (Start : in out Game_Object;
                          Id    :        Object_Id) return Object_Access

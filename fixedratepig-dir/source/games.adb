@@ -217,6 +217,9 @@ package body Games is
       Object.Hitmask := GROUP_POWERUP + GROUP_ENEMY;
    end New_Player;
 
+   ----------------
+   -- New_Player --
+   ----------------
 
    procedure New_Player (Game : in out Game_State) is
       Dummy : Object_Access;
@@ -224,6 +227,9 @@ package body Games is
       New_Player (Game, Dummy);
    end New_Player;
 
+   -----------------
+   -- New_Powerup --
+   -----------------
 
    procedure New_Powerup (Game   : in out Game_State;
                           X, Y   :        Pixels;
@@ -243,6 +249,9 @@ package body Games is
       Object.Hitgroup := GROUP_POWERUP;
    end New_Powerup;
 
+   -----------------
+   -- New_Powerup --
+   -----------------
 
    procedure New_Powerup (Game  : in out Game_State;
                           X, Y  :        Pixels;
@@ -254,6 +263,9 @@ package body Games is
       New_Powerup (Game, X, Y, Speed, Kind, Dummy);
    end New_Powerup;
 
+   --------------
+   -- New_Star --
+   --------------
 
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
@@ -271,6 +283,9 @@ package body Games is
       Object.Handler := Star_Handler'Access;
    end New_Star;
 
+   ---------------
+   -- New_Start --
+   ---------------
 
    procedure New_Star (Game   : in out Game_State;
                        X, Y   :        Pixels;
@@ -281,6 +296,9 @@ package body Games is
       New_Star (Game, X, Y, Vx, Vy, Dummy);
    end New_Star;
 
+   --------------
+   -- New_Evil --
+   --------------
 
    procedure New_Evil (Game   : in out Game_State;
                        X, Y   :        Pixels;
@@ -301,6 +319,9 @@ package body Games is
       Object.Hitgroup := GROUP_ENEMY;
    end New_Evil;
 
+   ---------------
+   -- New_Slime --
+   ---------------
 
    procedure New_Slime (Game   : in out Game_State;
                         X, Y   :        Pixels;
@@ -320,6 +341,9 @@ package body Games is
       Object.Hitgroup := GROUP_ENEMY;
    end New_Slime;
 
+   --------------------
+   -- New_Chain_Head --
+   --------------------
 
    procedure New_Chain_Head (Game     : in out Game_State;
                              X, Y     :        Pixels;
@@ -335,6 +359,9 @@ package body Games is
       Object.Target  := Target_X;
    end New_Chain_Head;
 
+   --------------------
+   -- New_Chain_Link --
+   --------------------
 
    procedure New_Chain_Link (Game   : in out Game_State;
                              X, Y   :        Pixels;
@@ -376,6 +403,9 @@ package body Games is
       end if;
    end Inc_Score_Nobonus;
 
+   ---------------
+   -- Inc_Score --
+   ---------------
 
    procedure Inc_Score (Game : in out Game_State;
                         V    :        Integer)
@@ -390,6 +420,9 @@ package body Games is
       end if;
    end Inc_Score;
 
+   -------------
+   -- Message --
+   -------------
 
    procedure Message (Game : in out Game_State;
                       Text :        String)
@@ -883,6 +916,9 @@ package body Games is
       end case;
    end Slime_Handler;
 
+   ------------------------
+   -- Chain_Head_Handler --
+   ------------------------
 
    procedure Chain_Head_Handler (Object : in out Game_Object;
                                  Event  :        Pig_Event)
@@ -1167,6 +1203,9 @@ package body Games is
       end if;
    end Before_Objects;
 
+   ---------------
+   -- Dashboard --
+   ---------------
 
    procedure Dashboard (Game : in out Game_State)
    is
@@ -1255,10 +1294,13 @@ package body Games is
       Game.Pig_Dirty (Clip);
    end Dashboard;
 
-
    ----------------------------------------------------------
    --        Game logic event handlers
    ----------------------------------------------------------
+
+   ----------------
+   -- Start_Game --
+   ----------------
 
    procedure Start_Game (Game : in out Game_State)
    is
@@ -1277,10 +1319,13 @@ package body Games is
       Game.Player := Player;
    end Start_Game;
 
-
    ----------------------------------------------------------
    --        Input; events and game control keys
    ----------------------------------------------------------
+
+   ------------------
+   -- Handle_Input --
+   ------------------
 
    procedure Handle_Input (Game  : in out Game_State;
                            Event : in out SDL.Events.Events.Events)
@@ -1336,6 +1381,9 @@ package body Games is
       end case;
    end Handle_Input;
 
+   -----------------
+   -- Handle_Keys --
+   -----------------
 
    procedure Handle_Keys (Game : in out Game_State)
    is
@@ -1520,6 +1568,5 @@ package body Games is
          end Print_Some_Statistics;
       end;
    end Play_Game;
-
 
 end Games;
