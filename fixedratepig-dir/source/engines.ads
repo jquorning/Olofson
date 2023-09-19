@@ -129,7 +129,7 @@ is
    Maximum   : constant Magic_Value := -10000003;
 
    --  Collision info
-   type PIG_Cinfo is record
+   type Collision_Info is record
       Ff   : Float;      --  Fractional frame
       X, Y : Pixels;     --  Exact position
       Hit  : Sides;      --  Side of tile hit
@@ -139,7 +139,7 @@ is
    type Pig_Event is record
       Kind  : Pig_Events;
 
-      Cinfo : PIG_Cinfo;      --  Detailed collision info
+      Cinfo : Collision_Info;      --  Detailed collision info
       --  For HIT_TILE, HIT_OBJECT and OFFSCREEN
 
       Obj   : Object_Access;  --  Which object?
@@ -373,12 +373,12 @@ is
    --  is the PIG_sides flags for the tile, or PIG_NONE
    --  if (x, y) is outside the map.
 
-   type PIG_Cinfo_Access is access all PIG_Cinfo;
+   type Collision_Info_Access is access all Collision_Info;
    function Pig_Test_Map_Vector (Engine : in out Game_Engine;
                                  X1, Y1 :        Pixels;
                                  X2, Y2 :        Pixels;
                                  Mask   :        Sides;
-                                 Ci     :        PIG_Cinfo_Access)
+                                 Ci     :        Collision_Info_Access)
                                 return Sides;
    --  Find the first "collidable" tile side when going from
    --  (x1, y1) to (x2, y2). 'mask' determines which tile sides

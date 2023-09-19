@@ -697,13 +697,17 @@ package body Engines is
       return Engine.Map.Hit (Mx, My);
    end Pig_Test_Map;
 
+   Lci : aliased Collision_Info;
 
-   Lci : aliased PIG_Cinfo;
+   -------------------------
+   -- Pig_Text_Map_Vector --
+   -------------------------
+
    function Pig_Test_Map_Vector (Engine : in out Game_Engine;
                                  X1, Y1 :        Pixels;
                                  X2, Y2 :        Pixels;
                                  Mask   :        Sides;
-                                 Ci     :        PIG_Cinfo_Access)
+                                 Ci     :        Collision_Info_Access)
                                 return Sides
      --  Simple implementation that checks only for top edge collisions.
      --  (Full top/bottom/left/right checks with proper handling of
@@ -711,7 +715,8 @@ package body Engines is
      --  leave that out for now, rather than hacking something simple
      --  but incorrect.)
    is
-      Ci2  : constant not null PIG_Cinfo_Access := (if Ci /= null then Ci else Lci'Access);
+      Ci2  : constant not null Collision_Info_Access
+           := (if Ci /= null then Ci else Lci'Access);
       Map  : constant not null Pig_Map_Access   := Engine.Map;
       X, Y : Pixels;
       Dist : Pixels := 2_000_000_000;
@@ -750,7 +755,7 @@ package body Engines is
                               Sprite :        PIG_Sprite_Access)
    is
       pragma Unreferenced (Sprite);
-      Cinfo : aliased PIG_Cinfo;
+      Cinfo : aliased Collision_Info;
       Event : Pig_Event;
    begin
       if No_Side /= Pig_Test_Map_Vector (Engine,
