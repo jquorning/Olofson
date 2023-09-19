@@ -94,7 +94,9 @@ package body Engines is
 
    Clean_Object : constant Game_Object :=
      (Owner => null, Id => 0, Ibase => 0, Image => 0,
-      Ip    => (Gimage => 0, others => 0.0),
+      Ip    => (Gimage  => 0,
+                Ox | Gx => 0.0,
+                Oy | Gy => 0.0),
       Tilemask => No_Side,
       Hitmask  => 0, Hitgroup => 0,
       Timer    => (0, 0, 0),
@@ -415,10 +417,10 @@ package body Engines is
       Engine.Time  := Long_Float (Frame);
       Engine.Frame := Frame;
       for Object of Engine.Objects loop
-         Object.Ip.Gx := Object.X;
-         Object.Ip.Ox := Object.X;
-         Object.Ip.Gy := Object.Y;
-         Object.Ip.Oy := Object.Y;
+         Object.Ip.Gx := Position_X (Object.X);
+         Object.Ip.Ox := Position_X (Object.X);
+         Object.Ip.Gy := Position_Y (Object.Y);
+         Object.Ip.Oy := Position_Y (Object.Y);
          Object.Ip.Gimage := Sprite_Counts (Object.Ibase + Object.Image);
       end loop;
    end Pig_Start;
@@ -473,8 +475,8 @@ package body Engines is
            Left   =>  Pixels (Object.X) - Hot_X < -Width,
            Right  =>  Pixels (Object.X) - Hot_X >= Pixels (Engine.View.Width));
 
-      Dx : constant Float := Object.X - Object.Ip.Ox;
-      Dy : constant Float := Object.Y - Object.Ip.Oy;
+      Dx : constant Position_X := Position_X (Object.X) - Object.Ip.Ox;
+      Dy : constant Position_Y := Position_Y (Object.Y) - Object.Ip.Oy;
       Event : Pig_Event;
    begin
       if Hit = No_Side then
@@ -484,28 +486,31 @@ package body Engines is
       if Hit.Top then
          Event.Cinfo.Y := 0;
          if Dy /= 0.0 then
-            Event.Cinfo.X := Pixels (Object.Ip.Ox - Dx * Object.Ip.Oy / Dy);
+            Event.Cinfo.X := Pixels (Object.Ip.Ox
+                                     - Dx * Position_X (Object.Ip.Oy / Dy));
          end if;
 
       elsif Hit.Bottom then
          Event.Cinfo.Y := Pixels (Engine.View.Height - 1);
          if Dy /= 0.0 then
-            Event.Cinfo.X := Pixels (Object.Ip.Ox + Dx *
-                                       (Float (Event.Cinfo.Y) - Object.Ip.Oy) / Dy);
+            Event.Cinfo.X := Pixels (Object.Ip.Ox + Dx * Position_X (
+                                       (Position_Y (Event.Cinfo.Y) - Object.Ip.Oy) / Dy));
          end if;
       end if;
 
       if Hit.Left then
          Event.Cinfo.X := 0;
          if Dx /= 0.0 then
-            Event.Cinfo.Y := Pixels (Object.Ip.Oy - Dy * Object.Ip.Ox / Dx);
+            Event.Cinfo.Y := Pixels (Object.Ip.Oy
+                                     - Dy * Position_Y (Object.Ip.Ox / Dx));
          end if;
 
       elsif Hit.Right then
          Event.Cinfo.X := Pixels (Engine.View.Width - 1);
          if Dx not in -0.01 .. 0.01 then
             Event.Cinfo.Y := Pixels (Object.Ip.Oy + Dy *
-                                       (Float (Event.Cinfo.X) - Object.Ip.Ox) / Dx);
+                                       (Position_Y (Event.Cinfo.X)
+                                        - Position_Y (Object.Ip.Ox)) / Position_Y (Dx));
          end if;
       end if;
 
@@ -525,10 +530,10 @@ package body Engines is
    is
       Event : Pig_Event;
       Hit   : Sides;
-      IX    : constant Float := Object.Ip.Ox   * (1.0 - T) + Object.X   * T;
-      IY    : constant Float := Object.Ip.Oy   * (1.0 - T) + Object.Y   * T;
-      IX2   : constant Float := Object_2.Ip.Ox * (1.0 - T) + Object_2.X * T;
-      IY2   : constant Float := Object_2.Ip.Oy * (1.0 - T) + Object_2.Y * T;
+      IX    : constant Float := Float (Object.Ip.Ox)   * (1.0 - T) + Object.X   * T;
+      IY    : constant Float := Float (Object.Ip.Oy)   * (1.0 - T) + Object.Y   * T;
+      IX2   : constant Float := Float (Object_2.Ip.Ox) * (1.0 - T) + Object_2.X * T;
+      IY2   : constant Float := Float (Object_2.Ip.Oy) * (1.0 - T) + Object_2.Y * T;
       Dx    : constant Float := IX - IX2;
       Dy    : constant Float := IY - IY2;
       D_Square : constant Float := Dx * Dx + Dy * Dy;
@@ -615,11 +620,11 @@ package body Engines is
 
                --  Calculate number of testing steps
                D_Max_1 : constant Float :=
-                 Float'Max (abs (Object  .Ip.Ox - Object  .X),
-                            abs (Object  .Ip.Oy - Object  .Y));
+                 Float'Max (abs (Float (Object  .Ip.Ox) - Object  .X),
+                            abs (Float (Object  .Ip.Oy) - Object  .Y));
                D_Max_2 : constant Float :=
-                 Float'Max (abs (Object_2.Ip.Ox - Object_2.X),
-                            abs (Object_2.Ip.Oy - Object_2.Y));
+                 Float'Max (abs (Float (Object_2.Ip.Ox) - Object_2.X),
+                            abs (Float (Object_2.Ip.Oy) - Object_2.Y));
                D_Max   : constant Float := Float'Max (D_Max_1, D_Max_2);
                Delta_T : constant Float := (if D_Max > 1.0
                                               then Hit_Dist / (D_Max * 4.0)
@@ -771,8 +776,8 @@ package body Engines is
    begin
       --  Shift logic coordinates
       for Object of Engine.Objects loop
-         Object.Ip.Ox := Object.X;
-         Object.Ip.Oy := Object.Y;
+         Object.Ip.Ox := Position_X (Object.X);
+         Object.Ip.Oy := Position_Y (Object.Y);
       end loop;
 
       Before_Objects (Engine);
@@ -1017,11 +1022,11 @@ package body Engines is
 
          --  Calculate graphic coordinates
          if Engine.Interpolation then
-            Object.Ip.Gx := Object.Ip.Ox * (1.0 - Fframe) + Object.X * Fframe;
-            Object.Ip.Gy := Object.Ip.Oy * (1.0 - Fframe) + Object.Y * Fframe;
+            Object.Ip.Gx := Position_X (Float (Object.Ip.Ox) * (1.0 - Fframe) + Object.X * Fframe);
+            Object.Ip.Gy := Position_Y (Float (Object.Ip.Oy) * (1.0 - Fframe) + Object.Y * Fframe);
          else
-            Object.Ip.Gx := Object.X;
-            Object.Ip.Gy := Object.Y;
+            Object.Ip.Gx := Position_X (Object.X);
+            Object.Ip.Gy := Position_Y (Object.Y);
          end if;
          Object.Ip.Gimage := Sprite_Counts (Object.Ibase + Object.Image);
 
@@ -1036,9 +1041,9 @@ package body Engines is
                Source_Area : Rectangle := (0, 0, 0, 0);
 
                Target_Area : Rectangle :=
-                 (X => int (Object.Ip.Gx - Float (Sprite.Hot_X)
+                 (X => int (Float (Object.Ip.Gx) - Float (Sprite.Hot_X)
                               + Float (Engine.View.X)),
-                  Y => int (Object.Ip.Gy - Float (Sprite.Hot_Y)
+                  Y => int (Float (Object.Ip.Gy) - Float (Sprite.Hot_Y)
                               + Float (Engine.View.Y)),
                   others => 0);
             begin
@@ -1492,8 +1497,8 @@ package body Engines is
 
       Object.X     := Float (X);
       Object.Y     := Float (Y);
-      Object.Ip.Ox := Float (X);
-      Object.Ip.Oy := Float (Y);
+      Object.Ip.Ox := Position_X (X);
+      Object.Ip.Oy := Position_Y (Y);
 
       return Object;
    end Open_Object;

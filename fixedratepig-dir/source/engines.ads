@@ -56,13 +56,19 @@ is
    --
    --  Interpolated point
    --
-   type PIG_Ipoint is record
+   type Position_X is new Float;
+   type Position_Y is new Float;
+
+   type Interpolation_Point is record
       --  From the last logic frame:
-      Ox, Oy : Float;         --  Position
+      Ox : Position_X;
+      Oy : Position_Y;
 
       --  From the last/current rendered frame:
       Gimage : Sprite_Counts; --  Sprite frame index
-      Gx, Gy : Float;         --  Interpolated position
+
+      Gx : Position_X;
+      Gy : Position_Y;         --  Interpolated position
    end record;
 
    --
@@ -166,7 +172,7 @@ is
       X, Y     : Float;         -- Position
       Vx, Vy   : Float;         -- Speed
       Ax, Ay   : Float;         -- Acceleration
-      Ip       : PIG_Ipoint;
+      Ip       : Interpolation_Point;
       Tilemask : Sides;         -- Sprite/tile mask [PIG_ALL]
 
       Hitmask  : Integer;       -- Sprite/sprite mask [0]
