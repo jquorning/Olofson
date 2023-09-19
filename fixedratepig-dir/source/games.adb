@@ -114,7 +114,7 @@ package body Games is
    begin
       return Game : Game_State
       do
-         Game.Set_Viewport (0, 0, SCREEN_W, MAP_H * TILE_H);
+         Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
 
          Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
          Game.Create_Sprites (Asset_Dir & "font.png",      44, 56, Game.Scorefont);
@@ -439,15 +439,15 @@ package body Games is
         (Game.Glassfont + Character'Pos (C) - Character'Pos (' '));
 
       X  : constant Pixels := SCREEN_W + FONT_SPACING;
-      Y  : constant Pixels := MAP_H * TILE_H - 30;
-      Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
+      Y  : constant Pixels := Pixels (MAP_H) * TILE_H - 30;
+      Tx : constant Pixels := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
       First  : Boolean := True;
       Object : Object_Access := null;
    begin
       for C of To_Upper (Text) loop
          if First then
             First := False;
-            New_Chain_Head (Game, X, Y, To_Frame (C), Tx, Object);
+            New_Chain_Head (Game, X, Y, To_Frame (C), Integer (Tx), Object);
          else
             New_Chain_Link (Game, X, Y, To_Frame (C), Object.Id, Object);
          end if;
@@ -945,7 +945,7 @@ package body Games is
                Object.State     := Object_States'Succ (Object.State);
 
             when Walking =>
-               Object.Target    := -SCREEN_W;
+               Object.Target    := Integer (-SCREEN_W);
                Object.Timer (2) := 50;
                Object.State     := Object_States'Succ (Object.State);
                if Game.Messages > 0 then
@@ -1216,6 +1216,7 @@ package body Games is
 
    procedure Dashboard (Game : in out Game_State)
    is
+      subtype int is SDL.C.int;
       use Ada.Numerics.Elementary_Functions;
       use Ada.Real_Time;
       Pi   : constant       := Ada.Numerics.Pi;
@@ -1224,8 +1225,8 @@ package body Games is
 
       Clip : constant SDL.Video.Rectangles.Rectangle :=
         (X      => 0,
-         Y      => SDL.C.int (SCREEN_H - 56),
-         Width  => SCREEN_W,
+         Y      => int (SCREEN_H - 56),
+         Width  => int (SCREEN_W),
          Height => 56);
    begin
       Game.Surfac.Set_Clip_Rectangle (Clip);
@@ -1237,8 +1238,8 @@ package body Games is
 
             Line : constant SDL.Video.Rectangles.Rectangle :=
               (X      => 0,
-               Width  => SCREEN_W,
-               Y      => SDL.C.int (I + SCREEN_H - 56),
+               Width  => int (SCREEN_W),
+               Y      => SDL.C.int (I) + int (SCREEN_H) - 56,
                Height => 1);
 
             F1 : constant Float :=
@@ -1433,13 +1434,14 @@ package body Games is
       Sdl_Initialise;
 
       declare
+         subtype int is SDL.C.int;
          use SDL.Video.Windows;
       begin
          Makers.Create
            (Window,
             Title    => "Fixed Rate Pig Game",
             Position => (10, 10),
-            Size     => (SCREEN_W, SCREEN_H),
+            Size     => (int (SCREEN_W), int (SCREEN_H)),
             Flags    => SDL.Video.Windows.Windowed);
          --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
          Screen := Window.Get_Surface;
