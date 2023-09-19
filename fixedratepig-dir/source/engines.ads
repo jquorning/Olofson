@@ -172,7 +172,7 @@ is
       X, Y     : Float;         -- Position
       Vx, Vy   : Float;         -- Speed
       Ax, Ay   : Float;         -- Acceleration
-      Ip       : Interpolation_Point;
+      Interpol : Interpolation_Point;
       Tilemask : Sides;         -- Sprite/tile mask [PIG_ALL]
 
       Hitmask  : Integer;       -- Sprite/sprite mask [0]
