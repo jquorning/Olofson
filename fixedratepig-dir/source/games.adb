@@ -31,6 +31,11 @@ package body Games is
    subtype Pig_Events     is Engines.Pig_Events;
    subtype Sides          is Engines.Sides;
 
+   subtype Speed        is Engines.Speed;
+   subtype Acceleration is Engines.Acceleration;
+   use all type Speed;
+   use all type Acceleration;
+
    function Open_Object (Engine : in out Engines.Game_Engine;
                          X, Y   :        Pixels;
                          Last   :        Boolean)
@@ -275,10 +280,10 @@ package body Games is
       Object := Open_Object (Game, X + Vx, Y + Vy, Last => True);
 
       Object.I_Base  := Game.Stars;
-      Object.Ax      := -0.3 * Float (Vx);
-      Object.Vx      := Float (Vx * 3);
-      Object.Ay      := -0.3 * Float (Vy);
-      Object.Vy      := Float (Vy * 3);
+      Object.Ax      := -0.3 * Acceleration (Vx);
+      Object.Ay      := -0.3 * Acceleration (Vy);
+      Object.Vx      := Speed (Vx * 3);
+      Object.Vy      := Speed (Vy * 3);
       Object.Handler := Star_Handler'Access;
    end New_Star;
 
@@ -489,21 +494,21 @@ package body Games is
 
                when Walking =>
                   if Game.Keys (Left) then
-                     Object.Ax     := -(20.0 + Object.Vx) * 0.4;
+                     Object.Ax     := -Acceleration (20.0 + Object.Vx) * 0.4;
                      Object.Target := 3 + Object.Age mod 4 - 1;
                      if 5 = Object.Target then
                         Object.Target := 3;
                      end if;
 
                   elsif Game.Keys (Right) then
-                     Object.Ax     := (20.0 - Object.Vx) * 0.4;
+                     Object.Ax     := Acceleration (20.0 - Object.Vx) * 0.4;
                      Object.Target := 9 + Object.Age mod 4 - 1;
                      if 11 = Object.Target then
                         Object.Target := 9;
                      end if;
 
                   else
-                     Object.Ax := -Object.Vx * 0.8;
+                     Object.Ax := -Acceleration (Object.Vx * 0.8);
                      if Object.Target >= 6 then
                         Object.Target := (Object.Target + 1) mod
                           PIG_FRAMES;
@@ -514,11 +519,11 @@ package body Games is
 
                when Falling =>
                   if Game.Keys (Left) then
-                     Object.Ax := -(20.0 + Object.Vx) * 0.2;
+                     Object.Ax := -Acceleration (20.0 + Object.Vx) * 0.2;
                   elsif Game.Keys (Right) then
-                     Object.Ax := (20.0 - Object.Vx) * 0.2;
+                     Object.Ax := Acceleration (20.0 - Object.Vx) * 0.2;
                   else
-                     Object.Ax := -Object.Vx * 0.2;
+                     Object.Ax := -Acceleration (Object.Vx) * 0.2;
                   end if;
                   Object.Target := (Object.Target + 1) mod PIG_FRAMES;
             end case;
@@ -545,7 +550,7 @@ package body Games is
                                              Pixels (Object.Y + 1.0))
                   then
                      Object.State := Falling;
-                     Object.Ay    := Float (GRAV_ACC);
+                     Object.Ay    := Acceleration (GRAV_ACC);
                   end if;
 
                   if Game.Jump /= 0 or Game.Keys (Up) then
@@ -567,10 +572,10 @@ package body Games is
                   Object.Ay     := GRAV_ACC;
                   Object.Target := (Object.Target + 2) mod PIG_FRAMES;
                   Object.Image  := Sprite_Counts (Object.Target);
-                  Object.Ax     := -Object.Vx * 0.2;
+                  Object.Ax     := -Acceleration (Object.Vx) * 0.2;
 
                when Next_Level =>
-                  Object.Vx     := (Float (SCREEN_W / 2) - Object.X) * 0.1;
+                  Object.Vx     := (Speed (SCREEN_W / 2) - Speed (Object.X)) * 0.1;
                   Object.Target := (Object.Target + 1) mod PIG_FRAMES;
                   Object.Image  := Sprite_Counts (Object.Target);
 
@@ -747,8 +752,8 @@ package body Games is
 
          when Preframe =>
             if Object.State /= Dead then
-               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.3;
-               Object.Ay    := GRAV_ACC;
+               Object.Ax    := Acceleration (Speed (Object.Target) - Object.Vx) * 0.3;
+               Object.Ay    := Acceleration (GRAV_ACC);
                Object.Image := Sprite_Counts (Object.Age mod 8);
                Object.Power := Object.Power + 1;
             end if;
@@ -761,7 +766,7 @@ package body Games is
                Object.Power := 0;
                Object.Vy    := 0.0;
                Object.Ay    := 0.0;
-               Object.X     := Float (Event.Collision.X) + Object.Vx;
+               Object.X     := Float (Event.Collision.X) + Float (Object.Vx);
                Object.Y     := Float (Event.Collision.Y);
             end if;
 
@@ -810,8 +815,8 @@ package body Games is
 
          when Preframe =>
             if Dead /= Object.State then
-               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.5;
-               Object.Ay    := Float (GRAV_ACC);
+               Object.Ax    := Acceleration (Speed (Object.Target) - Object.Vx) * 0.5;
+               Object.Ay    := Acceleration (GRAV_ACC);
                Object.Image := Sprite_Counts (Object.Age mod 16);
             end if;
 
@@ -819,7 +824,7 @@ package body Games is
             if Dead /= Object.State then
                Object.Vy := 0.0;
                Object.Ay := 0.0;
-               Object.X  := Float (Event.Collision.X) + Object.Vx;
+               Object.X  := Float (Event.Collision.X) + Float (Object.Vx);
                Object.Y  := Float (Event.Collision.Y);
             end if;
 
@@ -865,13 +870,13 @@ package body Games is
 
          when Preframe =>
             if Dead /= Object.State then
-               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.2;
+               Object.Ax    := Acceleration (Float (Object.Target) - Float (Object.Vx)) * 0.2;
                Object.Ay    := GRAV_ACC;
                Object.Image := Sprite_Counts (Object.Age mod 16);
             end if;
 
          when Hit_Tile =>
-            Object.Vy := Float (-(JUMP_SPEED + GRAV_ACC));
+            Object.Vy := Speed (-(JUMP_SPEED + GRAV_ACC));
             Object.Ay := 0.0;
             Object.Y  := Float (Event.Collision.Y);
 
@@ -955,8 +960,8 @@ package body Games is
       case Event.Kind is
 
          when Preframe =>
-            Object.Vx := (Float (Object.Target) - Object.X) * 0.3;
-            Object.Vy := 15.0 * Cos (Float (Object.Age) * 0.3) - 9.0;
+            Object.Vx := Speed (Float (Object.Target) - Object.X) * 0.3;
+            Object.Vy := Speed (15.0 * Cos (Float (Object.Age) * 0.3)) - 9.0;
             if
               Game.Messages > 1 and
               Object.State = Walking
@@ -990,8 +995,8 @@ package body Games is
 
          when Preframe =>
             if Target /= null then
-               Object.Vx := ((Target.X + Float (FONT_SPACING)) - Object.X) * 0.6;
-               Object.Vy := (Target.Y - Object.Y) * 0.6 - 9.0;
+               Object.Vx := Speed ((Target.X + Float (FONT_SPACING)) - Object.X) * 0.6;
+               Object.Vy := Speed (Target.Y - Object.Y) * 0.6 - 9.0;
             else
                Unlink_Object (Object);
             end if;

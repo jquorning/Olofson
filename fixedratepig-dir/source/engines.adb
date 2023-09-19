@@ -102,7 +102,10 @@ package body Engines is
       Timer     => (0, 0, 0),
       Age       => 0, Score => 0, Power => 0, Target => 0,
       State     => Object_States'First,
-      Handler   => Null_Handler'Access, others => 0.0);
+      Handler   => Null_Handler'Access,
+      X  | Y    => 0.0,
+      Vx | Vy   => 0.0,
+      Ax | Ay   => 0.0);
 
    ----------------
    -- Initialize --
@@ -825,10 +828,10 @@ package body Engines is
             end if;
 
             --  Move!
-            Object.Vx := Object.Vx + Object.Ax;
-            Object.Vy := Object.Vy + Object.Ay;
-            Object.X  := Object.X  + Object.Vx;
-            Object.Y  := Object.Y  + Object.Vy;
+            Object.Vx := Object.Vx + Speed (Object.Ax);
+            Object.Vy := Object.Vy + Speed (Object.Ay);
+            Object.X  := Object.X  + Float (Object.Vx);
+            Object.Y  := Object.Y  + Float (Object.Vy);
 
             --  Check and handle events
             if Object.Handler /= null then

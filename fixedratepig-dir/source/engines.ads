@@ -161,19 +161,23 @@ is
    type Engine_Class_Access is access all Game_Engine'Class;
    type Object_Id    is new Natural;
 
+   type Position     is new Float;
+   type Speed        is new Float;
+   type Acceleration is new Float;
+
    type Game_Object is record
       Owner     : Engine_Class_Access;
 --        PIG_object      *next, *prev;
 
-      Id        : Object_Id;     -- Unique ID. 0 means "free".
+      Id        : Object_Id;      -- Unique ID. 0 means "free".
 
-      I_Base    : Sprite_Counts; -- Sprite frame base index
-      Image     : Sprite_Counts; -- Sprite frame offset
-      X, Y      : Float;         -- Position
-      Vx, Vy    : Float;         -- Speed
-      Ax, Ay    : Float;         -- Acceleration
+      I_Base    : Sprite_Counts;  -- Sprite frame base index
+      Image     : Sprite_Counts;  -- Sprite frame offset
+      X, Y      : Float;          -- Position
+      Vx, Vy    : Speed;          -- Speed
+      Ax, Ay    : Acceleration;   -- Acceleration
       Interpol  : Interpolation_Point;
-      Tile_Mask : Sides;         -- Sprite/tile mask [PIG_ALL]
+      Tile_Mask : Sides;          -- Sprite/tile mask [PIG_ALL]
 
       Hit_Mask  : Integer;       -- Sprite/sprite mask [0]
       Hit_Group : Integer;       -- Sprite/sprite group [0]
