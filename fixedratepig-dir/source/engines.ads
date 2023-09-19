@@ -162,31 +162,31 @@ is
    type Object_Id    is new Natural;
 
    type Game_Object is record
-      Owner : Engine_Class_Access;
+      Owner     : Engine_Class_Access;
 --        PIG_object      *next, *prev;
 
-      Id       : Object_Id;     -- Unique ID. 0 means "free".
+      Id        : Object_Id;     -- Unique ID. 0 means "free".
 
-      Ibase    : Sprite_Counts; -- Sprite frame base index
-      Image    : Sprite_Counts; -- Sprite frame offset
-      X, Y     : Float;         -- Position
-      Vx, Vy   : Float;         -- Speed
-      Ax, Ay   : Float;         -- Acceleration
-      Interpol : Interpolation_Point;
-      Tilemask : Sides;         -- Sprite/tile mask [PIG_ALL]
+      I_Base    : Sprite_Counts; -- Sprite frame base index
+      Image     : Sprite_Counts; -- Sprite frame offset
+      X, Y      : Float;         -- Position
+      Vx, Vy    : Float;         -- Speed
+      Ax, Ay    : Float;         -- Acceleration
+      Interpol  : Interpolation_Point;
+      Tile_Mask : Sides;         -- Sprite/tile mask [PIG_ALL]
 
-      Hitmask  : Integer;       -- Sprite/sprite mask [0]
-      Hitgroup : Integer;       -- Sprite/sprite group [0]
+      Hit_Mask  : Integer;       -- Sprite/sprite mask [0]
+      Hit_Group : Integer;       -- Sprite/sprite group [0]
 
-      Timer    : Timer_Array;   -- Down-counting timers
-      Age      : Integer;       -- Age timer (logic frames)
+      Timer     : Timer_Array;   -- Down-counting timers
+      Age       : Integer;       -- Age timer (logic frames)
 
-      Score    : Natural;
-      Power    : Integer;
-      Target   : Integer;
-      State    : Object_States;
+      Score     : Natural;
+      Power     : Integer;
+      Target    : Integer;
+      State     : Object_States;
 
-      Handler  : Handler_Access;
+      Handler   : Handler_Access;
    end record;
 
    subtype Surface   is SDL.Video.Surfaces.Surface;

@@ -93,16 +93,16 @@ package body Engines is
 
 
    Clean_Object : constant Game_Object :=
-     (Owner    => null, Id => 0, Ibase => 0, Image => 0,
-      Interpol => (Gimage  => 0,
-                   Ox | Gx => 0.0,
-                   Oy | Gy => 0.0),
-      Tilemask => No_Side,
-      Hitmask  => 0, Hitgroup => 0,
-      Timer    => (0, 0, 0),
-      Age      => 0, Score => 0, Power => 0, Target => 0,
-      State    => Object_States'First,
-      Handler  => Null_Handler'Access, others => 0.0);
+     (Owner     => null, Id => 0, I_Base => 0, Image => 0,
+      Interpol  => (Gimage  => 0,
+                    Ox | Gx => 0.0,
+                    Oy | Gy => 0.0),
+      Tile_Mask => No_Side,
+      Hit_Mask  => 0, Hit_Group => 0,
+      Timer     => (0, 0, 0),
+      Age       => 0, Score => 0, Power => 0, Target => 0,
+      State     => Object_States'First,
+      Handler   => Null_Handler'Access, others => 0.0);
 
    ----------------
    -- Initialize --
@@ -421,7 +421,7 @@ package body Engines is
          Object.Interpol.Ox := Position_X (Object.X);
          Object.Interpol.Gy := Position_Y (Object.Y);
          Object.Interpol.Oy := Position_Y (Object.Y);
-         Object.Interpol.Gimage := Sprite_Counts (Object.Ibase + Object.Image);
+         Object.Interpol.Gimage := Sprite_Counts (Object.I_Base + Object.Image);
       end loop;
    end Pig_Start;
 
@@ -608,7 +608,7 @@ package body Engines is
             declare
                --  Calculate minimum distance
                Image     : constant Sprite_Index :=
-                 Sprite_Counts (Object_2.Ibase + Object_2.Image);
+                 Sprite_Counts (Object_2.I_Base + Object_2.Image);
 
                Hitdist_1 : constant Float :=
                  Float (if Sprite /= null then Sprite.Radius else 0);
@@ -766,7 +766,7 @@ package body Engines is
                      (Engine,
                       Pixels (Object.Interpol.Ox), Pixels (Object.Interpol.Oy),
                       Pixels (Object.X),     Pixels (Object.Y),
-                      Object.Tilemask, Collision'Unchecked_Access)
+                      Object.Tile_Mask, Collision'Unchecked_Access)
       then
          Event.Collision := Collision;
          Event.Kind      := Hit_Tile;
@@ -817,7 +817,7 @@ package body Engines is
             Sprite : PIG_Sprite_Access;
          begin
             --  next = po->next;
-            Image := Sprite_Counts (Object.Ibase + Object.Image);
+            Image := Sprite_Counts (Object.I_Base + Object.Image);
             if Image in Sprite_Index'First .. Engine.Sprite_Last then
                Sprite := Engine.Sprites (Image);
             else
@@ -842,7 +842,7 @@ package body Engines is
                   Test_Sprite_Sprite (Game_Engine (Engine), Object, Sprite);
                end if;
 
-               if Object.Id /= 0 and Object.Tilemask /= No_Side then
+               if Object.Id /= 0 and Object.Tile_Mask /= No_Side then
                   Test_Sprite_Map (Game_Engine (Engine), Object.all, Sprite);
                end if;
             end if;
@@ -1040,7 +1040,7 @@ package body Engines is
             Object.Interpol.Gx := Position_X (Object.X);
             Object.Interpol.Gy := Position_Y (Object.Y);
          end if;
-         Object.Interpol.Gimage := Sprite_Counts (Object.Ibase + Object.Image);
+         Object.Interpol.Gimage := Sprite_Counts (Object.I_Base + Object.Image);
 
          --  Render the sprite!
          if Object.Interpol.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
@@ -1496,10 +1496,10 @@ package body Engines is
       Base   : constant Engine_Access := Engine_Access (Engine.Self);
       Object : constant not null Object_Access := Get_Object (Base.all);
    begin
-      Object.Owner    := Engine.Self;
-      Object.Tilemask := All_Sides;
-      Object.Hitmask  := 0;
-      Object.Hitgroup := 0;
+      Object.Owner     := Engine.Self;
+      Object.Tile_Mask := All_Sides;
+      Object.Hit_Mask  := 0;
+      Object.Hit_Group := 0;
 
       if Last then
          Engine.Objects.Append (Object);

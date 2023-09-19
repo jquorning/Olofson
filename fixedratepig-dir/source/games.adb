@@ -211,9 +211,9 @@ package body Games is
       Object := Open_Object (Game_Engine (Game), SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
-      Object.Ibase   := Game.Pigframes;
-      Object.Handler := Player_Handler'Access;
-      Object.Hitmask := GROUP_POWERUP + GROUP_ENEMY;
+      Object.I_Base   := Game.Pigframes;
+      Object.Handler  := Player_Handler'Access;
+      Object.Hit_Mask := GROUP_POWERUP + GROUP_ENEMY;
    end New_Player;
 
    ----------------
@@ -239,13 +239,13 @@ package body Games is
    begin
       Object := Open_Object (Game_Engine (Game.Self.all), X, Y, Last => True);
 
-      Game.Enemycount := Game.Enemycount + 1;
-      Object.Score    := Power_Ups'Pos (Kind);
-      Object.Ibase    := Game.Icons + Sprite_Counts (8 * Object.Score);
-      Object.Target   := Speed;
-      Object.Handler  := Powerup_Handler'Access;
-      Object.Tilemask := Top_Side;
-      Object.Hitgroup := GROUP_POWERUP;
+      Game.Enemycount  := Game.Enemycount + 1;
+      Object.Score     := Power_Ups'Pos (Kind);
+      Object.I_Base    := Game.Icons + Sprite_Counts (8 * Object.Score);
+      Object.Target    := Speed;
+      Object.Handler   := Powerup_Handler'Access;
+      Object.Tile_Mask := Top_Side;
+      Object.Hit_Group := GROUP_POWERUP;
    end New_Powerup;
 
    -----------------
@@ -274,7 +274,7 @@ package body Games is
    begin
       Object := Open_Object (Game, X + Vx, Y + Vy, Last => True);
 
-      Object.Ibase   := Game.Stars;
+      Object.I_Base  := Game.Stars;
       Object.Ax      := -0.3 * Float (Vx);
       Object.Vx      := Float (Vx * 3);
       Object.Ay      := -0.3 * Float (Vy);
@@ -309,13 +309,13 @@ package body Games is
                              X * TILE_W,
                              Y * TILE_H, Last => True);
 
-      Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Game.Evil;
-      Object.Target   := Speed;
-      Object.Handler  := Evil_Handler'Access;
-      Object.Score    := 200;
-      Object.Tilemask := Top_Side;
-      Object.Hitgroup := GROUP_ENEMY;
+      Game.Enemycount  := Game.Enemycount + 1;
+      Object.I_Base    := Game.Evil;
+      Object.Target    := Speed;
+      Object.Handler   := Evil_Handler'Access;
+      Object.Score     := 200;
+      Object.Tile_Mask := Top_Side;
+      Object.Hit_Group := GROUP_ENEMY;
    end New_Evil;
 
    ---------------
@@ -331,13 +331,13 @@ package body Games is
       Object := Open_Object (Game,
                                  X * TILE_W, Y * TILE_H, Last => True);
 
-      Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Game.Slime;
-      Object.Target   := Speed;
-      Object.Handler  := Slime_Handler'Access;
-      Object.Score    := 300;
-      Object.Tilemask := Top_Side;
-      Object.Hitgroup := GROUP_ENEMY;
+      Game.Enemycount  := Game.Enemycount + 1;
+      Object.I_Base    := Game.Slime;
+      Object.Target    := Speed;
+      Object.Handler   := Slime_Handler'Access;
+      Object.Score     := 300;
+      Object.Tile_Mask := Top_Side;
+      Object.Hit_Group := GROUP_ENEMY;
    end New_Slime;
 
    --------------------
@@ -353,7 +353,7 @@ package body Games is
    begin
       Object := Open_Object (Game, X, Y, Last => True);
 
-      Object.Ibase   := Image;
+      Object.I_Base  := Image;
       Object.Handler := Chain_Head_Handler'Access;
       Object.Target  := Target_X;
    end New_Chain_Head;
@@ -371,7 +371,7 @@ package body Games is
    begin
       Object := Open_Object (Game, X, Y, Last => True);
 
-      Object.Ibase   := Image;
+      Object.I_Base  := Image;
       Object.Handler := Chain_Link_Handler'Access;
       Object.Target  := Integer (Target);
    end New_Chain_Link;
@@ -591,8 +591,8 @@ package body Games is
                   Object.State := Next_Level;
                   Object.Vy :=  0.0;
                   Object.Ay := -1.0;
-                  Object.Tilemask  := No_Side;
-                  Object.Hitgroup  := 0;
+                  Object.Tile_Mask := No_Side;
+                  Object.Hit_Group := 0;
                   Object.Timer (2) := 50;
                end if;
             end if;
@@ -636,7 +636,7 @@ package body Games is
          when Hit_Object =>
             if Knocked /= Object.State then
 
-               case Event.Obj.Hitgroup is
+               case Event.Obj.Hit_Group is
 
                   when GROUP_ENEMY =>
                      if
@@ -651,9 +651,9 @@ package body Games is
                         else
                            Event.Obj.Vy := 10.0;
                         end if;
-                        Event.Obj.Ay       := GRAV_ACC;
-                        Event.Obj.Tilemask := No_Side;
-                        Event.Obj.Hitgroup := 0;
+                        Event.Obj.Ay        := GRAV_ACC;
+                        Event.Obj.Tile_Mask := No_Side;
+                        Event.Obj.Hit_Group := 0;
 
                         if Game.Jump /= 0 or Game.Keys (Up) then
                            --  Mega jump!
@@ -700,11 +700,11 @@ package body Games is
 
                         when others => null;
                      end case;
-                     Event.Obj.State    := Dead;
-                     Event.Obj.Tilemask := No_Side;
-                     Event.Obj.Hitgroup := 0;
-                     Event.Obj.Vy       := -20.0;
-                     Event.Obj.Ay       := -2.0;
+                     Event.Obj.State     := Dead;
+                     Event.Obj.Tile_Mask := No_Side;
+                     Event.Obj.Hit_Group := 0;
+                     Event.Obj.Vy        := -20.0;
+                     Event.Obj.Ay        := -2.0;
 
                   when others =>
                      null;
