@@ -533,15 +533,33 @@ package body Engines is
                                 T        :          Float;
                                 Hitdist  :          Float)
    is
+      function Interpolate
+        (Pos_1 : Position;
+         Pos_2 : Position;
+         T     : Float)     -- range 0.0 .. 1,0
+         return Position
+      is
+      begin
+         return Position (Float (Pos_1) * (1.0 - T) + Float (Pos_2) * T);
+      end Interpolate;
+
       Event : Pig_Event;
       Hit   : Sides;
-      IX    : constant Float := Float (Object.Interpol.Ox)   * (1.0 - T) + Object.X   * T;
-      IY    : constant Float := Float (Object.Interpol.Oy)   * (1.0 - T) + Object.Y   * T;
-      IX2   : constant Float := Float (Object_2.Interpol.Ox) * (1.0 - T) + Object_2.X * T;
-      IY2   : constant Float := Float (Object_2.Interpol.Oy) * (1.0 - T) + Object_2.Y * T;
-      Dx    : constant Float := IX - IX2;
-      Dy    : constant Float := IY - IY2;
-      D_Square : constant Float := Dx * Dx + Dy * Dy;
+      --  IX    : constant Position := Float (Object.Interpol.Ox)   * (1.0 - T) + Object.X   * T;
+      --  IY    : constant Position := Float (Object.Interpol.Oy)   * (1.0 - T) + Object.Y   * T;
+      --  IX2   : constant Position := Float (Object_2.Interpol.Ox) * (1.0 - T) + Object_2.X * T;
+      --  IY2   : constant Position := Float (Object_2.Interpol.Oy) * (1.0 - T) + Object_2.Y * T;
+      IX    : constant Position := Interpolate (Position (Object.Interpol.Ox),
+                                                Object.X,   T);
+      IY    : constant Position := Interpolate (Position (Object.Interpol.Oy),
+                                                Object.Y,   T);
+      IX2   : constant Position := Interpolate (Position (Object_2.Interpol.Ox),
+                                                Object_2.X, T);
+      IY2   : constant Position := Interpolate (Position (Object_2.Interpol.Oy),
+                                                Object_2.Y, T);
+      Dx    : constant Position := IX - IX2;
+      Dy    : constant Position := IY - IY2;
+      D_Square : constant Float := Float (Dx * Dx + Dy * Dy);
    begin
       if D_Square >= Hitdist * Hitdist then
          return;         --  Nothing... -->
@@ -551,9 +569,9 @@ package body Engines is
          Hit := All_Sides;
       else
          declare
-            D   : constant Float := Sqrt (D_Square);
-            Dx2 : constant Float := Dx / D;
-            Dy2 : constant Float := Dy / D;
+            D   : constant Position := Position (Sqrt (D_Square));
+            Dx2 : constant Float := Float (Dx / D);
+            Dy2 : constant Float := Float (Dy / D);
          begin
             Hit.Left   := Dx2 < -0.707;
             Hit.Right  := Dx2 >  0.707;
@@ -624,16 +642,16 @@ package body Engines is
                Hit_Dist : constant Float := Float'Max (1.0, Hitdist_2);
 
                --  Calculate number of testing steps
-               D_Max_1 : constant Float :=
-                 Float'Max (abs (Float (Object  .Interpol.Ox) - Object  .X),
-                            abs (Float (Object  .Interpol.Oy) - Object  .Y));
-               D_Max_2 : constant Float :=
-                 Float'Max (abs (Float (Object_2.Interpol.Ox) - Object_2.X),
-                            abs (Float (Object_2.Interpol.Oy) - Object_2.Y));
-               D_Max   : constant Float := Float'Max (D_Max_1, D_Max_2);
+               D_Max_1 : constant Position :=
+                 Position'Max (abs (Position (Object  .Interpol.Ox) - Object  .X),
+                               abs (Position (Object  .Interpol.Oy) - Object  .Y));
+               D_Max_2 : constant Position :=
+                 Position'Max (abs (Position (Object_2.Interpol.Ox) - Object_2.X),
+                               abs (Position (Object_2.Interpol.Oy) - Object_2.Y));
+               D_Max   : constant Position := Position'Max (D_Max_1, D_Max_2);
                Delta_T : constant Float := (if D_Max > 1.0
-                                              then Hit_Dist / (D_Max * 4.0)
-                                              else 1.0);
+                                            then Hit_Dist / Float (D_Max * 4.0)
+                                            else 1.0);
                T : Float;
             begin
                --  Sweep test!
@@ -830,8 +848,8 @@ package body Engines is
             --  Move!
             Object.Vx := Object.Vx + Speed (Object.Ax);
             Object.Vy := Object.Vy + Speed (Object.Ay);
-            Object.X  := Object.X  + Float (Object.Vx);
-            Object.Y  := Object.Y  + Float (Object.Vy);
+            Object.X  := Object.X  + Position (Object.Vx);
+            Object.Y  := Object.Y  + Position (Object.Vy);
 
             --  Check and handle events
             if Object.Handler /= null then
@@ -1036,9 +1054,11 @@ package body Engines is
          --  Calculate graphic coordinates
          if Engine.Interpolation then
             Object.Interpol.Gx
-              := Position_X (Float (Object.Interpol.Ox) * (1.0 - Fframe) + Object.X * Fframe);
+              := Position_X (Float (Object.Interpol.Ox) * (1.0 - Fframe)
+                             + Float (Object.X) * Fframe);
             Object.Interpol.Gy
-              := Position_Y (Float (Object.Interpol.Oy) * (1.0 - Fframe) + Object.Y * Fframe);
+              := Position_Y (Float (Object.Interpol.Oy) * (1.0 - Fframe)
+                             + Float (Object.Y) * Fframe);
          else
             Object.Interpol.Gx := Position_X (Object.X);
             Object.Interpol.Gy := Position_Y (Object.Y);
@@ -1510,8 +1530,8 @@ package body Engines is
          Engine.Objects.Prepend (Object);
       end if;
 
-      Object.X           := Float (X);
-      Object.Y           := Float (Y);
+      Object.X           := Position (X);
+      Object.Y           := Position (Y);
       Object.Interpol.Ox := Position_X (X);
       Object.Interpol.Oy := Position_Y (Y);
 

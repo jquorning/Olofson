@@ -173,7 +173,7 @@ is
 
       I_Base    : Sprite_Counts;  -- Sprite frame base index
       Image     : Sprite_Counts;  -- Sprite frame offset
-      X, Y      : Float;          -- Position
+      X, Y      : Position;       -- Position
       Vx, Vy    : Speed;          -- Speed
       Ax, Ay    : Acceleration;   -- Acceleration
       Interpol  : Interpolation_Point;

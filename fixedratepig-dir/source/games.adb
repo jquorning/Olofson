@@ -31,8 +31,10 @@ package body Games is
    subtype Pig_Events     is Engines.Pig_Events;
    subtype Sides          is Engines.Sides;
 
+   subtype Position     is Engines.Position;
    subtype Speed        is Engines.Speed;
    subtype Acceleration is Engines.Acceleration;
+   use all type Position;
    use all type Speed;
    use all type Acceleration;
 
@@ -533,8 +535,8 @@ package body Games is
          when Timer_1 =>
             if Object.X < 0.0 then
                Object.X := 0.0;
-            elsif Object.X > Float (Object.Owner.View.Width - 1) then
-               Object.X := Float (Object.Owner.View.Width - 1);
+            elsif Object.X > Position (Object.Owner.View.Width - 1) then
+               Object.X := Position (Object.Owner.View.Width - 1);
             end if;
 
             case Object.State is
@@ -631,7 +633,7 @@ package body Games is
          when Hit_Tile =>
             if Object.State /= Knocked then
                if Event.Collision.Hit.Top then
-                  Object.Y  := Float (Event.Collision.Y);
+                  Object.Y  := Position (Event.Collision.Y);
                   Object.Vy := 0.0;
                   Object.Ay := 0.0;
                end if;
@@ -650,7 +652,7 @@ package body Games is
                      then
                         --  Win: Stomp!
                         Inc_Score (Game, Event.Obj.Score);
-                        Event.Obj.Y := Float (Event.Collision.Y + 10);
+                        Event.Obj.Y := Position (Event.Collision.Y + 10);
                         if Object.Vy > 0.0 then
                            Event.Obj.Vy := Object.Vy;
                         else
@@ -668,7 +670,7 @@ package body Games is
                            --  Bounce a little
                            Object.Vy := -15.0;
                         end if;
-                        Object.Y     := Float (Event.Collision.Y);
+                        Object.Y     := Position (Event.Collision.Y);
                         Object.Ay    := 0.0;
                         Object.State := Falling;
                      else
@@ -766,12 +768,12 @@ package body Games is
                Object.Power := 0;
                Object.Vy    := 0.0;
                Object.Ay    := 0.0;
-               Object.X     := Float (Event.Collision.X) + Float (Object.Vx);
-               Object.Y     := Float (Event.Collision.Y);
+               Object.X     := Position (Event.Collision.X) + Position (Object.Vx);
+               Object.Y     := Position (Event.Collision.Y);
             end if;
 
          when Offscreen =>
-            if Object.Y > Float (SCREEN_H) or Object.Y < -100.0 then
+            if Object.Y > Position (SCREEN_H) or Object.Y < -100.0 then
                Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
@@ -824,12 +826,12 @@ package body Games is
             if Dead /= Object.State then
                Object.Vy := 0.0;
                Object.Ay := 0.0;
-               Object.X  := Float (Event.Collision.X) + Float (Object.Vx);
-               Object.Y  := Float (Event.Collision.Y);
+               Object.X  := Position (Event.Collision.X) + Position (Object.Vx);
+               Object.Y  := Position (Event.Collision.Y);
             end if;
 
          when Offscreen =>
-            if Object.Y > Float (SCREEN_H) then
+            if Object.Y > Position (SCREEN_H) then
                Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
@@ -878,10 +880,10 @@ package body Games is
          when Hit_Tile =>
             Object.Vy := Speed (-(JUMP_SPEED + GRAV_ACC));
             Object.Ay := 0.0;
-            Object.Y  := Float (Event.Collision.Y);
+            Object.Y  := Position (Event.Collision.Y);
 
          when Offscreen =>
-            if Object.Y > Float (SCREEN_H) then
+            if Object.Y > Position (SCREEN_H) then
                Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
@@ -960,7 +962,7 @@ package body Games is
       case Event.Kind is
 
          when Preframe =>
-            Object.Vx := Speed (Float (Object.Target) - Object.X) * 0.3;
+            Object.Vx := Speed (Position (Object.Target) - Object.X) * 0.3;
             Object.Vy := Speed (15.0 * Cos (Float (Object.Age) * 0.3)) - 9.0;
             if
               Game.Messages > 1 and
@@ -995,7 +997,7 @@ package body Games is
 
          when Preframe =>
             if Target /= null then
-               Object.Vx := Speed ((Target.X + Float (FONT_SPACING)) - Object.X) * 0.6;
+               Object.Vx := Speed ((Target.X + Position (FONT_SPACING)) - Object.X) * 0.6;
                Object.Vy := Speed (Target.Y - Object.Y) * 0.6 - 9.0;
             else
                Unlink_Object (Object);
