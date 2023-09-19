@@ -484,38 +484,38 @@ package body Engines is
       end if;
 
       if Hit.Top then
-         Event.Cinfo.Y := 0;
+         Event.Collision.Y := 0;
          if Dy /= 0.0 then
-            Event.Cinfo.X := Pixels (Object.Ip.Ox
+            Event.Collision.X := Pixels (Object.Ip.Ox
                                      - Dx * Position_X (Object.Ip.Oy / Dy));
          end if;
 
       elsif Hit.Bottom then
-         Event.Cinfo.Y := Pixels (Engine.View.Height - 1);
+         Event.Collision.Y := Pixels (Engine.View.Height - 1);
          if Dy /= 0.0 then
-            Event.Cinfo.X := Pixels (Object.Ip.Ox + Dx * Position_X (
-                                       (Position_Y (Event.Cinfo.Y) - Object.Ip.Oy) / Dy));
+            Event.Collision.X := Pixels (Object.Ip.Ox + Dx * Position_X (
+                                       (Position_Y (Event.Collision.Y) - Object.Ip.Oy) / Dy));
          end if;
       end if;
 
       if Hit.Left then
-         Event.Cinfo.X := 0;
+         Event.Collision.X := 0;
          if Dx /= 0.0 then
-            Event.Cinfo.Y := Pixels (Object.Ip.Oy
+            Event.Collision.Y := Pixels (Object.Ip.Oy
                                      - Dy * Position_Y (Object.Ip.Ox / Dx));
          end if;
 
       elsif Hit.Right then
-         Event.Cinfo.X := Pixels (Engine.View.Width - 1);
+         Event.Collision.X := Pixels (Engine.View.Width - 1);
          if Dx not in -0.01 .. 0.01 then
-            Event.Cinfo.Y := Pixels (Object.Ip.Oy + Dy *
-                                       (Position_Y (Event.Cinfo.X)
+            Event.Collision.Y := Pixels (Object.Ip.Oy + Dy *
+                                       (Position_Y (Event.Collision.X)
                                         - Position_Y (Object.Ip.Ox)) / Position_Y (Dx));
          end if;
       end if;
 
-      Event.Cinfo.Hit := Hit;
-      Event.Kind      := Offscreen;
+      Event.Collision.Hit := Hit;
+      Event.Kind          := Offscreen;
       Object.Handler (Object, Event);
    end Test_Offscreen;
 
@@ -556,12 +556,12 @@ package body Engines is
             Hit.Bottom := Dy2 >  0.707;
          end;
       end if;
-      Event.Kind     := Hit_Object;
-      Event.Cinfo.Ff := 0.0;
+      Event.Kind         := Hit_Object;
+      Event.Collision.Ff := 0.0;
 
-      Event.Cinfo.X   := Pixels (IX);
-      Event.Cinfo.Y   := Pixels (IY);
-      Event.Cinfo.Hit := Hit;
+      Event.Collision.X   := Pixels (IX);
+      Event.Collision.Y   := Pixels (IY);
+      Event.Collision.Hit := Hit;
 
       if True then --      if Object.Hitmask and Object_2.Hitgroup then
          Event.Obj := Object_2;
@@ -569,12 +569,12 @@ package body Engines is
       end if;
 
       if True then --      if Object_2.Id and (Object_2.Hitmask and Object.Hitgroup) then
-         Event.Cinfo.X := Pixels (IX2);
-         Event.Cinfo.Y := Pixels (IY2);
-         Event.Cinfo.Hit := (Right  => Hit.Left,
-                             Left   => Hit.Right,
-                             Bottom => Hit.Top,
-                             Top    => Hit.Bottom);
+         Event.Collision.X   := Pixels (IX2);
+         Event.Collision.Y   := Pixels (IY2);
+         Event.Collision.Hit := (Right  => Hit.Left,
+                                 Left   => Hit.Right,
+                                 Bottom => Hit.Top,
+                                 Top    => Hit.Bottom);
          Event.Obj := Object;
          Object_2.Handler (Object_2.all, Event);
       end if;
@@ -703,11 +703,11 @@ package body Engines is
    -- Pig_Text_Map_Vector --
    -------------------------
 
-   function Pig_Test_Map_Vector (Engine : in out Game_Engine;
-                                 X1, Y1 :        Pixels;
-                                 X2, Y2 :        Pixels;
-                                 Mask   :        Sides;
-                                 Ci     :        Collision_Info_Access)
+   function Pig_Test_Map_Vector (Engine    : in out Game_Engine;
+                                 X1, Y1    :        Pixels;
+                                 X2, Y2    :        Pixels;
+                                 Mask      :        Sides;
+                                 Collision :        Collision_Info_Access)
                                 return Sides
      --  Simple implementation that checks only for top edge collisions.
      --  (Full top/bottom/left/right checks with proper handling of
@@ -715,13 +715,15 @@ package body Engines is
      --  leave that out for now, rather than hacking something simple
      --  but incorrect.)
    is
-      Ci2  : constant not null Collision_Info_Access
-           := (if Ci /= null then Ci else Lci'Access);
-      Map  : constant not null Pig_Map_Access   := Engine.Map;
+      Collision_2 : constant not null Collision_Info_Access
+           := (if Collision /= null then Collision else Lci'Access);
+
+      Map  : constant not null Pig_Map_Access := Engine.Map;
+
       X, Y : Pixels;
       Dist : Pixels := 2_000_000_000;
    begin
-      Ci2.Hit := No_Side;
+      Collision_2.Hit := No_Side;
       if Mask.Top and Y1 < Y2 then
 
          --  Test for tiles that can be hit from the top
@@ -730,20 +732,20 @@ package body Engines is
             X := X1 + (X2 - X1) * (Y - Y1) / (Y2 - Y1);
             if Check_Tile (Map, X, Y + 1, Top_Side) /= No_Side then
                Dist := (X - X1) * (X - X1) + (Y - Y1) * (Y - Y1);
-               Ci2.X := X;
-               Ci2.Y := Y - 1;
-               Ci2.Hit.Top := True;
+               Collision_2.X       := X;
+               Collision_2.Y       := Y - 1;
+               Collision_2.Hit.Top := True;
                exit;
             end if;
             Y := Y + Map.Tile_Height;
          end loop;
       end if;
 
-      if Ci2.Hit /= No_Side then
-         Ci2.Ff := Sqrt (Float ((X2 - X1) * (X2 - X1) +
+      if Collision_2.Hit /= No_Side then
+         Collision_2.Ff := Sqrt (Float ((X2 - X1) * (X2 - X1) +
                                  (Y2 - Y1) * (Y2 - Y1) / Dist));
       end if;
-      return Ci2.Hit;
+      return Collision_2.Hit;
    end Pig_Test_Map_Vector;
 
    ---------------------
@@ -755,16 +757,16 @@ package body Engines is
                               Sprite :        PIG_Sprite_Access)
    is
       pragma Unreferenced (Sprite);
-      Cinfo : aliased Collision_Info;
-      Event : Pig_Event;
+      Collision : aliased Collision_Info;
+      Event     : Pig_Event;
    begin
       if No_Side /= Pig_Test_Map_Vector (Engine,
                                           Pixels (Object.Ip.Ox), Pixels (Object.Ip.Oy),
                                           Pixels (Object.X),     Pixels (Object.Y),
-                                          Object.Tilemask, Cinfo'Unchecked_Access)
+                                          Object.Tilemask, Collision'Unchecked_Access)
       then
-         Event.Cinfo := Cinfo;
-         Event.Kind  := Hit_Tile;
+         Event.Collision := Collision;
+         Event.Kind      := Hit_Tile;
          Object.Handler (Object, Event);
       end if;
    end Test_Sprite_Map;

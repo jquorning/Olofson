@@ -139,7 +139,7 @@ is
    type Pig_Event is record
       Kind  : Pig_Events;
 
-      Cinfo : Collision_Info;      --  Detailed collision info
+      Collision : Collision_Info;   --  Detailed collision info
       --  For HIT_TILE, HIT_OBJECT and OFFSCREEN
 
       Obj   : Object_Access;  --  Which object?
@@ -374,20 +374,20 @@ is
    --  if (x, y) is outside the map.
 
    type Collision_Info_Access is access all Collision_Info;
-   function Pig_Test_Map_Vector (Engine : in out Game_Engine;
-                                 X1, Y1 :        Pixels;
-                                 X2, Y2 :        Pixels;
-                                 Mask   :        Sides;
-                                 Ci     :        Collision_Info_Access)
+
+   function Pig_Test_Map_Vector (Engine    : in out Game_Engine;
+                                 X1, Y1    :        Pixels;
+                                 X2, Y2    :        Pixels;
+                                 Mask      :        Sides;
+                                 Collision :        Collision_Info_Access)
                                 return Sides;
    --  Find the first "collidable" tile side when going from
    --  (x1, y1) to (x2, y2). 'mask' determines which tile sides
    --  are considered for collisions.
    --
    --  Returns the side(s) hit, if any tile was hit. If the return
-   --  is non-zero, the PIG_cinfo struct at 'ci' contains detailed
-   --  information about the collision.
-
+   --  is non-zero, the Collision_Info struct at Collision contains
+   --  detailed information about the collision.
 
    --
    --  Map

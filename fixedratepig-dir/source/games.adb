@@ -625,8 +625,8 @@ package body Games is
 
          when Hit_Tile =>
             if Object.State /= Knocked then
-               if Event.Cinfo.Hit.Top then
-                  Object.Y  := Float (Event.Cinfo.Y);
+               if Event.Collision.Hit.Top then
+                  Object.Y  := Float (Event.Collision.Y);
                   Object.Vy := 0.0;
                   Object.Ay := 0.0;
                end if;
@@ -640,12 +640,12 @@ package body Games is
 
                   when GROUP_ENEMY =>
                      if
-                       (Object.Power /= 0 and Event.Cinfo.Hit.Top) or
+                       (Object.Power /= 0 and Event.Collision.Hit.Top) or
                        (Object.Vy - Event.Obj.Vy) >= 15.0
                      then
                         --  Win: Stomp!
                         Inc_Score (Game, Event.Obj.Score);
-                        Event.Obj.Y := Float (Event.Cinfo.Y + 10);
+                        Event.Obj.Y := Float (Event.Collision.Y + 10);
                         if Object.Vy > 0.0 then
                            Event.Obj.Vy := Object.Vy;
                         else
@@ -663,7 +663,7 @@ package body Games is
                            --  Bounce a little
                            Object.Vy := -15.0;
                         end if;
-                        Object.Y     := Float (Event.Cinfo.Y);
+                        Object.Y     := Float (Event.Collision.Y);
                         Object.Ay    := 0.0;
                         Object.State := Falling;
                      else
@@ -761,8 +761,8 @@ package body Games is
                Object.Power := 0;
                Object.Vy    := 0.0;
                Object.Ay    := 0.0;
-               Object.X     := Float (Event.Cinfo.X) + Object.Vx;
-               Object.Y     := Float (Event.Cinfo.Y);
+               Object.X     := Float (Event.Collision.X) + Object.Vx;
+               Object.Y     := Float (Event.Collision.Y);
             end if;
 
          when Offscreen =>
@@ -819,8 +819,8 @@ package body Games is
             if Dead /= Object.State then
                Object.Vy := 0.0;
                Object.Ay := 0.0;
-               Object.X  := Float (Event.Cinfo.X) + Object.Vx;
-               Object.Y  := Float (Event.Cinfo.Y);
+               Object.X  := Float (Event.Collision.X) + Object.Vx;
+               Object.Y  := Float (Event.Collision.Y);
             end if;
 
          when Offscreen =>
@@ -873,7 +873,7 @@ package body Games is
          when Hit_Tile =>
             Object.Vy := Float (-(JUMP_SPEED + GRAV_ACC));
             Object.Ay := 0.0;
-            Object.Y  := Float (Event.Cinfo.Y);
+            Object.Y  := Float (Event.Collision.Y);
 
          when Offscreen =>
             if Object.Y > Float (SCREEN_H) then
