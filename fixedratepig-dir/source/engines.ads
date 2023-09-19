@@ -165,6 +165,8 @@ is
    type Speed        is new Float;
    type Acceleration is new Float;
 
+   subtype Score_Type is Natural;
+
    type Game_Object is record
       Owner     : Engine_Class_Access;
 --        PIG_object      *next, *prev;
@@ -185,7 +187,7 @@ is
       Timer     : Timer_Array;   -- Down-counting timers
       Age       : Integer;       -- Age timer (logic frames)
 
-      Score     : Natural;
+      Score     : Score_Type;
       Power     : Integer;
       Target    : Integer;
       State     : Object_States;

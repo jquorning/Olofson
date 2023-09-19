@@ -390,10 +390,10 @@ package body Games is
    -----------------------
 
    procedure Inc_Score_Nobonus (Game : in out Game_State;
-                                V    :        Integer)
+                                V    :        Game_Score)
    is
-      Vc : Integer := V;
-      Os : constant Integer := Game.Score;
+      Vc :          Game_Score := V;
+      Os : constant Game_Score := Game.Score;
    begin
       Game.Score := Game.Score + Vc;
       while Vc /= 0 loop
@@ -414,9 +414,9 @@ package body Games is
    ---------------
 
    procedure Inc_Score (Game : in out Game_State;
-                        V    :        Integer)
+                        V    :        Game_Score)
    is
-      Os : constant Integer := Game.Score;
+      Os : constant Game_Score := Game.Score;
    begin
       Inc_Score_Nobonus (Game, V);
       if Os / 5000 /= Game.Score / 5000 then
@@ -651,7 +651,7 @@ package body Games is
                        (Object.Vy - Event.Obj.Vy) >= 15.0
                      then
                         --  Win: Stomp!
-                        Inc_Score (Game, Event.Obj.Score);
+                        Inc_Score (Game, Game_Score (Event.Obj.Score));
                         Event.Obj.Y := Position (Event.Collision.Y + 10);
                         if Object.Vy > 0.0 then
                            Event.Obj.Vy := Object.Vy;
@@ -1283,8 +1283,8 @@ package body Games is
 
       --  Print score
       declare
-         X : Float   := Float (SCREEN_W + 5);
-         V : Integer := Game.Score;
+         X : Float      := Float (SCREEN_W + 5);
+         V : Game_Score := Game.Score;
          N : Engines.Sprite_Counts;
       begin
          for I in reverse 0 .. 9 loop

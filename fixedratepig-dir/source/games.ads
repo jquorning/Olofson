@@ -51,6 +51,7 @@ is
    type Key_Array is array (Key_Used) of Boolean;
 
    type Game_Level is new Natural;
+   type Game_Score is new Natural;
 
    type Game_State is
      new Game_Engine
@@ -78,7 +79,7 @@ is
         Lives             : Natural;
         Lives_Wobble      : Float;
         Lives_Wobble_Time : Duration;
-        Score             : Natural;
+        Score             : Game_Score;
         Score_Wobble      : Float;
         Score_Wobble_Time : Duration;
         Dashboard_Time    : Duration;
@@ -106,9 +107,9 @@ is
 
    function Create return Game_State;
 
-   procedure Inc_Score (Game : in out Game_State; V : Integer);
+   procedure Inc_Score (Game : in out Game_State; V : Game_Score);
 
-   procedure Inc_Score_Nobonus (Game : in out Game_State; V : Integer);
+   procedure Inc_Score_Nobonus (Game : in out Game_State; V : Game_Score);
 
    procedure Message (Game : in out Game_State;
                       Text :        String);
