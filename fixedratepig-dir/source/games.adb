@@ -31,6 +31,13 @@ package body Games is
    subtype Pig_Events     is Engines.Pig_Events;
    subtype Sides          is Engines.Sides;
 
+   subtype Position     is Engines.Position;
+   subtype Speed        is Engines.Speed;
+   subtype Acceleration is Engines.Acceleration;
+   use all type Position;
+   use all type Speed;
+   use all type Acceleration;
+
    function Open_Object (Engine : in out Engines.Game_Engine;
                          X, Y   :        Pixels;
                          Last   :        Boolean)
@@ -107,7 +114,7 @@ package body Games is
    begin
       return Game : Game_State
       do
-         Game.Set_Viewport (0, 0, SCREEN_W, MAP_H * TILE_H);
+         Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
 
          Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
          Game.Create_Sprites (Asset_Dir & "font.png",      44, 56, Game.Scorefont);
@@ -211,9 +218,9 @@ package body Games is
       Object := Open_Object (Game_Engine (Game), SCREEN_W / 2, -50, Last => True);
 
       Remove_Life (Game);
-      Object.Ibase   := Game.Pigframes;
-      Object.Handler := Player_Handler'Access;
-      Object.Hitmask := GROUP_POWERUP + GROUP_ENEMY;
+      Object.I_Base   := Game.Pigframes;
+      Object.Handler  := Player_Handler'Access;
+      Object.Hit_Mask := GROUP_POWERUP + GROUP_ENEMY;
    end New_Player;
 
    ----------------
@@ -239,13 +246,13 @@ package body Games is
    begin
       Object := Open_Object (Game_Engine (Game.Self.all), X, Y, Last => True);
 
-      Game.Enemycount := Game.Enemycount + 1;
-      Object.Score    := Power_Ups'Pos (Kind);
-      Object.Ibase    := Game.Icons + Sprite_Counts (8 * Object.Score);
-      Object.Target   := Speed;
-      Object.Handler  := Powerup_Handler'Access;
-      Object.Tilemask := Top_Side;
-      Object.Hitgroup := GROUP_POWERUP;
+      Game.Enemycount  := Game.Enemycount + 1;
+      Object.Score     := Power_Ups'Pos (Kind);
+      Object.I_Base    := Game.Icons + Sprite_Counts (8 * Object.Score);
+      Object.Target    := Speed;
+      Object.Handler   := Powerup_Handler'Access;
+      Object.Tile_Mask := Top_Side;
+      Object.Hit_Group := GROUP_POWERUP;
    end New_Powerup;
 
    -----------------
@@ -274,11 +281,11 @@ package body Games is
    begin
       Object := Open_Object (Game, X + Vx, Y + Vy, Last => True);
 
-      Object.Ibase   := Game.Stars;
-      Object.Ax      := -0.3 * Float (Vx);
-      Object.Vx      := Float (Vx * 3);
-      Object.Ay      := -0.3 * Float (Vy);
-      Object.Vy      := Float (Vy * 3);
+      Object.I_Base  := Game.Stars;
+      Object.Ax      := -0.3 * Acceleration (Vx);
+      Object.Ay      := -0.3 * Acceleration (Vy);
+      Object.Vx      := Speed (Vx * 3);
+      Object.Vy      := Speed (Vy * 3);
       Object.Handler := Star_Handler'Access;
    end New_Star;
 
@@ -309,13 +316,13 @@ package body Games is
                              X * TILE_W,
                              Y * TILE_H, Last => True);
 
-      Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Game.Evil;
-      Object.Target   := Speed;
-      Object.Handler  := Evil_Handler'Access;
-      Object.Score    := 200;
-      Object.Tilemask := Top_Side;
-      Object.Hitgroup := GROUP_ENEMY;
+      Game.Enemycount  := Game.Enemycount + 1;
+      Object.I_Base    := Game.Evil;
+      Object.Target    := Speed;
+      Object.Handler   := Evil_Handler'Access;
+      Object.Score     := 200;
+      Object.Tile_Mask := Top_Side;
+      Object.Hit_Group := GROUP_ENEMY;
    end New_Evil;
 
    ---------------
@@ -331,13 +338,13 @@ package body Games is
       Object := Open_Object (Game,
                                  X * TILE_W, Y * TILE_H, Last => True);
 
-      Game.Enemycount := Game.Enemycount + 1;
-      Object.Ibase    := Game.Slime;
-      Object.Target   := Speed;
-      Object.Handler  := Slime_Handler'Access;
-      Object.Score    := 300;
-      Object.Tilemask := Top_Side;
-      Object.Hitgroup := GROUP_ENEMY;
+      Game.Enemycount  := Game.Enemycount + 1;
+      Object.I_Base    := Game.Slime;
+      Object.Target    := Speed;
+      Object.Handler   := Slime_Handler'Access;
+      Object.Score     := 300;
+      Object.Tile_Mask := Top_Side;
+      Object.Hit_Group := GROUP_ENEMY;
    end New_Slime;
 
    --------------------
@@ -353,7 +360,7 @@ package body Games is
    begin
       Object := Open_Object (Game, X, Y, Last => True);
 
-      Object.Ibase   := Image;
+      Object.I_Base  := Image;
       Object.Handler := Chain_Head_Handler'Access;
       Object.Target  := Target_X;
    end New_Chain_Head;
@@ -371,7 +378,7 @@ package body Games is
    begin
       Object := Open_Object (Game, X, Y, Last => True);
 
-      Object.Ibase   := Image;
+      Object.I_Base  := Image;
       Object.Handler := Chain_Link_Handler'Access;
       Object.Target  := Integer (Target);
    end New_Chain_Link;
@@ -383,10 +390,10 @@ package body Games is
    -----------------------
 
    procedure Inc_Score_Nobonus (Game : in out Game_State;
-                                V    :        Integer)
+                                V    :        Game_Score)
    is
-      Vc : Integer := V;
-      Os : constant Integer := Game.Score;
+      Vc :          Game_Score := V;
+      Os : constant Game_Score := Game.Score;
    begin
       Game.Score := Game.Score + Vc;
       while Vc /= 0 loop
@@ -407,9 +414,9 @@ package body Games is
    ---------------
 
    procedure Inc_Score (Game : in out Game_State;
-                        V    :        Integer)
+                        V    :        Game_Score)
    is
-      Os : constant Integer := Game.Score;
+      Os : constant Game_Score := Game.Score;
    begin
       Inc_Score_Nobonus (Game, V);
       if Os / 5000 /= Game.Score / 5000 then
@@ -432,15 +439,15 @@ package body Games is
         (Game.Glassfont + Character'Pos (C) - Character'Pos (' '));
 
       X  : constant Pixels := SCREEN_W + FONT_SPACING;
-      Y  : constant Pixels := MAP_H * TILE_H - 30;
-      Tx : constant Integer := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
+      Y  : constant Pixels := Pixels (MAP_H) * TILE_H - 30;
+      Tx : constant Pixels := (SCREEN_W - (Text'Length - 1) * FONT_SPACING) / 2;
       First  : Boolean := True;
       Object : Object_Access := null;
    begin
       for C of To_Upper (Text) loop
          if First then
             First := False;
-            New_Chain_Head (Game, X, Y, To_Frame (C), Tx, Object);
+            New_Chain_Head (Game, X, Y, To_Frame (C), Integer (Tx), Object);
          else
             New_Chain_Link (Game, X, Y, To_Frame (C), Object.Id, Object);
          end if;
@@ -489,21 +496,21 @@ package body Games is
 
                when Walking =>
                   if Game.Keys (Left) then
-                     Object.Ax     := -(20.0 + Object.Vx) * 0.4;
+                     Object.Ax     := -Acceleration (20.0 + Object.Vx) * 0.4;
                      Object.Target := 3 + Object.Age mod 4 - 1;
                      if 5 = Object.Target then
                         Object.Target := 3;
                      end if;
 
                   elsif Game.Keys (Right) then
-                     Object.Ax     := (20.0 - Object.Vx) * 0.4;
+                     Object.Ax     := Acceleration (20.0 - Object.Vx) * 0.4;
                      Object.Target := 9 + Object.Age mod 4 - 1;
                      if 11 = Object.Target then
                         Object.Target := 9;
                      end if;
 
                   else
-                     Object.Ax := -Object.Vx * 0.8;
+                     Object.Ax := -Acceleration (Object.Vx * 0.8);
                      if Object.Target >= 6 then
                         Object.Target := (Object.Target + 1) mod
                           PIG_FRAMES;
@@ -514,11 +521,11 @@ package body Games is
 
                when Falling =>
                   if Game.Keys (Left) then
-                     Object.Ax := -(20.0 + Object.Vx) * 0.2;
+                     Object.Ax := -Acceleration (20.0 + Object.Vx) * 0.2;
                   elsif Game.Keys (Right) then
-                     Object.Ax := (20.0 - Object.Vx) * 0.2;
+                     Object.Ax := Acceleration (20.0 - Object.Vx) * 0.2;
                   else
-                     Object.Ax := -Object.Vx * 0.2;
+                     Object.Ax := -Acceleration (Object.Vx) * 0.2;
                   end if;
                   Object.Target := (Object.Target + 1) mod PIG_FRAMES;
             end case;
@@ -528,8 +535,8 @@ package body Games is
          when Timer_1 =>
             if Object.X < 0.0 then
                Object.X := 0.0;
-            elsif Object.X > Float (Object.Owner.View.Width - 1) then
-               Object.X := Float (Object.Owner.View.Width - 1);
+            elsif Object.X > Position (Object.Owner.View.Width - 1) then
+               Object.X := Position (Object.Owner.View.Width - 1);
             end if;
 
             case Object.State is
@@ -545,7 +552,7 @@ package body Games is
                                              Pixels (Object.Y + 1.0))
                   then
                      Object.State := Falling;
-                     Object.Ay    := Float (GRAV_ACC);
+                     Object.Ay    := Acceleration (GRAV_ACC);
                   end if;
 
                   if Game.Jump /= 0 or Game.Keys (Up) then
@@ -567,10 +574,10 @@ package body Games is
                   Object.Ay     := GRAV_ACC;
                   Object.Target := (Object.Target + 2) mod PIG_FRAMES;
                   Object.Image  := Sprite_Counts (Object.Target);
-                  Object.Ax     := -Object.Vx * 0.2;
+                  Object.Ax     := -Acceleration (Object.Vx) * 0.2;
 
                when Next_Level =>
-                  Object.Vx     := (Float (SCREEN_W / 2) - Object.X) * 0.1;
+                  Object.Vx     := (Speed (SCREEN_W / 2) - Speed (Object.X)) * 0.1;
                   Object.Target := (Object.Target + 1) mod PIG_FRAMES;
                   Object.Image  := Sprite_Counts (Object.Target);
 
@@ -591,8 +598,8 @@ package body Games is
                   Object.State := Next_Level;
                   Object.Vy :=  0.0;
                   Object.Ay := -1.0;
-                  Object.Tilemask  := No_Side;
-                  Object.Hitgroup  := 0;
+                  Object.Tile_Mask := No_Side;
+                  Object.Hit_Group := 0;
                   Object.Timer (2) := 50;
                end if;
             end if;
@@ -625,8 +632,8 @@ package body Games is
 
          when Hit_Tile =>
             if Object.State /= Knocked then
-               if Event.Cinfo.Hit.Top then
-                  Object.Y  := Float (Event.Cinfo.Y);
+               if Event.Collision.Hit.Top then
+                  Object.Y  := Position (Event.Collision.Y);
                   Object.Vy := 0.0;
                   Object.Ay := 0.0;
                end if;
@@ -636,24 +643,24 @@ package body Games is
          when Hit_Object =>
             if Knocked /= Object.State then
 
-               case Event.Obj.Hitgroup is
+               case Event.Obj.Hit_Group is
 
                   when GROUP_ENEMY =>
                      if
-                       (Object.Power /= 0 and Event.Cinfo.Hit.Top) or
+                       (Object.Power /= 0 and Event.Collision.Hit.Top) or
                        (Object.Vy - Event.Obj.Vy) >= 15.0
                      then
                         --  Win: Stomp!
-                        Inc_Score (Game, Event.Obj.Score);
-                        Event.Obj.Y := Float (Event.Cinfo.Y + 10);
+                        Inc_Score (Game, Game_Score (Event.Obj.Score));
+                        Event.Obj.Y := Position (Event.Collision.Y + 10);
                         if Object.Vy > 0.0 then
                            Event.Obj.Vy := Object.Vy;
                         else
                            Event.Obj.Vy := 10.0;
                         end if;
-                        Event.Obj.Ay       := GRAV_ACC;
-                        Event.Obj.Tilemask := No_Side;
-                        Event.Obj.Hitgroup := 0;
+                        Event.Obj.Ay        := GRAV_ACC;
+                        Event.Obj.Tile_Mask := No_Side;
+                        Event.Obj.Hit_Group := 0;
 
                         if Game.Jump /= 0 or Game.Keys (Up) then
                            --  Mega jump!
@@ -663,7 +670,7 @@ package body Games is
                            --  Bounce a little
                            Object.Vy := -15.0;
                         end if;
-                        Object.Y     := Float (Event.Cinfo.Y);
+                        Object.Y     := Position (Event.Collision.Y);
                         Object.Ay    := 0.0;
                         Object.State := Falling;
                      else
@@ -700,11 +707,11 @@ package body Games is
 
                         when others => null;
                      end case;
-                     Event.Obj.State    := Dead;
-                     Event.Obj.Tilemask := No_Side;
-                     Event.Obj.Hitgroup := 0;
-                     Event.Obj.Vy       := -20.0;
-                     Event.Obj.Ay       := -2.0;
+                     Event.Obj.State     := Dead;
+                     Event.Obj.Tile_Mask := No_Side;
+                     Event.Obj.Hit_Group := 0;
+                     Event.Obj.Vy        := -20.0;
+                     Event.Obj.Ay        := -2.0;
 
                   when others =>
                      null;
@@ -747,8 +754,8 @@ package body Games is
 
          when Preframe =>
             if Object.State /= Dead then
-               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.3;
-               Object.Ay    := GRAV_ACC;
+               Object.Ax    := Acceleration (Speed (Object.Target) - Object.Vx) * 0.3;
+               Object.Ay    := Acceleration (GRAV_ACC);
                Object.Image := Sprite_Counts (Object.Age mod 8);
                Object.Power := Object.Power + 1;
             end if;
@@ -761,12 +768,12 @@ package body Games is
                Object.Power := 0;
                Object.Vy    := 0.0;
                Object.Ay    := 0.0;
-               Object.X     := Float (Event.Cinfo.X) + Object.Vx;
-               Object.Y     := Float (Event.Cinfo.Y);
+               Object.X     := Position (Event.Collision.X) + Position (Object.Vx);
+               Object.Y     := Position (Event.Collision.Y);
             end if;
 
          when Offscreen =>
-            if Object.Y > Float (SCREEN_H) or Object.Y < -100.0 then
+            if Object.Y > Position (SCREEN_H) or Object.Y < -100.0 then
                Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
@@ -810,8 +817,8 @@ package body Games is
 
          when Preframe =>
             if Dead /= Object.State then
-               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.5;
-               Object.Ay    := Float (GRAV_ACC);
+               Object.Ax    := Acceleration (Speed (Object.Target) - Object.Vx) * 0.5;
+               Object.Ay    := Acceleration (GRAV_ACC);
                Object.Image := Sprite_Counts (Object.Age mod 16);
             end if;
 
@@ -819,12 +826,12 @@ package body Games is
             if Dead /= Object.State then
                Object.Vy := 0.0;
                Object.Ay := 0.0;
-               Object.X  := Float (Event.Cinfo.X) + Object.Vx;
-               Object.Y  := Float (Event.Cinfo.Y);
+               Object.X  := Position (Event.Collision.X) + Position (Object.Vx);
+               Object.Y  := Position (Event.Collision.Y);
             end if;
 
          when Offscreen =>
-            if Object.Y > Float (SCREEN_H) then
+            if Object.Y > Position (SCREEN_H) then
                Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
@@ -865,18 +872,18 @@ package body Games is
 
          when Preframe =>
             if Dead /= Object.State then
-               Object.Ax    := (Float (Object.Target) - Object.Vx) * 0.2;
+               Object.Ax    := Acceleration (Float (Object.Target) - Float (Object.Vx)) * 0.2;
                Object.Ay    := GRAV_ACC;
                Object.Image := Sprite_Counts (Object.Age mod 16);
             end if;
 
          when Hit_Tile =>
-            Object.Vy := Float (-(JUMP_SPEED + GRAV_ACC));
+            Object.Vy := Speed (-(JUMP_SPEED + GRAV_ACC));
             Object.Ay := 0.0;
-            Object.Y  := Float (Event.Cinfo.Y);
+            Object.Y  := Position (Event.Collision.Y);
 
          when Offscreen =>
-            if Object.Y > Float (SCREEN_H) then
+            if Object.Y > Position (SCREEN_H) then
                Unlink_Object (Object);
                Game.Enemycount := Game.Enemycount - 1;
             end if;
@@ -938,7 +945,7 @@ package body Games is
                Object.State     := Object_States'Succ (Object.State);
 
             when Walking =>
-               Object.Target    := -SCREEN_W;
+               Object.Target    := Integer (-SCREEN_W);
                Object.Timer (2) := 50;
                Object.State     := Object_States'Succ (Object.State);
                if Game.Messages > 0 then
@@ -955,8 +962,8 @@ package body Games is
       case Event.Kind is
 
          when Preframe =>
-            Object.Vx := (Float (Object.Target) - Object.X) * 0.3;
-            Object.Vy := 15.0 * Cos (Float (Object.Age) * 0.3) - 9.0;
+            Object.Vx := Speed (Position (Object.Target) - Object.X) * 0.3;
+            Object.Vy := Speed (15.0 * Cos (Float (Object.Age) * 0.3)) - 9.0;
             if
               Game.Messages > 1 and
               Object.State = Walking
@@ -990,8 +997,8 @@ package body Games is
 
          when Preframe =>
             if Target /= null then
-               Object.Vx := ((Target.X + Float (FONT_SPACING)) - Object.X) * 0.6;
-               Object.Vy := (Target.Y - Object.Y) * 0.6 - 9.0;
+               Object.Vx := Speed ((Target.X + Position (FONT_SPACING)) - Object.X) * 0.6;
+               Object.Vy := Speed (Target.Y - Object.Y) * 0.6 - 9.0;
             else
                Unlink_Object (Object);
             end if;
@@ -1209,6 +1216,7 @@ package body Games is
 
    procedure Dashboard (Game : in out Game_State)
    is
+      subtype int is SDL.C.int;
       use Ada.Numerics.Elementary_Functions;
       use Ada.Real_Time;
       Pi   : constant       := Ada.Numerics.Pi;
@@ -1217,8 +1225,8 @@ package body Games is
 
       Clip : constant SDL.Video.Rectangles.Rectangle :=
         (X      => 0,
-         Y      => SDL.C.int (SCREEN_H - 56),
-         Width  => SCREEN_W,
+         Y      => int (SCREEN_H - 56),
+         Width  => int (SCREEN_W),
          Height => 56);
    begin
       Game.Surfac.Set_Clip_Rectangle (Clip);
@@ -1230,8 +1238,8 @@ package body Games is
 
             Line : constant SDL.Video.Rectangles.Rectangle :=
               (X      => 0,
-               Width  => SCREEN_W,
-               Y      => SDL.C.int (I + SCREEN_H - 56),
+               Width  => int (SCREEN_W),
+               Y      => SDL.C.int (I) + int (SCREEN_H) - 56,
                Height => 1);
 
             F1 : constant Float :=
@@ -1275,8 +1283,8 @@ package body Games is
 
       --  Print score
       declare
-         X : Float   := Float (SCREEN_W + 5);
-         V : Integer := Game.Score;
+         X : Float      := Float (SCREEN_W + 5);
+         V : Game_Score := Game.Score;
          N : Engines.Sprite_Counts;
       begin
          for I in reverse 0 .. 9 loop
@@ -1426,13 +1434,14 @@ package body Games is
       Sdl_Initialise;
 
       declare
+         subtype int is SDL.C.int;
          use SDL.Video.Windows;
       begin
          Makers.Create
            (Window,
             Title    => "Fixed Rate Pig Game",
             Position => (10, 10),
-            Size     => (SCREEN_W, SCREEN_H),
+            Size     => (int (SCREEN_W), int (SCREEN_H)),
             Flags    => SDL.Video.Windows.Windowed);
          --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
          Screen := Window.Get_Surface;

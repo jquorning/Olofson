@@ -56,13 +56,19 @@ is
    --
    --  Interpolated point
    --
-   type PIG_Ipoint is record
+   type Position_X is new Float;
+   type Position_Y is new Float;
+
+   type Interpolation_Point is record
       --  From the last logic frame:
-      Ox, Oy : Float;         --  Position
+      Ox : Position_X;
+      Oy : Position_Y;
 
       --  From the last/current rendered frame:
       Gimage : Sprite_Counts; --  Sprite frame index
-      Gx, Gy : Float;         --  Interpolated position
+
+      Gx : Position_X;
+      Gy : Position_Y;         --  Interpolated position
    end record;
 
    --
@@ -123,7 +129,7 @@ is
    Maximum   : constant Magic_Value := -10000003;
 
    --  Collision info
-   type PIG_Cinfo is record
+   type Collision_Info is record
       Ff   : Float;      --  Fractional frame
       X, Y : Pixels;     --  Exact position
       Hit  : Sides;      --  Side of tile hit
@@ -133,7 +139,7 @@ is
    type Pig_Event is record
       Kind  : Pig_Events;
 
-      Cinfo : PIG_Cinfo;      --  Detailed collision info
+      Collision : Collision_Info;   --  Detailed collision info
       --  For HIT_TILE, HIT_OBJECT and OFFSCREEN
 
       Obj   : Object_Access;  --  Which object?
@@ -155,32 +161,38 @@ is
    type Engine_Class_Access is access all Game_Engine'Class;
    type Object_Id    is new Natural;
 
+   type Position     is new Float;
+   type Speed        is new Float;
+   type Acceleration is new Float;
+
+   subtype Score_Type is Natural;
+
    type Game_Object is record
-      Owner : Engine_Class_Access;
+      Owner     : Engine_Class_Access;
 --        PIG_object      *next, *prev;
 
-      Id       : Object_Id;     -- Unique ID. 0 means "free".
+      Id        : Object_Id;      -- Unique ID. 0 means "free".
 
-      Ibase    : Sprite_Counts; -- Sprite frame base index
-      Image    : Sprite_Counts; -- Sprite frame offset
-      X, Y     : Float;         -- Position
-      Vx, Vy   : Float;         -- Speed
-      Ax, Ay   : Float;         -- Acceleration
-      Ip       : PIG_Ipoint;
-      Tilemask : Sides;         -- Sprite/tile mask [PIG_ALL]
+      I_Base    : Sprite_Counts;  -- Sprite frame base index
+      Image     : Sprite_Counts;  -- Sprite frame offset
+      X, Y      : Position;       -- Position
+      Vx, Vy    : Speed;          -- Speed
+      Ax, Ay    : Acceleration;   -- Acceleration
+      Interpol  : Interpolation_Point;
+      Tile_Mask : Sides;          -- Sprite/tile mask [PIG_ALL]
 
-      Hitmask  : Integer;       -- Sprite/sprite mask [0]
-      Hitgroup : Integer;       -- Sprite/sprite group [0]
+      Hit_Mask  : Integer;       -- Sprite/sprite mask [0]
+      Hit_Group : Integer;       -- Sprite/sprite group [0]
 
-      Timer    : Timer_Array;   -- Down-counting timers
-      Age      : Integer;       -- Age timer (logic frames)
+      Timer     : Timer_Array;   -- Down-counting timers
+      Age       : Integer;       -- Age timer (logic frames)
 
-      Score    : Natural;
-      Power    : Integer;
-      Target   : Integer;
-      State    : Object_States;
+      Score     : Score_Type;
+      Power     : Integer;
+      Target    : Integer;
+      State     : Object_States;
 
-      Handler  : Handler_Access;
+      Handler   : Handler_Access;
    end record;
 
    subtype Surface   is SDL.Video.Surfaces.Surface;
@@ -367,21 +379,21 @@ is
    --  is the PIG_sides flags for the tile, or PIG_NONE
    --  if (x, y) is outside the map.
 
-   type PIG_Cinfo_Access is access all PIG_Cinfo;
-   function Pig_Test_Map_Vector (Engine : in out Game_Engine;
-                                 X1, Y1 :        Pixels;
-                                 X2, Y2 :        Pixels;
-                                 Mask   :        Sides;
-                                 Ci     :        PIG_Cinfo_Access)
+   type Collision_Info_Access is access all Collision_Info;
+
+   function Pig_Test_Map_Vector (Engine    : in out Game_Engine;
+                                 X1, Y1    :        Pixels;
+                                 X2, Y2    :        Pixels;
+                                 Mask      :        Sides;
+                                 Collision :        Collision_Info_Access)
                                 return Sides;
    --  Find the first "collidable" tile side when going from
    --  (x1, y1) to (x2, y2). 'mask' determines which tile sides
    --  are considered for collisions.
    --
    --  Returns the side(s) hit, if any tile was hit. If the return
-   --  is non-zero, the PIG_cinfo struct at 'ci' contains detailed
-   --  information about the collision.
-
+   --  is non-zero, the Collision_Info struct at Collision contains
+   --  detailed information about the collision.
 
    --
    --  Map

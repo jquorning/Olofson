@@ -25,15 +25,16 @@ is
    subtype Object_Id     is Engines.Object_Id;
    subtype Game_Object   is Engines.Game_Object;
    subtype Pig_Event     is Engines.Pig_Event;
+   subtype Tiles         is Engines.Tiles;
 
    --  Graphics defines
-   SCREEN_W     : constant := 800;
-   SCREEN_H     : constant := 600;
-   TILE_W       : constant := 32;
-   TILE_H       : constant := 32;
-   MAP_W        : constant := 25;
-   MAP_H        : constant := 17;
-   FONT_SPACING : constant := 45;
+   SCREEN_W     : constant Pixels := 800;
+   SCREEN_H     : constant Pixels := 600;
+   TILE_W       : constant Pixels := 32;
+   TILE_H       : constant Pixels := 32;
+   MAP_W        : constant Tiles  := 25;
+   MAP_H        : constant Tiles  := 17;
+   FONT_SPACING : constant Pixels := 45;
    PIG_FRAMES   : constant := 12;
 
    --  World/physics constants
@@ -50,6 +51,10 @@ is
    type Key_Array is array (Key_Used) of Boolean;
 
    type Game_Level is new Natural;
+<<<<<<< HEAD
+=======
+   type Game_Score is new Natural;
+>>>>>>> dev-add-types
 
    type Game_State is
      new Game_Engine
@@ -77,7 +82,11 @@ is
         Lives             : Natural;
         Lives_Wobble      : Float;
         Lives_Wobble_Time : Duration;
+<<<<<<< HEAD
         Score             : Natural;
+=======
+        Score             : Game_Score;
+>>>>>>> dev-add-types
         Score_Wobble      : Float;
         Score_Wobble_Time : Duration;
         Dashboard_Time    : Duration;
@@ -105,9 +114,9 @@ is
 
    function Create return Game_State;
 
-   procedure Inc_Score (Game : in out Game_State; V : Integer);
+   procedure Inc_Score (Game : in out Game_State; V : Game_Score);
 
-   procedure Inc_Score_Nobonus (Game : in out Game_State; V : Integer);
+   procedure Inc_Score_Nobonus (Game : in out Game_State; V : Game_Score);
 
    procedure Message (Game : in out Game_State;
                       Text :        String);
