@@ -51,10 +51,7 @@ is
    type Key_Array is array (Key_Used) of Boolean;
 
    type Game_Level is new Natural;
-<<<<<<< HEAD
-=======
    type Game_Score is new Natural;
->>>>>>> dev-add-types
 
    type Game_State is
      new Game_Engine
@@ -82,13 +79,11 @@ is
         Lives             : Natural;
         Lives_Wobble      : Float;
         Lives_Wobble_Time : Duration;
-<<<<<<< HEAD
-        Score             : Natural;
-=======
+
         Score             : Game_Score;
->>>>>>> dev-add-types
         Score_Wobble      : Float;
         Score_Wobble_Time : Duration;
+
         Dashboard_Time    : Duration;
         Fun_Count         : Natural;
         Enemycount        : Integer;
