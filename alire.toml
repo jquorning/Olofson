@@ -1,22 +1,24 @@
 name = "olofson"
-description = "Shiny new project"
-version = "0.1.0-dev"
+description = "SDL2 demos"
+version = "1.0.0-dev"
+
+tags = ["sdl2", "demo", "game"]
 
 project-files = [
 	      "parallax_3.gpr",
 	      "parallax_4.gpr",
 	      "ballfield.gpr",
-	      "fixedratepig.gpr"
+	      "fixedrate.gpr"
 	      ]
 executables = [
 	    "parallax3",
 	    "parallax4",
 	    "ballfield",
-	    "fixedratepig"
+	    "fixedrate"
 	    ]
-authors = ["Jesper Quorning"]
+authors = ["Olofson", "Jesper Quorning"]
 maintainers = ["Jesper Quorning <jesper.quorning@gmail.com>"]
 maintainers-logins = ["jquorning"]
 
 [[depends-on]]
-sdlada = "^2.5.5"
+sdlada = "~2.5.5"

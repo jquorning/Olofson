@@ -45,7 +45,7 @@ is
    GROUP_ENEMY   : constant :=  16#0001#;
    GROUP_POWERUP : constant :=  16#0002#;
 
-   Asset_Dir : constant String := "fixedratepig-dir/assets/";
+   Asset_Dir : constant String := "fixedrate-dir/assets/";
 
    type Key_Used  is (Up, Down, Left, Right);
    type Key_Array is array (Key_Used) of Boolean;

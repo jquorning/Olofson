@@ -3,10 +3,10 @@
 
 with "sdlada";
 
-project Fixedratepig is
+project Fixedrate is
 
-  for Source_Dirs  use ("fixedratepig-dir/source/");
-  for Object_Dir   use "fixedratepig-dir/object/";
+  for Source_Dirs  use ("fixedrate-dir/source/");
+  for Object_Dir   use "fixedrate-dir/object/";
   for Exec_Dir     use "./";
   for Main         use ("pig.adb");
 
@@ -14,7 +14,7 @@ project Fixedratepig is
 
   package Builder is
 
-     for Executable ("pig.adb") use "fixedratepig";
+     for Executable ("pig.adb") use "fixedrate";
 
      for Default_Switches ("Ada") use
        ("-g",
@@ -51,4 +51,4 @@ project Fixedratepig is
 
     end case;
   end Linker;
-end Fixedratepig;
+end Fixedrate;
