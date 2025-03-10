@@ -86,7 +86,7 @@ package body Games is
 
       Game.Dashboard_Time    := 0.0;
       Game.Fun_Count         := 0;
-      Game.Enemycount        := 0;
+      Game.Enemy_Count       := 0;
       Game.Messages          := 0;
       Game.Player            := null;
 
@@ -246,7 +246,7 @@ package body Games is
    begin
       Object := Open_Object (Game_Engine (Game.Self.all), X, Y, Last => True);
 
-      Game.Enemycount  := Game.Enemycount + 1;
+      Game.Enemy_Count := Game.Enemy_Count + 1;
       Object.Score     := Power_Ups'Pos (Kind);
       Object.I_Base    := Game.Icons + Sprite_Counts (8 * Object.Score);
       Object.Target    := Speed;
@@ -316,7 +316,7 @@ package body Games is
                              X * TILE_W,
                              Y * TILE_H, Last => True);
 
-      Game.Enemycount  := Game.Enemycount + 1;
+      Game.Enemy_Count := Game.Enemy_Count + 1;
       Object.I_Base    := Game.Evil;
       Object.Target    := Speed;
       Object.Handler   := Evil_Handler'Access;
@@ -338,7 +338,7 @@ package body Games is
       Object := Open_Object (Game,
                                  X * TILE_W, Y * TILE_H, Last => True);
 
-      Game.Enemycount  := Game.Enemycount + 1;
+      Game.Enemy_Count := Game.Enemy_Count + 1;
       Object.I_Base    := Game.Slime;
       Object.Target    := Speed;
       Object.Handler   := Slime_Handler'Access;
@@ -533,11 +533,9 @@ package body Games is
             Object.Timer (1) := 1;
 
          when Timer_1 =>
-            if Object.X < 0.0 then
-               Object.X := 0.0;
-            elsif Object.X > Position (Object.Owner.View.Width - 1) then
-               Object.X := Position (Object.Owner.View.Width - 1);
-            end if;
+            Object.X := Position'Max (Object.X, 0.0);
+            Object.X := Position'Min (Object.X,
+                                      Position (Object.Owner.View.Width - 1));
 
             case Object.State is
                when Waiting => null;
@@ -588,12 +586,13 @@ package body Games is
                   Object.Vy := 0.0;
 
             end case;
+
             if Game.Jump /= 0 then
                Game.Jump := Game.Jump - 1;
             end if;
 
             if Next_Level /= Object.State then
-               if Game.Enemycount <= 0 then
+               if Game.Enemy_Count <= 0 then
                   Message (Game, "Well Done!");
                   Object.State := Next_Level;
                   Object.Vy :=  0.0;
@@ -773,9 +772,9 @@ package body Games is
             end if;
 
          when Offscreen =>
-            if Object.Y > Position (SCREEN_H) or Object.Y < -100.0 then
+            if Object.Y not in -100.0 .. Position (SCREEN_H) then
                Unlink_Object (Object);
-               Game.Enemycount := Game.Enemycount - 1;
+               Game.Enemy_Count := Game.Enemy_Count - 1;
             end if;
          when others => null;
 
@@ -833,7 +832,7 @@ package body Games is
          when Offscreen =>
             if Object.Y > Position (SCREEN_H) then
                Unlink_Object (Object);
-               Game.Enemycount := Game.Enemycount - 1;
+               Game.Enemy_Count := Game.Enemy_Count - 1;
             end if;
 
          when Postframe =>
@@ -885,7 +884,7 @@ package body Games is
          when Offscreen =>
             if Object.Y > Position (SCREEN_H) then
                Unlink_Object (Object);
-               Game.Enemycount := Game.Enemycount - 1;
+               Game.Enemy_Count := Game.Enemy_Count - 1;
             end if;
 
          when Postframe =>
@@ -1021,8 +1020,8 @@ package body Games is
    begin
       Game.Level := Game_Level (Map);
       Game.Unlink_All_Objects;
-      Game.Enemycount := 0;
-      Game.Messages   := 0;
+      Game.Enemy_Count := 0;
+      Game.Messages    := 0;
 
       case Map is
          when 1 | 2 | 4 =>
