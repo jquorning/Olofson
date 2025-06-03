@@ -1,6 +1,11 @@
 name = "olofson"
 description = "SDL2 demos"
-version = "1.0.0-dev"
+version = "25.0.0"
+licenses = "GPL-2.0-only"
+
+long-description = """
+SDL2 demos.
+"""
 
 tags = ["sdl2", "demo", "game"]
 
