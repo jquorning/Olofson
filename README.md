@@ -36,12 +36,6 @@ gprbuild fixedratepig.gpr -XSDL_PLATFORM=macosx
 ## Origin
 
 The originals are found [here](http://olofson.net/examples.html)
-<<<<<<< HEAD
-and 1.0 version of pig [here](http://olofson.net/mixed.html) or  
-1.1 version. Play game [here](http://www.olofson.net/pig/).
-=======
 and 1.0 version of pig [here](http://olofson.net/mixed.html) or in 
 1.1 version [here]((http://www.olofson.net/pig/).
->>>>>>> dev-add-types
-[YouTube video](https://www.youtube.com/watch?app=desktop&v=VvgSGAuxCvg)
-
+[YouTube video](https://www.youtube.com/watch?v=VvgSGAuxCvg)
