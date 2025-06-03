@@ -86,7 +86,7 @@ is
 
         Dashboard_Time    : Duration;
         Fun_Count         : Natural;
-        Enemycount        : Integer;
+        Enemy_Count       : Integer;
         Messages          : Natural;
 
         --  Objects
