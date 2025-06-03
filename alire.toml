@@ -26,4 +26,4 @@ maintainers = ["Jesper Quorning <jesper.quorning@gmail.com>"]
 maintainers-logins = ["jquorning"]
 
 [[depends-on]]
-sdlada = "~2.5.5"
+sdlada = "=2.5.20"
