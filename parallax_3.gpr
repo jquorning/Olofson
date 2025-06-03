@@ -17,17 +17,8 @@ project Parallax_3 is
   end Compiler;
 
   package Linker is
-    case SDLAda.Platform is
-
-      when "linux" | "bsd" | "android" | "windows" =>
-        for Default_Switches ("Ada") use ("-lSDL2", "-lSDL2_image");
-
-      when "macosx" =>
-        for Default_Switches ("Ada") use ("-lSDL2", "-lSDL2_image");
-
-      when "ios" =>
-        null;
-    end case;
+     for Default_Switches ("Ada") use ("-lSDL2",
+                                       "-lSDL2_image");
   end Linker;
 
 end Parallax_3;
