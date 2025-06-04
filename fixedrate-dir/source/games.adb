@@ -156,7 +156,7 @@ package body Games is
             Map : constant Pig_Map_Access :=
               Pig_Map_Open (Game.Self, MAP_W, MAP_H);
          begin
-            Pig_Map_Tiles (Map.all, Asset_Dir & "tiles.png",
+            Pig_Map_Tiles (Map.all, Game, Asset_Dir & "tiles.png",
                            TILE_W, TILE_H, Map_Tiles_Result);
             if Map_Tiles_Result < 0 then
                Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
@@ -1535,7 +1535,7 @@ package body Games is
                Game.Clean_Object_List;
 
                --  Make the new frame visible
-               Game.Pig_Flip (Window);
+               Game.Pig_Present (Window);
 
                --  Update statistics, timers and stuff
                Game.Rendered_Frames   := Game.Rendered_Frames + 1;

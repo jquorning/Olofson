@@ -223,7 +223,7 @@ is
 
       Tile_Width  : Pixels;            --  Size of one tile (pixels)
       Tile_Height : Pixels;
-      Tile        : Surface;           --  Tile palette image
+      Tile        : Texture; --  Surface;           --  Tile palette image
       Hitinfo     : Hitinfo_Array;     --  Collision info for the tiles
    end record;
    type Pig_Map_Access is access all PIG_Map;
@@ -356,8 +356,8 @@ is
    --  Manually add a dirtyrect for pig_refresh().
    --  Area can be outside the engine viewport.
 
-   procedure Pig_Flip (Engine : in out Game_Engine;
-                       Win    : in out Window);
+   procedure Pig_Present (Engine : in out Game_Engine;
+                          Win    : in out Window);
    --  Do what's needed to deal with the dirtyrects
    --  and then make the new frame visible.
 
@@ -412,6 +412,7 @@ is
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
    procedure Pig_Map_Tiles (Map      : in out PIG_Map;
+                            Engine   :        Game_Engine;
                             Filename :        String;
                             Width    :        Pixels;
                             Height   :        Pixels;

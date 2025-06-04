@@ -958,6 +958,8 @@ package body Engines is
    procedure Tile_Area (Engine : in out Game_Engine;
                         Area   :        Rectangle)
    is
+      use SDL.Video;
+
       Tile_Width  : Pixels renames Engine.Map.Tile_Width;
       Tile_Height : Pixels renames Engine.Map.Tile_Height;
       Area_Right  : constant Pixels := Pixels (Area.X + Area.Width);
@@ -970,7 +972,7 @@ package body Engines is
       Max_Y       : constant Tiles  := Tiles'Min (Tiles ((Area_Top + Tile_Height - 1)
                                                          / Tile_Height),
                                                   Engine.Map.Height - 1);
-      Tilesperrow : constant Tiles  := Tiles (Pixels (Engine.Map.Tile.Size.Width)
+      Tiles_Per_Row : constant Tiles  := Tiles (Pixels (Engine.Map.Tile.Get_Size.Width)
                                                 / Tile_Width);
 
    begin
@@ -985,21 +987,25 @@ package body Engines is
                subtype int is SDL.C.int;
                C2   : constant Tiles := Tiles (Engine.Map.Map (X, Y));
 
-               From : Rectangle :=
-                 (X      => int (C2 mod Tilesperrow) * int (Tile_Width),
-                  Y      => int (C2 / Tilesperrow)   * int (Tile_Height),
+               From : constant Rectangle :=
+                 (X      => int (C2 mod Tiles_Per_Row) * int (Tile_Width),
+                  Y      => int (C2 / Tiles_Per_Row)   * int (Tile_Height),
                   Width  => int (Tile_Width),
                   Height => int (Tile_Height));
 
-               To   : Rectangle :=
+               To   : constant Rectangle :=
                  (X      => int (Engine.View.X) + int (Pixels (X) * Tile_Width),
                   Y      => int (Engine.View.Y) + int (Pixels (Y) * Tile_Height),
                   others => 0);
             begin
-               Surfaces.Blit (Source      => Engine.Map.Tile,
-                              Source_Area => From,
-                              Self        => Engine.Surfac,
-                              Self_Area   => To);
+               Renderers.Copy (Self      => Engine.Renderer,
+                               Copy_From => Engine.Map.Tile,
+                               From      => From,
+                               To        => To);
+               --  Surfaces.Blit (Source      => Engine.Map.Tile,
+               --                Source_Area => From,
+               --                Self        => Engine.Surfac,
+               --                Self_Area   => To);
             end;
          end loop;
       end loop;
@@ -1251,12 +1257,12 @@ package body Engines is
       end loop;
    end Show_Rects;
 
-   --------------
-   -- Pig_Flip --
-   --------------
+   -----------------
+   -- Pig_Present --
+   -----------------
 
-   procedure Pig_Flip (Engine : in out Game_Engine;
-                       Win    : in out Window)
+   procedure Pig_Present (Engine : in out Game_Engine;
+                          Win    : in out Window)
    is
       Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
@@ -1281,6 +1287,8 @@ package body Engines is
             declare
                Rect_Copy : Rectangle := Table.Rects (I);
             begin
+--               Renderers.Copy (Engine.Screen, From => Table.Rects (I),
+--                               Engine.Buffer, To   => Rect_Copy);
                Surfaces.Blit (Engine.Screen, Table.Rects (I),
                               Engine.Buffer, Rect_Copy);
             end;
@@ -1305,7 +1313,9 @@ package body Engines is
          Engine.Surfac := Engine.Buffer;
       end if;
 
-   end Pig_Flip;
+      SDL.Video.Renderers.Present (Engine.Renderer);
+
+   end Pig_Present;
 
    ----------------------
    -- Pig_Draw_Sprites --
@@ -1351,6 +1361,7 @@ package body Engines is
                           Height : Tiles)
                          return not null Pig_Map_Access
    is
+      use SDL.Video;
    begin
       if Engine.Map /= null then
          Pig_Map_Close (Engine.Map.all);
@@ -1366,7 +1377,7 @@ package body Engines is
                                                0 .. Height - 1),
                  Tile_Width  => 0,
                  Tile_Height => 0,
-                 Tile        => Null_Surface,
+                 Tile        => Textures.Null_Texture,
                  Hitinfo     => (others => (others => False))
                 );
 
@@ -1397,33 +1408,26 @@ package body Engines is
    -------------------
 
    procedure Pig_Map_Tiles (Map      : in out PIG_Map;
+                            Engine   :        Game_Engine;
                             Filename :        String;
                             Width    :        Pixels;
                             Height   :        Pixels;
                             Result   :    out Integer)
    is
       pragma Unreferenced (Result);
---  int pig_map_tiles(PIG_map *pm, const char *filename, int tw, int th)
---  {
+      use SDL.Video;
+
       Surfac : Surface;
    begin
       Map.Tile_Width  := Width;
       Map.Tile_Height := Height;
+
       SDL.Images.IO.Create (Surfac, Filename);
---      if(!tmp)
---      {
---              fprintf(stderr, "Could not load '%s'!\n", filename);
---              return -1;
---      }
---      pm->tiles = SDL_DisplayFormat(tmp);
-      Map.Tile := Surfac;
-      --      if(!pm->tiles)
---      {
---              fprintf(stderr, "Could not convert '%s'!\n", filename);
---              return -1;
---      }
---      SDL_FreeSurface(tmp);
---      return 0;
+
+      Textures.Makers.Create (Tex      => Map.Tile,
+                              Renderer => Engine.Renderer,
+                              Surface  => Surfac);
+
    end Pig_Map_Tiles;
 
    -----------------------
