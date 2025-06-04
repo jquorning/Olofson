@@ -122,7 +122,7 @@ package body Engines is
       --  Video stuff
       Engine.Screen  := Null_Surface;
       Engine.Buffer  := Null_Surface;    --  For h/w surface displays
-      Engine.Surfac  := Null_Surface;    --  Where to render to
+--      Engine.Surfac  := Null_Surface;    --  Where to render to
       Engine.Pages   := 1;               --  # of display VRAM buffers
       Engine.View    := Null_Rectangle;  --  Viewport pos & size (pixels)
 
@@ -243,7 +243,7 @@ package body Engines is
       Renderers.Makers.Create (Engine.Renderer, Win);
 
       Engine.Screen := Win.Get_Surface;
-      Engine.Surfac := Win.Get_Surface;
+--      Engine.Surfac := Win.Get_Surface;
 
       Engine.Screen.Fill (Area   => (0, 0,
                           Width  => Engine.Screen.Size.Width,
@@ -935,12 +935,14 @@ package body Engines is
       function "=" (Left, Right : Rectangle) return Boolean
       renames Rectangles."=";
 
-      R : Rectangle;
+      Size : SDL.Sizes;
+      R    : Rectangle;
    begin
+      SDL.Video.Renderers.Get_Logical_Size (Engine.Renderer, Size);
       R.X      := 0;
       R.Y      := 0;
-      R.Width  := Engine.Surfac.Size.Width;
-      R.Height := Engine.Surfac.Size.Height;
+      R.Width  := Size.Width;
+      R.Height := Size.Height;
       if Area /= Null_Rectangle then
          Dirty.Intersect (Area, R);
       end if;
@@ -976,10 +978,14 @@ package body Engines is
                                                 / Tile_Width);
 
    begin
-      Engine.Surfac.Set_Clip_Rectangle ((X      => Area.X + Engine.View.X,
-                                         Y      => Area.Y + Engine.View.Y,
-                                         Width  => Area.Width,
-                                         Height => Area.Height));
+      Engine.Renderer.Set_Clip ((X      => Area.X + Engine.View.X,
+                                 Y      => Area.Y + Engine.View.Y,
+                                 Width  => Area.Width,
+                                 Height => Area.Height));
+      --  Engine.Surfac.Set_Clip_Rectangle ((X      => Area.X + Engine.View.X,
+      --                                    Y      => Area.Y + Engine.View.Y,
+      --                                    Width  => Area.Width,
+      --                                    Height => Area.Height));
 
       for Y in Start_Y .. Max_Y loop
          for X in Start_X .. Max_X loop
@@ -1067,7 +1073,8 @@ package body Engines is
       Fframe    : constant Float := Float (Engine.Time
                                           - Long_Float'Floor (Engine.Time));
    begin
-      Engine.Surfac.Set_Clip_Rectangle (Engine.View);
+--      Engine.Surfac.Set_Clip_Rectangle (Engine.View);
+      Engine.Renderer.Set_Clip (Engine.View);
 
       --  Swap the work and display/back page dirtytables
       Engine.Work := Engine.Page;
@@ -1206,7 +1213,7 @@ package body Engines is
          if Engine.Buffer = Null_Surface then
             return;
          end if;
-         Engine.Surfac := Engine.Buffer;
+--         Engine.Surfac := Engine.Buffer;
          Tile_Area (Engine, Engine.View);
       end if;
       if Engine.Buffer = Null_Surface then
@@ -1282,7 +1289,7 @@ package body Engines is
             end;
          end loop;
 
-      elsif Engine.Surfac = Engine.Buffer then
+      else --  if Engine.Surfac = Engine.Buffer then
          for I in 1 .. Table.Last loop
             declare
                Rect_Copy : Rectangle := Table.Rects (I);
@@ -1305,13 +1312,13 @@ package body Engines is
          Win.Update_Surface_Rectangles (Table.Rects.all);
       end if;
 
-      if Engine.Direct then
-         Engine.Surfac := Engine.Screen;
-      elsif Engine.Buffer = Null_Surface then
-         Engine.Surfac := Engine.Screen;
-      else
-         Engine.Surfac := Engine.Buffer;
-      end if;
+--      if Engine.Direct then
+--         Engine.Surfac := Engine.Screen;
+--      elsif Engine.Buffer = Null_Surface then
+--         Engine.Surfac := Engine.Screen;
+--      else
+--         Engine.Surfac := Engine.Buffer;
+--      end if;
 
       SDL.Video.Renderers.Present (Engine.Renderer);
 

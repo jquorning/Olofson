@@ -259,7 +259,7 @@ is
 
          Screen  : Surface;
          Buffer  : Surface;       --  For h/w surface displays
-         Surfac  : Surface;       --  Where to render to
+--         Surfac  : Surface;       --  Where to render to
          Pages   : Integer;       --  # of display VRAM buffers
          View    : Rectangle;     --  Viewport pos & size (pixels)
 

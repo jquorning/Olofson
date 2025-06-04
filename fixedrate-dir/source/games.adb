@@ -1230,7 +1230,8 @@ package body Games is
          Width  => int (SCREEN_W),
          Height => 56);
    begin
-      Game.Surfac.Set_Clip_Rectangle (Clip);
+--      Game.Surfac.Set_Clip_Rectangle (Clip);
+      Game.Renderer.Set_Clip (Clip);
 
       --  Render "plasma bar"
       for I in 0 .. 56 - 1 loop
@@ -1255,14 +1256,23 @@ package body Games is
             M_2 : constant Float := Sin (M_1 * Pi * 0.5);
             M   : constant Float := Sin (M_2 * Pi * 0.5);
 
-            Pixel : constant Interfaces.Unsigned_32 :=
-              SDL.Video.Pixel_Formats.To_Pixel
-              (Format => Game.Surfac.Pixel_Format,
+            Colour : constant SDL.Video.Palettes.Colour :=
+--              SDL.Video.Pixel_Formats.To_Pixel
+              ( --  Format => Game.Surfac.Pixel_Format,
+               Alpha  => 128,
                Red    => (Colour_Component ((128.0 * F1      + 64.0) * M)),
                Green  => (Colour_Component ((64.0  * F1 * F2 + 64.0) * M)),
                Blue   => (Colour_Component ((128.0 * F2      + 32.0) * M)));
+            --  Pixel : constant Interfaces.Unsigned_32 :=
+            --   SDL.Video.Pixel_Formats.To_Pixel
+            --   (Format => Game.Surfac.Pixel_Format,
+            --    Red    => (Colour_Component ((128.0 * F1      + 64.0) * M)),
+            --    Green  => (Colour_Component ((64.0  * F1 * F2 + 64.0) * M)),
+            --    Blue   => (Colour_Component ((128.0 * F2      + 32.0) * M)));
          begin
-            Game.Surfac.Fill (Line, Pixel);
+--            Game.Surfac.Fill (Line, Pixel);
+            Game.Renderer.Set_Draw_Colour (Colour);
+            Game.Renderer.Fill (Line);
          end;
       end loop;
 
