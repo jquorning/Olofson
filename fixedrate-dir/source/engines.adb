@@ -14,7 +14,9 @@ with Ada.Numerics.Elementary_Functions;
 
 with Interfaces;
 
+with SDL.Video.Renderers.Makers;
 with SDL.Video.Surfaces.Makers;
+with SDL.Video.Textures.Makers;
 with SDL.Video.Pixel_Formats;
 with SDL.Images.IO;
 
@@ -233,12 +235,20 @@ package body Engines is
 
    procedure Setup (Engine : in out Game_Engine;
                     Self   :        Engine_Access;
-                    Screen :        Surface;
+                    Win    : in out Window;
                     Pages  :        Positive)
    is
+      use SDL.Video;
    begin
-      Engine.Screen := Screen;
-      Engine.Surfac := Screen;
+      Renderers.Makers.Create (Engine.Renderer, Win);
+
+      Engine.Screen := Win.Get_Surface;
+      Engine.Surfac := Win.Get_Surface;
+
+      Engine.Screen.Fill (Area   => (0, 0,
+                          Width  => Engine.Screen.Size.Width,
+                          Height => Engine.Screen.Size.Height),
+                          Colour => 16#00_00_00_00#);
 
       if Pages > 1 then
          Dirty.Create (Engine.Dirty (One), Size => 128);
@@ -271,6 +281,7 @@ package body Engines is
                              Width, Height :        Pixels;
                              Handle        :    out Sprite_Index)
    is
+      use SDL.Video;
       None : constant SDL.Video.Blend_Modes := SDL.Video.None;
 
       Surface_Load : Surface;
@@ -307,7 +318,7 @@ package body Engines is
                                     Hot_X  => Sprite_Width  / 2,
                                     Hot_Y  => Sprite_Height / 2,
                                     Radius => (Sprite_Width + Sprite_Height) / 5,
-                                    Surfac => Null_Surface);
+                                    Surfac => Textures.Null_Texture);
                begin
 --                      if(pe->nsprites >= PIG_MAX_SPRITES)
 --                      {
@@ -340,8 +351,11 @@ package body Engines is
                   Surface_Sprite.Set_Alpha_Blend (0); --  (SDL_ALPHA_OPAQUE);
                   Surface_Sprite.Set_Blend_Mode  (None);
                   --  SDL_SRCALPHA or SDL_RLEACCEL);
-                  Sprite.Surfac := Surface_Sprite;
-               --                      s->surface = SDL_DisplayFormatAlpha(tmp2);
+                  Textures.Makers.Create
+                    (Tex      => Sprite.Surfac,
+                     Renderer => Engine.Renderer,
+                     Surface  => Surface_Sprite);
+
 --                      if(!s->surface)
 --                      {
 --                              fprintf(stderr, "Could not convert sprite %d"
@@ -533,6 +547,12 @@ package body Engines is
                                 T        :          Float;
                                 Hitdist  :          Float)
    is
+      function Interpolate
+        (Pos_1 : Position;
+         Pos_2 : Position;
+         T     : Float)     -- range 0.0 .. 1,0
+         return Position;
+
       function Interpolate
         (Pos_1 : Position;
          Pos_2 : Position;
@@ -1035,6 +1055,8 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out Game_Engine)
    is
+      use SDL.Video;
+
       Old_Dirty : constant Page_Index := Work;
       Fframe    : constant Float := Float (Engine.Time
                                           - Long_Float'Floor (Engine.Time));
@@ -1073,20 +1095,26 @@ package body Engines is
                Sprite      : constant not null PIG_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
 
-               Source_Area : Rectangle := (0, 0, 0, 0);
+               Source_Area : constant Rectangle := (0, 0, 0, 0);
 
-               Target_Area : Rectangle :=
+               Target_Area : constant Rectangle :=
                  (X => int (Float (Object.Interpol.Gx) - Float (Sprite.Hot_X)
                               + Float (Engine.View.X)),
                   Y => int (Float (Object.Interpol.Gy) - Float (Sprite.Hot_Y)
                               + Float (Engine.View.Y)),
                   others => 0);
             begin
-               Surfaces.Blit
-                 (Source      => Engine.Sprites (Object.Interpol.Gimage).Surfac,
-                  Source_Area => Source_Area,
-                  Self        => Engine.Surfac,
-                  Self_Area   => Target_Area);
+               Renderers.Copy
+                 (Self      => Engine.Renderer,
+                  Copy_From => Engine.Sprites (Object.Interpol.Gimage).Surfac,
+                  From      => Source_Area,
+                  To        => Target_Area);
+               --  Surfaces.Blit
+               --   (Source      => Engine.Sprites (Object.Interpol.Gimage).Surfac,
+               --    Source_Area => Source_Area,
+               --    Self        => Engine.Surfac,
+               --    Self_Area   => Target_Area);
+
                --
                --  We use the clipped rect for the dirtyrect!
                --
@@ -1287,18 +1315,23 @@ package body Engines is
                               Frame  :        Sprite_Index;
                               X, Y   :        Pixels)
    is
+      use SDL.Video;
+
       subtype int is SDL.C.int;
-      DR : Rectangle;
-      SA : Rectangle := (0, 0, 0, 0);
+      DR   : Rectangle;
+      From : constant Rectangle := (0, 0, 0, 0);
    begin
-      --      if(frame >= pe->nsprites)
---              return;
       DR.X := int (X - Engine.Sprites (Frame).Hot_X + Pixels (Engine.View.X));
       DR.Y := int (Y - Engine.Sprites (Frame).Hot_Y + Pixels (Engine.View.Y));
-      Surfaces.Blit (Source      => Engine.Sprites (Frame).Surfac,
-                     Source_Area => SA,
-                     Self        => Engine.Surfac,
-                     Self_Area   => DR);
+
+      Renderers.Copy (Self      => Engine.Renderer,
+                      Copy_From => Engine.Sprites (Frame).Surfac,
+                      From      => From,
+                      To        => DR);
+      --  Surfaces.Blit (Source      => Engine.Sprites (Frame).Surfac,
+      --                Source_Area => SA,
+      --                Self        => Engine.Surfac,
+      --                Self_Area   => DR);
    exception
       when Surfaces.Surface_Error =>
          Ada.Text_IO.Put_Line ("Surface_Error hit");

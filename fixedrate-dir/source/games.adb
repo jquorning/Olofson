@@ -18,7 +18,9 @@ with SDL.Video.Surfaces;
 with SDL.Video.Rectangles;
 with SDL.Video.Pixel_Formats;
 with SDL.Video.Palettes;
+--  with SDL.Video.Renderers.Makers;
 with SDL.Video.Windows.Makers;
+
 with SDL.Events.Mice;
 with SDL.Events.Keyboards;
 
@@ -110,10 +112,10 @@ package body Games is
    -- Create --
    ------------
 
-   function Create return Game_State is
+   procedure Create (Game : in out Game_State) is
    begin
-      return Game : Game_State
-      do
+--      return Game : Game_State
+--      do
          Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
 
          Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
@@ -171,7 +173,7 @@ package body Games is
 
             Game.Load_Level (0);
          end;
-      end return;
+--      end return;
    end Create;
 
    --------------
@@ -1409,7 +1411,8 @@ package body Games is
       pragma Unreferenced (Double_Buffer, Full_Screen, BPP);
       use Ada.Real_Time;
       Window     : SDL.Video.Windows.Window;
-      Screen     : SDL.Video.Surfaces.Surface;
+--      Renderer   : SDL.Video.Renderers.Renderer;
+--      Screen     : SDL.Video.Surfaces.Surface;
       Last_Tick  : Ada.Real_Time.Time;
       Start_Time : Ada.Real_Time.Time;
       Dashframe  : Integer;
@@ -1434,29 +1437,24 @@ package body Games is
 
       declare
          subtype int is SDL.C.int;
-         use SDL.Video.Windows;
+         use SDL.Video;
       begin
-         Makers.Create
+         Windows.Makers.Create
            (Window,
             Title    => "Fixed Rate Pig Game",
             Position => (10, 10),
             Size     => (int (SCREEN_W), int (SCREEN_H)),
             Flags    => SDL.Video.Windows.Windowed);
-         --  Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
-         Screen := Window.Get_Surface;
-
-         Screen.Fill (Area   => (0, 0,
-                                 Width  => Screen.Size.Width,
-                                 Height => Screen.Size.Height),
-                      Colour => 16#00_00_00_00#);
       end;
 
       declare
-         Game : aliased Game_State := Create;
+         Game : aliased Game_State; --  := Create;
       begin
-         Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
-                     Screen => Screen,
-                     Pages  => 1);
+         Game.Setup ( --  Engine => Game,
+                        Self   => Engines.Game_Engine (Game)'Unchecked_Access,
+                        Win    => Window,
+                        Pages  => 1);
+         Create (Game);
 --         Game.Create;
 --         Init_All (Game, Screen);
          --     exception

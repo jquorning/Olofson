@@ -12,7 +12,9 @@ with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Finalization;
 
 with SDL.Video.Rectangles;
+with SDL.Video.Renderers;
 with SDL.Video.Surfaces;
+with SDL.Video.Textures;
 with SDL.Video.Windows;
 
 with Dirty;
@@ -195,8 +197,10 @@ is
       Handler   : Handler_Access;
    end record;
 
-   subtype Surface   is SDL.Video.Surfaces.Surface;
    subtype Rectangle is SDL.Video.Rectangles.Rectangle;
+   subtype Renderer  is SDL.Video.Renderers.Renderer;
+   subtype Surface   is SDL.Video.Surfaces.Surface;
+   subtype Texture   is SDL.Video.Textures.Texture;
    subtype Window    is SDL.Video.Windows.Window;
 
    --
@@ -229,7 +233,7 @@ is
       Width, Height : Pixels;      --  Size of sprite (pixels)
       Hot_X, Hot_Y  : Pixels;      --  Hot-spot offset (pixels)
       Radius        : Pixels;      --  Collision zone radius (pixels)
-      Surfac        : Surface;     --  Access
+      Surfac        : Texture; --  Surface;     --  Access
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
 
@@ -251,6 +255,8 @@ is
          Self    : Engine_Class_Access;
 
          --  Video stuff
+         Renderer : SDL.Video.Renderers.Renderer;
+
          Screen  : Surface;
          Buffer  : Surface;       --  For h/w surface displays
          Surfac  : Surface;       --  Where to render to
@@ -301,7 +307,7 @@ is
 
    procedure Setup (Engine : in out Game_Engine;
                     Self   :        Engine_Access;
-                    Screen :        Surface;
+                    Win    : in out Window;
                     Pages  :        Positive);
 
    procedure Set_Viewport (Engine : in out Game_Engine'Class;
