@@ -13,7 +13,6 @@ with Ada.Finalization;
 
 with SDL.Video.Rectangles;
 with SDL.Video.Renderers;
-with SDL.Video.Surfaces;
 with SDL.Video.Textures;
 with SDL.Video.Windows;
 
@@ -35,13 +34,11 @@ is
       Knocked,
       Next_Level,
       Dead);
-   --  Moved from pig.adb
 
    type Power_Ups is
      (Power_Life,
       Power_Bonus_1,
       Power_Bonus_2);
-   --  Moved from pig.adb
 
    type Pixels is new Integer;
    type Tiles  is new Integer;
@@ -67,7 +64,7 @@ is
       Oy : Position_Y;
 
       --  From the last/current rendered frame:
-      Gimage : Sprite_Counts; --  Sprite frame index
+      Gimage : Sprite_Counts;  --  Sprite frame index
 
       Gx : Position_X;
       Gy : Position_Y;         --  Interpolated position
@@ -199,7 +196,6 @@ is
 
    subtype Rectangle is SDL.Video.Rectangles.Rectangle;
    subtype Renderer  is SDL.Video.Renderers.Renderer;
-   subtype Surface   is SDL.Video.Surfaces.Surface;
    subtype Texture   is SDL.Video.Textures.Texture;
    subtype Window    is SDL.Video.Windows.Window;
 
@@ -223,7 +219,7 @@ is
 
       Tile_Width  : Pixels;            --  Size of one tile (pixels)
       Tile_Height : Pixels;
-      Tile        : Texture; --  Surface;           --  Tile palette image
+      Tile        : Texture;           --  Tile palette image
       Hitinfo     : Hitinfo_Array;     --  Collision info for the tiles
    end record;
    type Pig_Map_Access is access all PIG_Map;
@@ -233,7 +229,7 @@ is
       Width, Height : Pixels;      --  Size of sprite (pixels)
       Hot_X, Hot_Y  : Pixels;      --  Hot-spot offset (pixels)
       Radius        : Pixels;      --  Collision zone radius (pixels)
-      Surfac        : Texture; --  Surface;     --  Access
+      Surfac        : Texture;     --  Access
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
 
@@ -257,9 +253,10 @@ is
          --  Video stuff
          Renderer : SDL.Video.Renderers.Renderer;
 
-         Screen  : Surface;
-         Buffer  : Surface;       --  For h/w surface displays
---         Surfac  : Surface;       --  Where to render to
+         Buffer  : SDL.Video.Textures.Texture := SDL.Video.Textures.Null_Texture;
+--         Surface;       --  For h/w surface displays
+
+--       Surfac  : Surface;       --  Where to render to
          Pages   : Integer;       --  # of display VRAM buffers
          View    : Rectangle;     --  Viewport pos & size (pixels)
 

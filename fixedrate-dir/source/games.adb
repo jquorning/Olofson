@@ -12,13 +12,8 @@ with Ada.Text_IO;
 with Ada.Numerics.Elementary_Functions;
 with Ada.Characters.Handling;
 
-with Interfaces;
-
-with SDL.Video.Surfaces;
 with SDL.Video.Rectangles;
-with SDL.Video.Pixel_Formats;
 with SDL.Video.Palettes;
---  with SDL.Video.Renderers.Makers;
 with SDL.Video.Windows.Makers;
 
 with SDL.Events.Mice;
@@ -168,7 +163,7 @@ package body Games is
 
             --  Mark tiles for collision detection
             Pig_Map_Collisions (Map.all,  0, 12, All_Sides);   --  Red, green, yellov
-            Pig_Map_Collisions (Map.all, 12, 17, No_Side);  --  Sky
+            Pig_Map_Collisions (Map.all, 12, 17, No_Side);     --  Sky
             Pig_Map_Collisions (Map.all, 29,  3, All_Sides);   --  Single R, G, Y
 
             Game.Load_Level (0);
@@ -1257,20 +1252,11 @@ package body Games is
             M   : constant Float := Sin (M_2 * Pi * 0.5);
 
             Colour : constant SDL.Video.Palettes.Colour :=
---              SDL.Video.Pixel_Formats.To_Pixel
-              ( --  Format => Game.Surfac.Pixel_Format,
-               Alpha  => 128,
+              (Alpha  => 128,
                Red    => (Colour_Component ((128.0 * F1      + 64.0) * M)),
                Green  => (Colour_Component ((64.0  * F1 * F2 + 64.0) * M)),
                Blue   => (Colour_Component ((128.0 * F2      + 32.0) * M)));
-            --  Pixel : constant Interfaces.Unsigned_32 :=
-            --   SDL.Video.Pixel_Formats.To_Pixel
-            --   (Format => Game.Surfac.Pixel_Format,
-            --    Red    => (Colour_Component ((128.0 * F1      + 64.0) * M)),
-            --    Green  => (Colour_Component ((64.0  * F1 * F2 + 64.0) * M)),
-            --    Blue   => (Colour_Component ((128.0 * F2      + 32.0) * M)));
          begin
---            Game.Surfac.Fill (Line, Pixel);
             Game.Renderer.Set_Draw_Colour (Colour);
             Game.Renderer.Fill (Line);
          end;
@@ -1420,15 +1406,14 @@ package body Games is
    is
       pragma Unreferenced (Double_Buffer, Full_Screen, BPP);
       use Ada.Real_Time;
+      use type SDL.Init_Flags;
+
       Window     : SDL.Video.Windows.Window;
---      Renderer   : SDL.Video.Renderers.Renderer;
---      Screen     : SDL.Video.Surfaces.Surface;
       Last_Tick  : Ada.Real_Time.Time;
       Start_Time : Ada.Real_Time.Time;
       Dashframe  : Integer;
       Logic_FPS  : constant Float := 20.0;
-      --   flags      : Integer := SDL_DOUBLEBUF + SDL_HWSURFACE; -- |
-      use type SDL.Init_Flags;
+
       Sdl_Flags : constant := (SDL.Enable_Screen
                                  + SDL.Enable_Audio -- Workaround, clean cleanup
                                  + SDL.Enable_Events);
@@ -1460,10 +1445,9 @@ package body Games is
       declare
          Game : aliased Game_State; --  := Create;
       begin
-         Game.Setup ( --  Engine => Game,
-                        Self   => Engines.Game_Engine (Game)'Unchecked_Access,
-                        Win    => Window,
-                        Pages  => 1);
+         Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
+                     Win    => Window,
+                     Pages  => 1);
          Create (Game);
 --         Game.Create;
 --         Init_All (Game, Screen);

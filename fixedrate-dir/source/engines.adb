@@ -8,16 +8,15 @@
 --  Contact author for permission if you want to use this
 --  software, or work derived from it, under other terms.
 
-with Ada.Text_IO;
-with Ada.Strings.Fixed;
 with Ada.Numerics.Elementary_Functions;
+with Ada.Strings.Fixed;
+with Ada.Text_IO;
 
-with Interfaces;
-
+with SDL.Video.Palettes;
 with SDL.Video.Renderers.Makers;
 with SDL.Video.Surfaces.Makers;
 with SDL.Video.Textures.Makers;
-with SDL.Video.Pixel_Formats;
+
 with SDL.Images.IO;
 
 package body Engines is
@@ -29,13 +28,9 @@ package body Engines is
    package Surfaces   renames SDL.Video.Surfaces;
 
    subtype int is SDL.C.int;
+   use type int;
 
    Null_Rectangle : constant Rectangle := Rectangles.Null_Rectangle;
-   Null_Surface   : constant Surface   := Surfaces.Null_Surface;
-
-   function "=" (Left, Right : Surface) return Boolean renames Surfaces."=";
-
-   use type int;
 
    procedure Close_Object (Object : in out Game_Object);
    --  Actually remove an objects. Used internally,
@@ -55,7 +50,7 @@ package body Engines is
    procedure Sprite_Sprite_One (Object   : not null Object_Access;
                                 Object_2 : not null Object_Access;
                                 T        : Float;
-                                Hitdist  : Float);
+                                Hit_Dist : Float);
    --  Test for stationary sprite/sprite collision
 
    procedure Test_Sprite_Sprite (Engine : in out Game_Engine;
@@ -120,8 +115,7 @@ package body Engines is
       Engine.Self := Engine'Unchecked_Access;
 
       --  Video stuff
-      Engine.Screen  := Null_Surface;
-      Engine.Buffer  := Null_Surface;    --  For h/w surface displays
+--      Engine.Buffer  := SDL.Video.Textures.Null_Texture;    --  For h/w surface displays
 --      Engine.Surfac  := Null_Surface;    --  Where to render to
       Engine.Pages   := 1;               --  # of display VRAM buffers
       Engine.View    := Null_Rectangle;  --  Viewport pos & size (pixels)
@@ -156,7 +150,6 @@ package body Engines is
       Engine.Sprites           := null;
       Engine.Sprites           := new Sprite_Array'(Sprite_Index'First
                                                       .. PIG_MAX_SPRITES - 1 => null);
-      --      Engine.Screen            := Screen;
 
       if False then
          --      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
@@ -186,8 +179,7 @@ package body Engines is
 --      Engine.View.Width    := Engine.Surface.Size.Width;
 --      Engine.View.Height   := Engine.Surface.Size.Height;
 
-      --      return Engine;
-   end Initialize; -- Clean_Engine;
+   end Initialize;
 
    --------------
    -- Finalize --
@@ -239,20 +231,26 @@ package body Engines is
                     Pages  :        Positive)
    is
       use SDL.Video;
+
+      Size : SDL.Sizes;
    begin
       Renderers.Makers.Create (Engine.Renderer, Win);
 
-      Engine.Screen := Win.Get_Surface;
---      Engine.Surfac := Win.Get_Surface;
+      Renderers.Set_Draw_Colour  (Engine.Renderer, (0, 0, 0, 0));
+      Renderers.Get_Logical_Size (Engine.Renderer, Size);
 
-      Engine.Screen.Fill (Area   => (0, 0,
-                          Width  => Engine.Screen.Size.Width,
-                          Height => Engine.Screen.Size.Height),
-                          Colour => 16#00_00_00_00#);
+      Engine.Renderer.Fill
+         (Rectangle => (0, 0,
+                        Width  => Size.Width,
+                        Height => Size.Height));
 
       if Pages > 1 then
          Dirty.Create (Engine.Dirty (One), Size => 128);
       end if;
+
+      Textures.Makers.Create (Tex      => Engine.Buffer,
+                              Renderer => Engine.Renderer,
+                              Surface  => Win.Get_Surface);
    end Setup;
 
    ------------------
@@ -284,7 +282,7 @@ package body Engines is
       use SDL.Video;
       None : constant SDL.Video.Blend_Modes := SDL.Video.None;
 
-      Surface_Load : Surface;
+      Surface_Load : Surfaces.Surface;
    begin
       SDL.Images.IO.Create (Surface_Load, Filename);
 
@@ -310,7 +308,7 @@ package body Engines is
 
                   Source_Area    : Rectangle;
                   Target_Area    : Rectangle := (0, 0, 0, 0);
-                  Surface_Sprite : Surface;
+                  Surface_Sprite : Surfaces.Surface;
 
                   Sprite : constant not null PIG_Sprite_Access :=
                     new PIG_Sprite'(Width  => Sprite_Width,
@@ -348,22 +346,14 @@ package body Engines is
                                  Self        => Surface_Sprite,
                                  Self_Area   => Target_Area);
 
-                  Surface_Sprite.Set_Alpha_Blend (0); --  (SDL_ALPHA_OPAQUE);
+                  Surface_Sprite.Set_Alpha_Blend (0);
                   Surface_Sprite.Set_Blend_Mode  (None);
-                  --  SDL_SRCALPHA or SDL_RLEACCEL);
+
                   Textures.Makers.Create
                     (Tex      => Sprite.Surfac,
                      Renderer => Engine.Renderer,
                      Surface  => Surface_Sprite);
 
---                      if(!s->surface)
---                      {
---                              fprintf(stderr, "Could not convert sprite %d"
---                                              " of '%s'!\n",
---                                              count, filename);
---                              return -1;
---                      end if;
-               --  Tmp2.Free;  --                      SDL_FreeSurface(tmp2);
                   Engine.Sprite_Last := Engine.Sprite_Last + 1;
                   Engine.Sprites (Engine.Sprite_Last) := Sprite;
                end;
@@ -384,7 +374,7 @@ package body Engines is
    begin
       if Frame > Engine.Sprite_Last then
          Ada.Text_IO.Put_Line ("Frame: " & Frame'Image);
-         return;  --              return -1;
+         return;
       end if;
 
       declare
@@ -417,10 +407,7 @@ package body Engines is
                          Radius :        Pixels)
    is
    begin
---      if((frame < 0 ) || (frame >= pe->nsprites))
---              return -1;
       Engine.Sprites (Frame).Radius := Radius;
---      return 0;
    end Pig_Radius;
 
    ---------------
@@ -545,7 +532,7 @@ package body Engines is
    procedure Sprite_Sprite_One (Object   : not null Object_Access;
                                 Object_2 : not null Object_Access;
                                 T        :          Float;
-                                Hitdist  :          Float)
+                                Hit_Dist :          Float)
    is
       function Interpolate
         (Pos_1 : Position;
@@ -565,10 +552,7 @@ package body Engines is
 
       Event : Pig_Event;
       Hit   : Sides;
-      --  IX    : constant Position := Float (Object.Interpol.Ox)   * (1.0 - T) + Object.X   * T;
-      --  IY    : constant Position := Float (Object.Interpol.Oy)   * (1.0 - T) + Object.Y   * T;
-      --  IX2   : constant Position := Float (Object_2.Interpol.Ox) * (1.0 - T) + Object_2.X * T;
-      --  IY2   : constant Position := Float (Object_2.Interpol.Oy) * (1.0 - T) + Object_2.Y * T;
+
       IX    : constant Position := Interpolate (Position (Object.Interpol.Ox),
                                                 Object.X,   T);
       IY    : constant Position := Interpolate (Position (Object.Interpol.Oy),
@@ -577,11 +561,13 @@ package body Engines is
                                                 Object_2.X, T);
       IY2   : constant Position := Interpolate (Position (Object_2.Interpol.Oy),
                                                 Object_2.Y, T);
+
       Dx    : constant Position := IX - IX2;
       Dy    : constant Position := IY - IY2;
+
       D_Square : constant Float := Float (Dx * Dx + Dy * Dy);
    begin
-      if D_Square >= Hitdist * Hitdist then
+      if D_Square >= Hit_Dist * Hit_Dist then
          return;         --  Nothing... -->
       end if;
 
@@ -606,12 +592,14 @@ package body Engines is
       Event.Collision.Y   := Pixels (IY);
       Event.Collision.Hit := Hit;
 
-      if True then --      if Object.Hitmask and Object_2.Hitgroup then
+      if True then
+--      if Object.Hitmask and Object_2.Hitgroup then
          Event.Obj := Object_2;
          Object.Handler (Object.all, Event);
       end if;
 
-      if True then --      if Object_2.Id and (Object_2.Hitmask and Object.Hitgroup) then
+      if True then
+--      if Object_2.Id and (Object_2.Hitmask and Object.Hitgroup) then
          Event.Collision.X   := Pixels (IX2);
          Event.Collision.Y   := Pixels (IY2);
          Event.Collision.Hit := (Right  => Hit.Left,
@@ -982,10 +970,6 @@ package body Engines is
                                  Y      => Area.Y + Engine.View.Y,
                                  Width  => Area.Width,
                                  Height => Area.Height));
-      --  Engine.Surfac.Set_Clip_Rectangle ((X      => Area.X + Engine.View.X,
-      --                                    Y      => Area.Y + Engine.View.Y,
-      --                                    Width  => Area.Width,
-      --                                    Height => Area.Height));
 
       for Y in Start_Y .. Max_Y loop
          for X in Start_X .. Max_X loop
@@ -1008,10 +992,6 @@ package body Engines is
                                Copy_From => Engine.Map.Tile,
                                From      => From,
                                To        => To);
-               --  Surfaces.Blit (Source      => Engine.Map.Tile,
-               --                Source_Area => From,
-               --                Self        => Engine.Surfac,
-               --                Self_Area   => To);
             end;
          end loop;
       end loop;
@@ -1073,7 +1053,6 @@ package body Engines is
       Fframe    : constant Float := Float (Engine.Time
                                           - Long_Float'Floor (Engine.Time));
    begin
---      Engine.Surfac.Set_Clip_Rectangle (Engine.View);
       Engine.Renderer.Set_Clip (Engine.View);
 
       --  Swap the work and display/back page dirtytables
@@ -1139,7 +1118,8 @@ package body Engines is
       end loop;
 
       --  Merge the display/back page table into the work table
-      Dirty.Merge_Tables (Engine.Dirty (Engine.Work), Engine.Dirty (Old_Dirty));
+      Dirty.Merge_Tables (Engine.Dirty (Engine.Work),
+                          Engine.Dirty (Old_Dirty));
    end Draw_Sprites;
 
    -----------------
@@ -1186,39 +1166,53 @@ package body Engines is
    procedure Show_Rects (Engine : in out Game_Engine;
                          Table  :        Dirty_Table)
    is
-      package Pixel_Formats renames SDL.Video.Pixel_Formats;
+      use SDL.Video;
 
-      subtype Pixel_Depths  is Surfaces.Pixel_Depths;
-      subtype Colour_Masks  is Surfaces.Colour_Masks;
-      subtype Raw_Pixel     is Interfaces.Unsigned_32;
-      subtype Format_Access is Pixel_Formats.Pixel_Format_Access;
-
-      Color : Raw_Pixel;
+      Colour : constant Palettes.Colour
+             := (Red   => 255,
+                 Green => 0,
+                 Blue  => 255,
+                 Alpha => 128);
    begin
-      if Engine.Buffer = Null_Surface then
-         declare
-            Format : constant not null Format_Access :=
-              Engine.Screen.Pixel_Format;
-         begin
-            Surfaces.Makers.Create --  RGBSurface
-              (Engine.Buffer,
---            SDL_SWSURFACE,
-               Engine.Screen.Size, -- .Width, Pe.Screen.Size.Height,
-               Pixel_Depths (Format.Bits), --  BPP, --  Bits_Per_Pixel,
-               Red_Mask   => Colour_Masks (Format.Red_Mask),
-               Green_Mask => Colour_Masks (Format.Green_Mask),
-               Blue_Mask  => Colour_Masks (Format.Blue_Mask),
-               Alpha_Mask => Colour_Masks (Format.Alpha_Mask));
-         end;
-         if Engine.Buffer = Null_Surface then
-            return;
-         end if;
+--      if Engine.Buffer_Is_Null then
+--  .Internal = null then --  SDL.Video.Textures.Null_Texture then
+--         declare
+--            Format : constant not null Format_Access :=
+--              Engine.Screen.Pixel_Format;
+--            Size : SDL.Sizes;
+--         begin
+--            Renderers.Get_Logical_Size (Engine.Renderer, Size);
+--            Textures.Makers.Create
+--              (Tex      => Engine.Buffer,
+--               Renderer => Engine.Renderer,
+--               Format   => null,
+--               Kind     => Textures.Target,
+--               Size     => Size);
+--               Surface  => Engine.Win.Get_Surface);
+
+--             Surfaces.Makers.Create --  RGBSurface
+--               (Engine.Buffer,
+----            SDL_SWSURFACE,
+--                Engine.Screen.Size, -- .Width, Pe.Screen.Size.Height,
+--                Pixel_Depths (Format.Bits), --  BPP, --  Bits_Per_Pixel,
+--                Red_Mask   => Colour_Masks (Format.Red_Mask),
+--                Green_Mask => Colour_Masks (Format.Green_Mask),
+--                Blue_Mask  => Colour_Masks (Format.Blue_Mask),
+--                Alpha_Mask => Colour_Masks (Format.Alpha_Mask));
+--         end;
+--         Engine.Buffer_Is_Null := False;
+--         if Engine.Buffer = Null_Surface then
+--            return;
+--         end if;
 --         Engine.Surfac := Engine.Buffer;
-         Tile_Area (Engine, Engine.View);
-      end if;
-      if Engine.Buffer = Null_Surface then
-         return;
-      end if;
+      Renderers.Copy (Self      => Engine.Renderer,
+                      Copy_From => Engine.Buffer);
+
+      Tile_Area (Engine, Engine.View);
+--      end if;
+--      if Engine.Buffer = Null_Surface then
+--         return;
+--      end if;
 
       Engine.Direct := False;
 
@@ -1233,15 +1227,15 @@ package body Engines is
             R.Width  := R.Width  + 64;
             R.Height := R.Height + 64;
             R2 := R;
-            Surfaces.Blit (Source      => Engine.Buffer,
-                           Source_Area => R2,
-                           Self        => Engine.Screen,
-                           Self_Area   => R);
+
+            Renderers.Copy (Self      => Engine.Renderer,
+                            Copy_From => Engine.Buffer,
+                            From      => R2,
+                            To        => R);
          end;
       end loop;
 
-      Color := Pixel_Formats.To_Pixel
-        (Engine.Screen.Pixel_Format, 255, 0, 255);
+      Engine.Renderer.Set_Draw_Colour (Colour);
 
       for I in 1 .. Table.Last loop
          declare
@@ -1249,17 +1243,17 @@ package body Engines is
          begin
             R := Table.Rects (I);
             R.Height := 1;
-            Engine.Screen.Fill (R, Color);
+            Engine.Renderer.Fill (R);
 
             R.Y := R.Y + Table.Rects (I).Height - 1;
-            Engine.Screen.Fill (R, Color);
+            Engine.Renderer.Fill (R);
 
             R := Table.Rects (I);
             R.Width := 1;
-            Engine.Screen.Fill (R, Color);
+            Engine.Renderer.Fill (R);
 
             R.X := R.X + Table.Rects (I).Width - 1;
-            Engine.Screen.Fill (R, Color);
+            Engine.Renderer.Fill (R);
          end;
       end loop;
    end Show_Rects;
@@ -1271,33 +1265,41 @@ package body Engines is
    procedure Pig_Present (Engine : in out Game_Engine;
                           Win    : in out Window)
    is
+      use SDL.Video;
+
       Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
 --      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
+      Engine.Renderer.Set_Clip (Null_Rectangle);
 
       if Engine.Show_Dirtyrects then
          Show_Rects (Engine, Table);
          for I in 1 .. Table.Last loop
             declare
                Rect : Rectangle renames Table.Rects (I);
+               Clip : Rectangle;
             begin
                Rect.X      := Rect.X - 32;
                Rect.Y      := Rect.Y - 32;
                Rect.Width  := Rect.Width + 64;
                Rect.Height := Rect.Height + 64;
-               Dirty.Intersect (Engine.Buffer.Clip_Rectangle, Rect);
+
+               Renderers.Get_Clip (Engine.Renderer, Clip);
+               Dirty.Intersect (Clip, Rect);
             end;
          end loop;
 
       else --  if Engine.Surfac = Engine.Buffer then
          for I in 1 .. Table.Last loop
             declare
-               Rect_Copy : Rectangle := Table.Rects (I);
+               Rect_Copy : constant Rectangle := Table.Rects (I);
             begin
---               Renderers.Copy (Engine.Screen, From => Table.Rects (I),
---                               Engine.Buffer, To   => Rect_Copy);
-               Surfaces.Blit (Engine.Screen, Table.Rects (I),
-                              Engine.Buffer, Rect_Copy);
+               Renderers.Copy (Self      => Engine.Renderer,
+                               Copy_From => Engine.Buffer,
+                               From      => Table.Rects (I),
+                               To        => Rect_Copy);
+--               Surfaces.Blit (Engine.Screen, Table.Rects (I),
+--                              Engine.Buffer, Rect_Copy);
             end;
          end loop;
       end if;
@@ -1309,7 +1311,8 @@ package body Engines is
             Engine.Page := (if Engine.Page = One then Zero else One);
          end if;
       else
-         Win.Update_Surface_Rectangles (Table.Rects.all);
+--          Win.Update_Surface_Rectangles (Table.Rects.all);
+         Engine.Renderer.Draw (Table.Rects.all);
       end if;
 
 --      if Engine.Direct then
@@ -1318,9 +1321,11 @@ package body Engines is
 --         Engine.Surfac := Engine.Screen;
 --      else
 --         Engine.Surfac := Engine.Buffer;
+         Renderers.Copy (Engine.Renderer, Copy_From => Engine.Buffer);
 --      end if;
 
       SDL.Video.Renderers.Present (Engine.Renderer);
+--      SDL.Video.Renderers.Clear   (Engine.Renderer);
 
    end Pig_Present;
 
@@ -1345,14 +1350,6 @@ package body Engines is
                       Copy_From => Engine.Sprites (Frame).Surfac,
                       From      => From,
                       To        => DR);
-      --  Surfaces.Blit (Source      => Engine.Sprites (Frame).Surfac,
-      --                Source_Area => SA,
-      --                Self        => Engine.Surfac,
-      --                Self_Area   => DR);
-   exception
-      when Surfaces.Surface_Error =>
-         Ada.Text_IO.Put_Line ("Surface_Error hit");
-         raise;
    end Pig_Draw_Sprite;
 
    ------------------------------------------------------------
@@ -1424,7 +1421,7 @@ package body Engines is
       pragma Unreferenced (Result);
       use SDL.Video;
 
-      Surfac : Surface;
+      Surfac : Surfaces.Surface;
    begin
       Map.Tile_Width  := Width;
       Map.Tile_Height := Height;
@@ -1434,7 +1431,6 @@ package body Engines is
       Textures.Makers.Create (Tex      => Map.Tile,
                               Renderer => Engine.Renderer,
                               Surface  => Surfac);
-
    end Pig_Map_Tiles;
 
    -----------------------
@@ -1476,11 +1472,9 @@ package body Engines is
             declare
                C        : constant Character := Data (Z + 1);
                Position : Natural;
---               F        : Character;
             begin
                Position := Ada.Strings.Fixed.Index (Trans, "" & C);
---                      f = strchr(trans, c);
---                      if(!f)
+
                if Position = 0 then
                   Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
                                         "Character '" & C & "' not in" &
