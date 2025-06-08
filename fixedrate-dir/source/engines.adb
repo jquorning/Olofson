@@ -45,7 +45,8 @@ package body Engines is
    function Sqrt (F : Float) return Float
      renames Ada.Numerics.Elementary_Functions.Sqrt;
 
-   procedure Sprite_Sprite_One (Object   : not null Object_Access;
+   procedure Sprite_Sprite_One (Engine   : in out Game_Engine'Class;
+                                Object   : not null Object_Access;
                                 Object_2 : not null Object_Access;
                                 T        : Float;
                                 Hit_Dist : Float);
@@ -88,7 +89,7 @@ package body Engines is
 
 
    Clean_Object : constant Game_Object :=
-     (Owner     => null, Id => 0, I_Base => 0, Image => 0,
+     (Id => 0, I_Base => 0, Image => 0,
       Interpol  => (Gimage  => 0,
                     Ox | Gx => 0.0,
                     Oy | Gy => 0.0),
@@ -451,7 +452,6 @@ package body Engines is
    procedure Run_Timers (Engine : in out Game_Engine'Class;
                          Object : in out Game_Object)
    is
-      pragma Unreferenced (Engine);
    begin
       for I in Object.Timer'Range loop
          if Object.Timer (I) /= 0 then
@@ -465,7 +465,7 @@ package body Engines is
                   Event : Pig_Event;
                begin
                   Event.Kind := To_Kind (I);
-                  Object.Handler (Object, Event);
+                  Object.Handler (Engine, Object, Event);
                   if Object.Id = 0 then
                      return;
                   end if;
@@ -542,14 +542,15 @@ package body Engines is
 
       Event.Collision.Hit := Hit;
       Event.Kind          := Offscreen;
-      Object.Handler (Object, Event);
+      Object.Handler (Engine, Object, Event);
    end Test_Offscreen;
 
    -----------------------
    -- Sprite_Sprite_One --
    -----------------------
 
-   procedure Sprite_Sprite_One (Object   : not null Object_Access;
+   procedure Sprite_Sprite_One (Engine   : in out Game_Engine'Class;
+                                Object   : not null Object_Access;
                                 Object_2 : not null Object_Access;
                                 T        :          Float;
                                 Hit_Dist :          Float)
@@ -615,7 +616,7 @@ package body Engines is
       if True then
 --      if Object.Hitmask and Object_2.Hitgroup then
          Event.Obj := Object_2;
-         Object.Handler (Object.all, Event);
+         Object.Handler (Engine, Object.all, Event);
       end if;
 
       if True then
@@ -627,7 +628,7 @@ package body Engines is
                                  Bottom => Hit.Top,
                                  Top    => Hit.Bottom);
          Event.Obj := Object;
-         Object_2.Handler (Object_2.all, Event);
+         Object_2.Handler (Engine, Object_2.all, Event);
       end if;
    end Sprite_Sprite_One;
 
@@ -685,7 +686,7 @@ package body Engines is
                --  Sweep test!
                T := 0.0;
                while T < 1.0 loop
-                  Sprite_Sprite_One (Object, Object_2, T, Hit_Dist);
+                  Sprite_Sprite_One (Engine, Object, Object_2, T, Hit_Dist);
                   T := T + Delta_T;
                end loop;
             end;
@@ -819,7 +820,7 @@ package body Engines is
       then
          Event.Collision := Collision;
          Event.Kind      := Hit_Tile;
-         Object.Handler (Object, Event);
+         Object.Handler (Engine, Object, Event);
       end if;
    end Test_Sprite_Map;
 
@@ -852,8 +853,10 @@ package body Engines is
             Next_Cursor := Next (Object_Cursor);
 
             Event.Kind := Preframe;
---            Object.Handler (Object.all, Event);
-            Element (Object_Cursor).Handler (Element (Object_Cursor).all, Event);
+
+            Element (Object_Cursor).Handler (Engine,
+                                             Element (Object_Cursor).all,
+                                             Event);
          end;
          Object_Cursor := Next_Cursor;
       end loop;
@@ -898,7 +901,7 @@ package body Engines is
                Event : Pig_Event;
             begin
                Event.Kind := Postframe;
-               Object.Handler (Object.all, Event);
+               Object.Handler (Engine, Object.all, Event);
                Object.Age := Object.Age + 1;
             end;
          end if;
@@ -1376,11 +1379,9 @@ package body Engines is
                            Width  :        Tiles;
                            Height :        Tiles)
    is
---      use SDL.Video;
    begin
       Pig_Map_Close (Engine.Map);
 
---      Engine.Map.Owner       := Engine;
       Engine.Map.Width       := Width;
       Engine.Map.Height      := Height;
       Engine.Map.Map         := new Map_Array (0 .. Width - 1,
@@ -1389,7 +1390,7 @@ package body Engines is
                                                0 .. Height - 1);
       Engine.Map.Tile_Width  := 0;
       Engine.Map.Tile_Height := 0;
---      Engine.Map.Tile        := Textures.Null_Texture;
+
       Engine.Map.Hit_Info    := (others => (others => False));
 
       Engine.Map.Hit.all     := (others => (others => No_Side));
@@ -1568,7 +1569,7 @@ package body Engines is
       Base   : constant Engine_Access := Engine_Access (Engine.Self);
       Object : constant not null Object_Access := Get_Object (Base.all);
    begin
-      Object.Owner     := Engine.Self;
+--      Object.Owner     := Engine.Self;
       Object.Tile_Mask := All_Sides;
       Object.Hit_Mask  := 0;
       Object.Hit_Group := 0;
@@ -1635,13 +1636,15 @@ package body Engines is
    -- Find_Object --
    -----------------
 
-   function Find_Object (Start : in out Game_Object;
-                         Id    :        Object_Id) return Object_Access
+   function Find_Object (Engine :        Game_Engine'Class;
+                         Start  : in out Game_Object;
+                         Id     :        Object_Id) return Object_Access
    is
+      pragma Unreferenced (Start);
 --  PIG_object *pig_object_find(PIG_object *start, int id)
 --      Pob, Pof : Object_Access;
    begin
-      for Object of Start.Owner.Objects loop
+      for Object of Engine.Objects loop
          if Object.Id = Id then
             return Object;
          end if;

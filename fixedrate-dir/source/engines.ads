@@ -153,13 +153,17 @@ is
    type Timer_Id    is range 1 .. 3;
    type Timer_Array is array (Timer_Id) of Natural;
 
+   type Engine_Class_Access is access all Game_Engine'Class;
+
    type Handler_Access is not null access
-     procedure (Object : in out Game_Object;
+     procedure (Game   : in out Game_Engine'Class;
+                Object : in out Game_Object;
                 Event  :        Pig_Event);
 
-   procedure Null_Handler (Object : in out Game_Object;
+   procedure Null_Handler (Game   : in out Game_Engine'Class;
+                           Object : in out Game_Object;
                            Event  :        Pig_Event) is null;
-   type Engine_Class_Access is access all Game_Engine'Class;
+
    type Object_Id    is new Natural;
 
    type Position     is new Float;
@@ -169,7 +173,7 @@ is
    subtype Score_Type is Natural;
 
    type Game_Object is record
-      Owner     : Engine_Class_Access;
+--      Owner     : Engine_Class_Access;
 
       Id        : Object_Id;      -- Unique ID. 0 means "free".
 
@@ -461,8 +465,9 @@ is
    procedure Unlink_All_Objects (Engine : in out Game_Engine);
    --  Unlink all objects.
 
-   function Find_Object (Start : in out Game_Object;
-                         Id    :        Object_Id) return Object_Access;
+   function Find_Object (Engine :        Game_Engine'Class;
+                         Start  : in out Game_Object;
+                         Id     :        Object_Id) return Object_Access;
    --  Find object by 'id', starting at object 'start'.
    --
    --  The search starts at 'start' and is done in both

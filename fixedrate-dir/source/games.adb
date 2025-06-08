@@ -171,8 +171,6 @@ package body Games is
       declare
          use Engines;
       begin
---         Game.Map.Owner := Game;
-
          Pig_Map_Open (Engine => Game,
                        Width  => MAP_W,
                        Height => MAP_H);
@@ -186,8 +184,6 @@ package body Games is
          Pig_Map_Collisions (Game.Map,  0, 12, All_Sides);   --  Red, green, yellov
          Pig_Map_Collisions (Game.Map, 12, 17, No_Side);     --  Sky
          Pig_Map_Collisions (Game.Map, 29,  3, All_Sides);   --  Single R, G, Y
-
---         Game.Map := Map;
 
          Game.Load_Level (Map => 0);
       end;
@@ -495,10 +491,11 @@ package body Games is
    -- Player_Handler --
    --------------------
 
-   procedure Player_Handler (Object : in out Game_Object;
+   procedure Player_Handler (Engine : in out Game_Engine'Class;
+                             Object : in out Game_Object;
                              Event  :        Pig_Event)
    is
-      Game : Game_State renames Game_Access (Object.Owner).all;
+      Game : Game_State renames Game_State (Engine);
    begin
       case Event.Kind is
 
@@ -554,7 +551,7 @@ package body Games is
          when Timer_1 =>
             Object.X := Position'Max (Object.X, 0.0);
             Object.X := Position'Min (Object.X,
-                                      Position (Object.Owner.View.Width - 1));
+                                      Position (Engine.View.Width - 1));
 
             case Object.State is
                when Waiting => null;
@@ -763,10 +760,11 @@ package body Games is
    -- Powerup_Handler --
    ---------------------
 
-   procedure Powerup_Handler (Object : in out Game_Object;
+   procedure Powerup_Handler (Engine : in out Game_Engine'Class;
+                              Object : in out Game_Object;
                               Event  :        Pig_Event)
    is
-      Game : Game_State renames Game_Access (Object.Owner).all;
+      Game : Game_State renames Game_State (Engine);
    begin
       case Event.Kind is
 
@@ -804,9 +802,11 @@ package body Games is
    -- Star_Handler --
    ------------------
 
-   procedure Star_Handler (Object : in out Game_Object;
+   procedure Star_Handler (Engine : in out Game_Engine'Class;
+                           Object : in out Game_Object;
                            Event  :        Pig_Event)
    is
+      pragma Unreferenced (Engine);
    begin
       case Event.Kind is
 
@@ -825,10 +825,11 @@ package body Games is
    -- Evil_Handler --
    ------------------
 
-   procedure Evil_Handler (Object : in out Game_Object;
+   procedure Evil_Handler (Engine : in out Game_Engine'Class;
+                           Object : in out Game_Object;
                            Event  :        Pig_Event)
    is
-      Game   : Game_State renames Game_Access (Object.Owner).all;
+      Game   : Game_State renames Game_State (Engine);
       Look_X : Pixels;
    begin
       case Event.Kind is
@@ -861,7 +862,7 @@ package body Games is
                   Look_X := -Look_X;
                end if;
                if
-                 No_Side = Pig_Test_Map (Game_State (Object.Owner.all),
+                 No_Side = Pig_Test_Map (Game_State (Engine),
                                          Pixels (Object.X) + Look_X,
                                          Pixels (Object.Y) + 1)
                then
@@ -879,11 +880,11 @@ package body Games is
    -- Slime_Handler --
    -------------------
 
-   procedure Slime_Handler (Object : in out Game_Object;
+   procedure Slime_Handler (Engine : in out Game_Engine'Class;
+                            Object : in out Game_Object;
                             Event  :        Pig_Event)
    is
---      use Engines;
-      Game   : Game_State renames Game_Access (Object.Owner).all;
+      Game   : Game_State renames Game_State (Engine);
       Look_X : Pixels;
    begin
       case Event.Kind is
@@ -909,7 +910,7 @@ package body Games is
          when Postframe =>
             if Dead /= Object.State then
                --  Don't bother looking if we're close to a floor.
-               if No_Side = Pig_Test_Map_Vector (Game_State (Object.Owner.all),
+               if No_Side = Pig_Test_Map_Vector (Game_State (Engine),
                                                  Pixels (Object.X),
                                                  Pixels (Object.Y),
                                                  Pixels (Object.X),
@@ -924,7 +925,7 @@ package body Games is
 
                   if
                     No_Side = Pig_Test_Map_Vector
-                      (Game_State (Object.Owner.all),
+                      (Game_State (Engine),
                        Pixels (Object.X) + Look_X,
                        Pixels (Object.Y),
                        Pixels (Object.X) + Look_X, SCREEN_H,
@@ -944,11 +945,13 @@ package body Games is
    -- Chain_Head_Handler --
    ------------------------
 
-   procedure Chain_Head_Handler (Object : in out Game_Object;
+   procedure Chain_Head_Handler (Engine : in out Game_Engine'Class;
+                                 Object : in out Game_Object;
                                  Event  :        Pig_Event)
    is
       use Ada.Numerics.Elementary_Functions;
-      Game : Game_State renames Game_Access (Object.Owner).all;
+
+      Game : Game_State renames Game_State (Engine);
 
       procedure Do_Timer_2;
 
@@ -1005,11 +1008,12 @@ package body Games is
    -- Chain_link_handler --
    ------------------------
 
-   procedure Chain_Link_Handler (Object : in out Game_Object;
+   procedure Chain_Link_Handler (Engine : in out Game_Engine'Class;
+                                 Object : in out Game_Object;
                                  Event  :        Pig_Event)
    is
       Target : constant Object_Access :=
-        Engines.Find_Object (Object, Object_Id (Object.Target));
+        Engines.Find_Object (Engine, Object, Object_Id (Object.Target));
    begin
       case Event.Kind is
 

@@ -171,33 +171,41 @@ is
    procedure Before_Objects (Game : in out Game_State);
 
    type Map_Type is range 0 .. 4;
+
    procedure Load_Level (Game : in out Game_State;
                          Map  :        Map_Type);
 
 
-   procedure Player_Handler (Object : in out Game_Object;
+   procedure Player_Handler (Engine : in out Game_Engine'Class;
+                             Object : in out Game_Object;
                              Event  :        Pig_Event);
 
-   procedure Powerup_Handler (Object : in out Game_Object;
+   procedure Powerup_Handler (Engine : in out Game_Engine'Class;
+                              Object : in out Game_Object;
                               Event  :        Pig_Event);
 
-   procedure Star_Handler (Object : in out Game_Object;
+   procedure Star_Handler (Engine : in out Game_Engine'Class;
+                           Object : in out Game_Object;
                            Event  :        Pig_Event);
 
-   procedure Evil_Handler (Object : in out Game_Object;
+   procedure Evil_Handler (Engine : in out Game_Engine'Class;
+                           Object : in out Game_Object;
                            Event  :        Pig_Event);
 
-   procedure Slime_Handler (Object : in out Game_Object;
+   procedure Slime_Handler (Engine : in out Game_Engine'Class;
+                            Object : in out Game_Object;
                             Event  :        Pig_Event);
 
-   procedure Chain_Head_Handler (Object : in out Game_Object;
+   procedure Chain_Head_Handler (Engine : in out Game_Engine'Class;
+                                 Object : in out Game_Object;
+                                 Event  :        Pig_Event);
+
+   procedure Chain_Link_Handler (Engine : in out Game_Engine'Class;
+                                 Object : in out Game_Object;
                                  Event  :        Pig_Event);
 
    procedure Dashboard (Game : in out Game_State);
    --  Render the dashboard
-
-   procedure Chain_Link_Handler (Object : in out Game_Object;
-                                 Event  :        Pig_Event);
 
    procedure Start_Game (Game : in out Game_State);
 
