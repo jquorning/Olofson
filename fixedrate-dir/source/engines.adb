@@ -43,7 +43,7 @@ package body Engines is
 
    procedure Test_Offscreen (Engine : in out Game_Engine;
                              Object : in out Game_Object;
-                             Sprite :        Pig_Sprite_Access);
+                             Sprite :        Pig_Sprite);
 
    function Sqrt (F : Float) return Float
      renames Ada.Numerics.Elementary_Functions.Sqrt;
@@ -56,7 +56,7 @@ package body Engines is
 
    procedure Test_Sprite_Sprite (Engine : in out Game_Engine;
                                  Object :        not null Object_Access;
-                                 Sprite :        Pig_Sprite_Access);
+                                 Sprite :        Pig_Sprite);
    --  Check Object against all subsequent objects in the list.
    --  The testing is step size limited so that neither object
    --  moves more than 25% of the collision distance between tests.
@@ -70,7 +70,7 @@ package body Engines is
 
    procedure Test_Sprite_Map (Engine : in out Game_Engine;
                               Object : in out Game_Object;
-                              Sprite :        Pig_Sprite_Access);
+                              Sprite :        Pig_Sprite);
 
    procedure Run_Logic (Engine : in out Game_Engine'Class);
 
@@ -475,12 +475,17 @@ package body Engines is
 
    procedure Test_Offscreen (Engine : in out Game_Engine;
                              Object : in out Game_Object;
-                             Sprite :        Pig_Sprite_Access)
+                             Sprite :        Pig_Sprite)
    is
-      Hot_X   : constant Pixels := (if Sprite /= null then Sprite.Hot_X  else 0);
-      Hot_Y   : constant Pixels := (if Sprite /= null then Sprite.Hot_Y  else 0);
-      Width   : constant Pixels := (if Sprite /= null then Sprite.Width  else 0);
-      Height  : constant Pixels := (if Sprite /= null then Sprite.Height else 0);
+      --  What did Sprite = null mean..?  jq ???
+      Hot_X   : constant Pixels := Sprite.Hot_X;
+      Hot_Y   : constant Pixels := Sprite.Hot_Y;
+      Width   : constant Pixels := Sprite.Width;
+      Height  : constant Pixels := Sprite.Height;
+      --  Hot_X   : constant Pixels := (if Sprite /= null then Sprite.Hot_X  else 0);
+      --  Hot_Y   : constant Pixels := (if Sprite /= null then Sprite.Hot_Y  else 0);
+      --  Width   : constant Pixels := (if Sprite /= null then Sprite.Width  else 0);
+      --  Height  : constant Pixels := (if Sprite /= null then Sprite.Height else 0);
 
       Hit : constant Sides :=
           (Top    =>  Pixels (Object.Y) - Hot_Y < -Height,
@@ -626,7 +631,7 @@ package body Engines is
 
    procedure Test_Sprite_Sprite (Engine : in out   Game_Engine;
                                  Object : not null Object_Access;
-                                 Sprite :          Pig_Sprite_Access)
+                                 Sprite :          Pig_Sprite)
    is
       Object_2 : Object_Access;
       Next_2   : constant Object_Access := null; --  NOT CORRECT !!! ???
@@ -648,8 +653,8 @@ package body Engines is
                Image     : constant Sprite_Index :=
                  Sprite_Counts (Object_2.I_Base + Object_2.Image);
 
-               Hitdist_1 : constant Float :=
-                 Float (if Sprite /= null then Sprite.Radius else 0);
+               Hitdist_1 : constant Float := Float (Sprite.Radius);
+--                 Float (if Sprite /= null then Sprite.Radius else 0);
 
                Hitdist_2 : constant Float := Hitdist_1
                    + (if Image in Sprite_Index'First .. Engine.Sprite_Last - 1
@@ -794,7 +799,7 @@ package body Engines is
 
    procedure Test_Sprite_Map (Engine : in out Game_Engine;
                               Object : in out Game_Object;
-                              Sprite :        Pig_Sprite_Access)
+                              Sprite :        Pig_Sprite)
    is
       pragma Unreferenced (Sprite);
       Collision : aliased Collision_Info;
@@ -873,15 +878,15 @@ package body Engines is
                Run_Timers (Engine, Object.all);
 
                if Object.Id /= 0 then
-                  Test_Offscreen (Game_Engine (Engine), Object.all, Sprite);
+                  Test_Offscreen (Game_Engine (Engine), Object.all, Sprite.all);
                end if;
 
                if True then --  Object.Id /= 0 and (Object.Hitmask or Object.Hitgroup) then
-                  Test_Sprite_Sprite (Game_Engine (Engine), Object, Sprite);
+                  Test_Sprite_Sprite (Game_Engine (Engine), Object, Sprite.all);
                end if;
 
                if Object.Id /= 0 and Object.Tile_Mask /= No_Side then
-                  Test_Sprite_Map (Game_Engine (Engine), Object.all, Sprite);
+                  Test_Sprite_Map (Game_Engine (Engine), Object.all, Sprite.all);
                end if;
             end if;
          end;
