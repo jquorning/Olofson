@@ -21,6 +21,8 @@ with Dirty;
 package Engines
   with Elaborate_Body
 is
+   PIG_MAX_SPRITES : constant := 1024;
+   --  Size of sprite frame table
 
    subtype Dirty_Table is Dirty.Dirty_Table;
 
@@ -168,7 +170,6 @@ is
 
    type Game_Object is record
       Owner     : Engine_Class_Access;
---        PIG_object      *next, *prev;
 
       Id        : Object_Id;      -- Unique ID. 0 means "free".
 
@@ -230,7 +231,6 @@ is
       Radius        : Pixels;      --  Collision zone radius (pixels)
       Textur        : Texture;     --  Graphics
    end record;
-   type Pig_Sprite_Access is access all Pig_Sprite;
 
    --
    --  Engine
@@ -238,8 +238,8 @@ is
    package Object_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Object_Access);
 
-   type Sprite_Array is array (Sprite_Index range <>) of Pig_Sprite_Access;
-   type Sprite_Array_Access is access Sprite_Array;
+   type Sprite_Array
+      is array (Sprite_Index'First .. PIG_MAX_SPRITES - 1) of Pig_Sprite;
 
    type Page_Index is (Zero, One, Work);
    type Page_Array is array (Page_Index) of Dirty_Table;
@@ -282,7 +282,7 @@ is
 
          --  Sprites
          Sprite_Last       : Sprite_Counts;
-         Sprites           : Sprite_Array_Access;
+         Sprites           : Sprite_Array;
 
         --  Space for user data
         --      Userdata : Long_Integer;

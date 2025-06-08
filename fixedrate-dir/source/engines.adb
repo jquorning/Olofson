@@ -22,9 +22,6 @@ with SDL.Images.IO;
 
 package body Engines is
 
-   PIG_MAX_SPRITES : constant := 1024;
-   --  Size of sprite frame table
-
    package Rectangles renames SDL.Video.Rectangles;
    package Surfaces   renames SDL.Video.Surfaces;
 
@@ -148,9 +145,6 @@ package body Engines is
 
       --  Sprites
       Engine.Sprite_Last       := 0;
-      Engine.Sprites           := null;
-      Engine.Sprites           := new Sprite_Array'(Sprite_Index'First
-                                                      .. PIG_MAX_SPRITES - 1 => null);
 
       if False then
          --      if((pe->screen->flags & SDL_HWSURFACE) == SDL_HWSURFACE)
@@ -305,13 +299,16 @@ package body Engines is
       declare
          Surface_Width  : constant Pixels := Pixels (Surface_Load.Size.Width);
          Surface_Height : constant Pixels := Pixels (Surface_Load.Size.Height);
-         Sprite_Width   : constant Pixels := (if Width  /= 0 then Width  else Surface_Width);
-         Sprite_Height  : constant Pixels := (if Height /= 0 then Height else Surface_Height);
+         Sprite_Width   : constant Pixels := (if Width  /= 0 then Width
+                                                             else Surface_Width);
+         Sprite_Height  : constant Pixels := (if Height /= 0 then Height
+                                                             else Surface_Height);
          Last_X         : constant Pixels := Surface_Width  / Sprite_Width;
          Last_Y         : constant Pixels := Surface_Height / Sprite_Height;
       begin
          for Y in 1 .. Last_Y loop
             for X in 1 .. Last_X loop
+               Engine.Sprite_Last := Engine.Sprite_Last + 1;
                declare
                   subtype C_int is SDL.C.int;
 
@@ -319,20 +316,14 @@ package body Engines is
                   Target_Area    : Rectangle := (0, 0, 0, 0);
                   Surface_Sprite : Surfaces.Surface;
 
-                  Sprite : constant not null Pig_Sprite_Access :=
-                    new Pig_Sprite'(Width  => Sprite_Width,
-                                    Height => Sprite_Height,
-                                    Hot_X  => Sprite_Width  / 2,
-                                    Hot_Y  => Sprite_Height / 2,
-                                    Radius => (Sprite_Width + Sprite_Height) / 5,
-                                    Textur => Textures.Null_Texture);
+                  Sprite : Pig_Sprite renames Engine.Sprites (Engine.Sprite_Last);
                begin
---                      if(pe->nsprites >= PIG_MAX_SPRITES)
---                      {
---                              fprintf(stderr, "Sprite bank full!\n");
---                              return -1;
---                      }
---                      s = (PIG_sprite *)calloc(1, sizeof(PIG_sprite));
+                  Sprite.Width  := Sprite_Width;
+                  Sprite.Height := Sprite_Height;
+                  Sprite.Hot_X  := Sprite_Width  / 2;
+                  Sprite.Hot_Y  := Sprite_Height / 2;
+                  Sprite.Radius := (Sprite_Width + Sprite_Height) / 5;
+
                   Surfaces.Makers.Create
                     (Surface_Sprite,
                      Size       => (C_int (Sprite_Width),
@@ -362,9 +353,6 @@ package body Engines is
                     (Tex      => Sprite.Textur,
                      Renderer => Engine.Renderer,
                      Surface  => Surface_Sprite);
-
-                  Engine.Sprite_Last := Engine.Sprite_Last + 1;
-                  Engine.Sprites (Engine.Sprite_Last) := Sprite;
                end;
             end loop;
          end loop;
@@ -387,7 +375,7 @@ package body Engines is
       end if;
 
       declare
-         Sprite : not null Pig_Sprite_Access renames Engine.Sprites (Frame);
+         Sprite : Pig_Sprite renames Engine.Sprites (Frame);
       begin
          case Hot_X is
             when Unchanged =>  null;
@@ -825,7 +813,6 @@ package body Engines is
    is
       use Object_Lists;
       Object_Cursor, Next_Cursor : Cursor;
-      Image  : Sprite_Counts;
    begin
       --  Shift logic coordinates
       for Object of Engine.Objects loop
@@ -857,16 +844,10 @@ package body Engines is
       while Object_Cursor /= No_Element loop
          declare
             Object : constant Object_Access := Element (Object_Cursor);
-            Sprite : Pig_Sprite_Access;
+            Image  : constant Sprite_Counts := Sprite_Counts (Object.I_Base
+                                                            + Object.Image);
+            Sprite : Pig_Sprite renames Engine.Sprites (Image);
          begin
-            --  next = po->next;
-            Image := Sprite_Counts (Object.I_Base + Object.Image);
-            if Image in Sprite_Index'First .. Engine.Sprite_Last then
-               Sprite := Engine.Sprites (Image);
-            else
-               Sprite := null;
-            end if;
-
             --  Move!
             Object.Vx := Object.Vx + Speed (Object.Ax);
             Object.Vy := Object.Vy + Speed (Object.Ay);
@@ -878,15 +859,15 @@ package body Engines is
                Run_Timers (Engine, Object.all);
 
                if Object.Id /= 0 then
-                  Test_Offscreen (Game_Engine (Engine), Object.all, Sprite.all);
+                  Test_Offscreen (Game_Engine (Engine), Object.all, Sprite);
                end if;
 
                if True then --  Object.Id /= 0 and (Object.Hitmask or Object.Hitgroup) then
-                  Test_Sprite_Sprite (Game_Engine (Engine), Object, Sprite.all);
+                  Test_Sprite_Sprite (Game_Engine (Engine), Object, Sprite);
                end if;
 
                if Object.Id /= 0 and Object.Tile_Mask /= No_Side then
-                  Test_Sprite_Map (Game_Engine (Engine), Object.all, Sprite.all);
+                  Test_Sprite_Map (Game_Engine (Engine), Object.all, Sprite);
                end if;
             end if;
          end;
@@ -1036,7 +1017,7 @@ package body Engines is
       for Object of Engine.Objects loop
          if Object.Interpol.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
             declare
-               Sprite : constant not null Pig_Sprite_Access :=
+               Sprite : Pig_Sprite renames
                  Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
 
                Area   : Rectangle :=
@@ -1103,7 +1084,7 @@ package body Engines is
             declare
                subtype int is SDL.C.int;
 
-               Sprite      : constant not null Pig_Sprite_Access :=
+               Sprite      : Pig_Sprite renames
                  Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
 
                Source_Area : constant Rectangle := (0, 0, 0, 0);
