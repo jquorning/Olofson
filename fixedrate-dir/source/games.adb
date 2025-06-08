@@ -111,35 +111,60 @@ package body Games is
    begin
       Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
 
-      Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
-      Game.Create_Sprites (Asset_Dir & "font.png",      44, 56, Game.Scorefont);
-      Game.Create_Sprites (Asset_Dir & "glassfont.png", 60, 60, Game.Glassfont);
-      Game.Create_Sprites (Asset_Dir & "icons.png",     48, 48, Game.Icons);
-      Game.Create_Sprites (Asset_Dir & "stars.png",     32, 32, Game.Stars);
-      Game.Create_Sprites (Asset_Dir & "pigframes.png", 64, 48, Game.Pigframes);
-      Game.Create_Sprites (Asset_Dir & "evil.png",      48, 48, Game.Evil);
-      Game.Create_Sprites (Asset_Dir & "slime.png",     48, 48, Game.Slime);
+      Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0,
+                           Sprite_Last => Game.Lifepig);
+
+      Game.Create_Sprites (Asset_Dir & "font.png",      44, 56,
+                           Sprite_Last => Game.Scorefont);
+
+      Game.Create_Sprites (Asset_Dir & "glassfont.png", 60, 60,
+                           Sprite_Last => Game.Glassfont);
+
+      Game.Create_Sprites (Asset_Dir & "icons.png",     48, 48,
+                           Sprite_Last => Game.Icons);
+
+      Game.Create_Sprites (Asset_Dir & "stars.png",     32, 32,
+                           Sprite_Last => Game.Stars);
+
+      Game.Create_Sprites (Asset_Dir & "pigframes.png", 64, 48,
+                           Sprite_Last => Game.Pigframes);
+
+      Game.Create_Sprites (Asset_Dir & "evil.png",      48, 48,
+                           Sprite_Last => Game.Evil);
+
+      Game.Create_Sprites (Asset_Dir & "slime.png",     48, 48,
+                           Sprite_Last => Game.Slime);
 
       declare
+         use Engines;
+
          subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
          subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
          subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
          subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
       begin
          for I in Icons_Range loop
-            Game.Set_Hotspot (Game.Icons + I, Center, 45);
+            Set_Hotspot (Game,
+                         Frame => Game.Icons + I,
+                         Hot_X => Center, Hot_Y => 45);
          end loop;
 
          for I in Pig_Range loop
-            Game.Set_Hotspot (Game.Pigframes + I, Center, 43);
+            Set_Hotspot (Game,
+                         Frame => Game.Pigframes + I,
+                         Hot_X => Center, Hot_Y => 43);
          end loop;
 
          for I in Evil_Range loop
-            Game.Set_Hotspot (Game.Evil + I, Center, 46);
+            Set_Hotspot (Game,
+                         Frame => Game.Evil + I,
+                         Hot_X => Center, Hot_Y => 46);
          end loop;
 
          for I in Slime_Range loop
-            Game.Set_Hotspot (Game.Slime + I, Center, 46);
+            Set_Hotspot (Game,
+                         Frame => Game.Slime + I,
+                         Hot_X => Center, Hot_Y => 46);
          end loop;
       end;
 

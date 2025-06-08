@@ -280,7 +280,7 @@ package body Engines is
    procedure Create_Sprites (Engine        : in out Game_Engine'Class;
                              Filename      :        String;
                              Width, Height :        Pixels;
-                             Handle        :    out Sprite_Index)
+                             Sprite_Last   :    out Sprite_Index)
    is
       use SDL.Video;
 
@@ -347,8 +347,6 @@ package body Engines is
       Surface_Load.Set_Blend_Mode  (None);
       Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0));
 
-      Handle := Engine.Sprite_Last + 1;
-
       declare
          Surface_Width  : constant Pixels := Pixels (Surface_Load.Size.Width);
          Surface_Height : constant Pixels := Pixels (Surface_Load.Size.Height);
@@ -372,6 +370,9 @@ package body Engines is
             end loop;
          end loop;
       end;
+
+      Sprite_Last := Engine.Sprite_Last;
+
    end Create_Sprites;
 
    -----------------

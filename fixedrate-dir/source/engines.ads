@@ -316,11 +316,11 @@ is
                         Frame  :        Integer);
    --  Start engine at logic time 'frame'
 
-   procedure Create_Sprites (Engine   : in out Game_Engine'Class;
-                             Filename :        String;
-                             Width    :        Pixels;
-                             Height   :        Pixels;
-                             Handle   :    out Sprite_Index);
+   procedure Create_Sprites (Engine      : in out Game_Engine'Class;
+                             Filename    :        String;
+                             Width       :        Pixels;
+                             Height      :        Pixels;
+                             Sprite_Last :    out Sprite_Index);
    --  Load a sprite palette image. The image is chopped up into
    --  sprites, based on Width and Height, and added as new frames
    --  in the sprite bank. Default values:
