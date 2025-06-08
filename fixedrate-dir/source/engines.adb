@@ -62,7 +62,7 @@ package body Engines is
    --  moves more than 25% of the collision distance between tests.
    --  (25% should be sufficient for correct direction flags.)
 
-   function Check_Tile (Map  : PIG_Map;
+   function Check_Tile (Map  : Pig_Map;
                         X, Y : Pixels;
                         Mask : Sides) return Sides;
    --  Returns a non-zero value if the tile at (x, y) is marked for
@@ -688,7 +688,7 @@ package body Engines is
    -- Check_tile --
    ----------------
 
-   function Check_Tile (Map  : PIG_Map;
+   function Check_Tile (Map  : Pig_Map;
                         X, Y : Pixels;
                         Mask : Sides) return Sides
    is
@@ -758,7 +758,7 @@ package body Engines is
       Collision_2 : constant not null Collision_Info_Access
            := (if Collision /= null then Collision else Lci'Access);
 
-      Map  : PIG_Map renames Engine.Map;
+      Map  : Pig_Map renames Engine.Map;
 
       X, Y : Pixels;
       Dist : Pixels := 2_000_000_000;
@@ -1397,7 +1397,7 @@ package body Engines is
    -- Pig_Map_Close --
    -------------------
 
-   procedure Pig_Map_Close (Map : in out PIG_Map)
+   procedure Pig_Map_Close (Map : in out Pig_Map)
    is
       procedure Free is
         new Ada.Unchecked_Deallocation (Map_Array, Map_Array_Access);
@@ -1444,7 +1444,7 @@ package body Engines is
    -- Pig_Map_Collision --
    -----------------------
 
-   procedure Pig_Map_Collisions (Map   : in out PIG_Map;
+   procedure Pig_Map_Collisions (Map   : in out Pig_Map;
                                  First :        Tile_Index;
                                  Count :        Natural;
                                  Hit   :        Sides)
@@ -1466,7 +1466,7 @@ package body Engines is
    -- Pig_Map_From_String --
    -------------------------
 
-   procedure Pig_Map_From_String (Map   : in out PIG_Map;
+   procedure Pig_Map_From_String (Map   : in out Pig_Map;
                                   Trans :        String;
                                   Data  :        String)
    is

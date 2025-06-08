@@ -209,7 +209,7 @@ is
    type Map_Array_Access is access Map_Array;
    type Hit_Array_Access is access Hit_Array;
 
-   type PIG_Map is record
+   type Pig_Map is record
       Owner       : Engine_Class_Access;
 
       Width       : Tiles;             --  Size of map (tiles)
@@ -222,7 +222,6 @@ is
       Tile        : Texture;           --  Tile palette image
       Hit_Info    : Hit_Info_Array;    --  Collision info for the tiles
    end record;
---   type Pig_Map_Access is access all PIG_Map;
 
    --  Sprite frame
    type PIG_Sprite is record
@@ -275,7 +274,7 @@ is
          Frame : Integer;              --  Logic time; integer part
 
          --  Background graphics
-         Map   : PIG_Map; -- _Access;
+         Map   : Pig_Map;
 
          --  Objects
          Objects           : Object_Lists.List;
@@ -405,7 +404,7 @@ is
                            Width  :        Tiles;
                            Height :        Tiles);
 
-   procedure Pig_Map_Close (Map : in out PIG_Map);
+   procedure Pig_Map_Close (Map : in out Pig_Map);
 
    procedure Pig_Map_Tiles (Engine   : in out Game_Engine;
                             Filename :        String;
@@ -413,7 +412,7 @@ is
                             Height   :        Pixels);
    --  Load a tile palette image
 
-   procedure Pig_Map_Collisions (Map   : in out PIG_Map;
+   procedure Pig_Map_Collisions (Map   : in out Pig_Map;
                                  First :        Tile_Index;
                                  Count :        Natural;
                                  Hit   :        Sides);
@@ -422,7 +421,7 @@ is
    --  PIG_sides flags that determine which sides the tile are
    --  considered for sprite/map collisions.
 
-   procedure Pig_Map_From_String (Map   : in out PIG_Map;
+   procedure Pig_Map_From_String (Map   : in out Pig_Map;
                                   Trans :        String;
                                   Data  :        String);
    --  Load a map from a string (one byte/tile). 'trans'
