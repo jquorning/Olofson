@@ -11,6 +11,7 @@
 with Ada.Numerics.Elementary_Functions;
 with Ada.Strings.Fixed;
 with Ada.Text_IO;
+with Ada.Unchecked_Deallocation;
 
 with SDL.Video.Palettes;
 with SDL.Video.Renderers.Makers;
@@ -1396,7 +1397,13 @@ package body Engines is
    -- Pig_Map_Close --
    -------------------
 
-   procedure Pig_Map_Close (Map : in out PIG_Map) is
+   procedure Pig_Map_Close (Map : in out PIG_Map)
+   is
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Map_Array, Map_Array_Access);
+
+      procedure Free is
+        new Ada.Unchecked_Deallocation (Hit_Array, Hit_Array_Access);
    begin
       null;
 --      PIG_engine *pe = pm->owner;
@@ -1404,6 +1411,8 @@ package body Engines is
 --              SDL_FreeSurface(pm->tiles);
 --      free(pm->hit);
 --      free(pm->map);
+      Free (Map.Map);
+      Free (Map.Hit);
 --      free(pe->map);
 --      pe->map = NULL;
    end Pig_Map_Close;
