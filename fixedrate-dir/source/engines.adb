@@ -140,7 +140,7 @@ package body Engines is
 --      Engine.Map   := null;
 
       --  Objects
-      Engine.Objects           := Object_Lists.Empty_List;
+      Engine.Objects           := Object_Lists.Empty_Vector;
       Engine.Object_Id_Counter := 0;
 
       --  Sprites

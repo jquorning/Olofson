@@ -8,7 +8,7 @@
 --  Contact author for permission if you want to use this
 --  software, or work derived from it, under other terms.
 
-with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Containers.Vectors;
 with Ada.Finalization;
 
 with SDL.Video.Rectangles;
@@ -49,7 +49,6 @@ is
    type Game_Object;
    type Game_Engine;
    type Object_Access is access all Game_Object;
-   type Engine_Access is access all Game_Engine;
 
    type    Sprite_Counts is new Natural;
    subtype Sprite_Index  is Sprite_Counts range 1 .. Sprite_Counts'Last;
@@ -233,8 +232,10 @@ is
    --
    --  Engine
    --
+   type Object_Index is new Natural;
    package Object_Lists is
-      new Ada.Containers.Doubly_Linked_Lists (Element_Type => Object_Access);
+      new Ada.Containers.Vectors (Index_Type   => Object_Index,
+                                  Element_Type => Object_Access);
 
    type Sprite_Array
       is array (Sprite_Index'First .. PIG_MAX_SPRITES - 1) of Pig_Sprite;
@@ -273,7 +274,7 @@ is
          Map   : Pig_Map;
 
          --  Objects
-         Objects           : Object_Lists.List;
+         Objects           : Object_Lists.Vector;
          Object_Id_Counter : Object_Id;
 
          --  Sprites
