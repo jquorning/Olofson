@@ -1240,7 +1240,7 @@ package body Engines is
          end;
       end loop;
 
-      Engine.Renderer.Set_Draw_Colour (Colour);
+      Renderers.Set_Draw_Colour (Engine.Renderer, Colour);
 
       for I in 1 .. Table.Last loop
          declare
@@ -1248,17 +1248,17 @@ package body Engines is
          begin
             R := Table.Rects (I);
             R.Height := 1;
-            Engine.Renderer.Fill (R);
+            Renderers.Fill (Engine.Renderer, R);
 
             R.Y := R.Y + Table.Rects (I).Height - 1;
-            Engine.Renderer.Fill (R);
+            Renderers.Fill (Engine.Renderer, R);
 
             R := Table.Rects (I);
             R.Width := 1;
-            Engine.Renderer.Fill (R);
+            Renderers.Fill (Engine.Renderer, R);
 
             R.X := R.X + Table.Rects (I).Width - 1;
-            Engine.Renderer.Fill (R);
+            Renderers.Fill (Engine.Renderer, R);
          end;
       end loop;
    end Show_Rects;
@@ -1274,7 +1274,7 @@ package body Engines is
 
       Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
-      Engine.Renderer.Set_Clip (Null_Rectangle);
+      Renderers.Set_Clip (Engine.Renderer, Null_Rectangle);
 
       if Engine.Show_Dirtyrects then
          Show_Rects (Engine, Table);
