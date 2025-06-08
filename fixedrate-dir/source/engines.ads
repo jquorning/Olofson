@@ -205,9 +205,9 @@ is
    type Tile_Index is range 0 .. 255;
    type Map_Array  is array (Tiles range <>, Tiles range <>) of Tile_Index;
    type Hit_Array  is array (Tiles range <>, Tiles range <>) of Sides;
-   type Hitinfo_Array is array (Tile_Index) of Sides;
-   type Map_Array_Access is not null access Map_Array;
-   type Hit_Array_Access is not null access Hit_Array;
+   type Hit_Info_Array   is array (Tile_Index) of Sides;
+   type Map_Array_Access is access Map_Array;
+   type Hit_Array_Access is access Hit_Array;
 
    type PIG_Map is record
       Owner       : Engine_Class_Access;
@@ -220,9 +220,9 @@ is
       Tile_Width  : Pixels;            --  Size of one tile (pixels)
       Tile_Height : Pixels;
       Tile        : Texture;           --  Tile palette image
-      Hitinfo     : Hitinfo_Array;     --  Collision info for the tiles
+      Hit_Info    : Hit_Info_Array;    --  Collision info for the tiles
    end record;
-   type Pig_Map_Access is access all PIG_Map;
+--   type Pig_Map_Access is access all PIG_Map;
 
    --  Sprite frame
    type PIG_Sprite is record
@@ -275,7 +275,7 @@ is
          Frame : Integer;              --  Logic time; integer part
 
          --  Background graphics
-         Map   : Pig_Map_Access;
+         Map   : PIG_Map; -- _Access;
 
          --  Objects
          Objects           : Object_Lists.List;
@@ -401,15 +401,13 @@ is
    --
    --  Map
    --
-   function Pig_Map_Open (Engine : not null Engine_Class_Access;
-                          Width  : Tiles;
-                          Height : Tiles)
-                         return not null Pig_Map_Access;
+   procedure Pig_Map_Open (Engine : in out Game_Engine;
+                           Width  :        Tiles;
+                           Height :        Tiles);
 
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
-   procedure Pig_Map_Tiles (Map      : in out PIG_Map;
-                            Engine   : in out Game_Engine;
+   procedure Pig_Map_Tiles (Engine   : in out Game_Engine;
                             Filename :        String;
                             Width    :        Pixels;
                             Height   :        Pixels);

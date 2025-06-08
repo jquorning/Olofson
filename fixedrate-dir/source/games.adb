@@ -24,7 +24,7 @@ with Signals;
 package body Games is
 
    subtype Sprite_Counts  is Engines.Sprite_Counts;
-   subtype Pig_Map_Access is Engines.Pig_Map_Access;
+--   subtype Pig_Map_Access is Engines.Pig_Map_Access;
    subtype Pig_Events     is Engines.Pig_Events;
    subtype Sides          is Engines.Sides;
 
@@ -145,26 +145,26 @@ package body Games is
 
       declare
          use Engines;
-
-         Map : constant Pig_Map_Access :=
-           Pig_Map_Open (Engine => Game.Self,
-                         Width  => MAP_W,
-                         Height => MAP_H);
       begin
-         Pig_Map_Tiles (Map      => Map.all,
-                        Engine   => Game,
+--         Game.Map.Owner := Game;
+
+         Pig_Map_Open (Engine => Game,
+                       Width  => MAP_W,
+                       Height => MAP_H);
+
+         Pig_Map_Tiles (Engine   => Game,
                         Filename => Asset_Dir & "tiles.png",
                         Width    => TILE_W,
                         Height   => TILE_H);
 
          --  Mark tiles for collision detection
-         Pig_Map_Collisions (Map.all,  0, 12, All_Sides);   --  Red, green, yellov
-         Pig_Map_Collisions (Map.all, 12, 17, No_Side);     --  Sky
-         Pig_Map_Collisions (Map.all, 29,  3, All_Sides);   --  Single R, G, Y
+         Pig_Map_Collisions (Game.Map,  0, 12, All_Sides);   --  Red, green, yellov
+         Pig_Map_Collisions (Game.Map, 12, 17, No_Side);     --  Sky
+         Pig_Map_Collisions (Game.Map, 29,  3, All_Sides);   --  Single R, G, Y
 
-         Game.Map := Map;
+--         Game.Map := Map;
 
-         Game.Load_Level (0);
+         Game.Load_Level (Map => 0);
       end;
    end Create;
 
@@ -1159,7 +1159,9 @@ package body Games is
             New_Slime (Game,  1, 0,  16, Dummy);
             New_Slime (Game, 24, 0, -14, Dummy);
       end case;
-      Engines.Pig_Map_From_String (Game.Map.all, Trans => K, Data => M);
+
+      Engines.Pig_Map_From_String (Game.Map, Trans => K, Data => M);
+
       Game.Refresh_Screen := Game.Pages;
    end Load_Level;
 

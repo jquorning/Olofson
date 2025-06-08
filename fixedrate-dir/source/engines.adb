@@ -61,7 +61,7 @@ package body Engines is
    --  moves more than 25% of the collision distance between tests.
    --  (25% should be sufficient for correct direction flags.)
 
-   function Check_Tile (Map  : not null Pig_Map_Access;
+   function Check_Tile (Map  : PIG_Map;
                         X, Y : Pixels;
                         Mask : Sides) return Sides;
    --  Returns a non-zero value if the tile at (x, y) is marked for
@@ -139,7 +139,7 @@ package body Engines is
       Engine.Frame := 0;    --  Logic time; integer part
 
       --  Background graphics
-      Engine.Map   := null;
+--      Engine.Map   := null;
 
       --  Objects
       Engine.Objects           := Object_Lists.Empty_List;
@@ -687,7 +687,7 @@ package body Engines is
    -- Check_tile --
    ----------------
 
-   function Check_Tile (Map  : not null Pig_Map_Access;
+   function Check_Tile (Map  : PIG_Map;
                         X, Y : Pixels;
                         Mask : Sides) return Sides
    is
@@ -757,7 +757,7 @@ package body Engines is
       Collision_2 : constant not null Collision_Info_Access
            := (if Collision /= null then Collision else Lci'Access);
 
-      Map  : constant not null Pig_Map_Access := Engine.Map;
+      Map  : PIG_Map renames Engine.Map;
 
       X, Y : Pixels;
       Dist : Pixels := 2_000_000_000;
@@ -1367,34 +1367,29 @@ package body Engines is
    -- Pig_Map_Open --
    ------------------
 
-   function Pig_Map_Open (Engine : not null Engine_Class_Access;
-                          Width  : Tiles;
-                          Height : Tiles)
-                         return not null Pig_Map_Access
+   procedure Pig_Map_Open (Engine : in out Game_Engine;
+                           Width  :        Tiles;
+                           Height :        Tiles)
    is
-      use SDL.Video;
+--      use SDL.Video;
    begin
-      if Engine.Map /= null then
-         Pig_Map_Close (Engine.Map.all);
-      end if;
+      Pig_Map_Close (Engine.Map);
 
-      Engine.Map := new
-        PIG_Map'(Owner       => Engine,
-                 Width       => Width,
-                 Height      => Height,
-                 Map         => new Map_Array (0 .. Width - 1,
-                                               0 .. Height - 1),
-                 Hit         => new Hit_Array (0 .. Width - 1,
-                                               0 .. Height - 1),
-                 Tile_Width  => 0,
-                 Tile_Height => 0,
-                 Tile        => Textures.Null_Texture,
-                 Hitinfo     => (others => (others => False))
-                );
+--      Engine.Map.Owner       := Engine;
+      Engine.Map.Width       := Width;
+      Engine.Map.Height      := Height;
+      Engine.Map.Map         := new Map_Array (0 .. Width - 1,
+                                               0 .. Height - 1);
+      Engine.Map.Hit         := new Hit_Array (0 .. Width - 1,
+                                               0 .. Height - 1);
+      Engine.Map.Tile_Width  := 0;
+      Engine.Map.Tile_Height := 0;
+--      Engine.Map.Tile        := Textures.Null_Texture;
+      Engine.Map.Hit_Info    := (others => (others => False));
 
-      Engine.Map.Hit.all := (others => (others => No_Side));
-      Engine.Map.Map.all := (others => (others => 0));
-      return Engine.Map;
+      Engine.Map.Hit.all     := (others => (others => No_Side));
+      Engine.Map.Map.all     := (others => (others => 0));
+
    end Pig_Map_Open;
 
    -------------------
@@ -1402,7 +1397,6 @@ package body Engines is
    -------------------
 
    procedure Pig_Map_Close (Map : in out PIG_Map) is
---  void pig_map_close(PIG_map *pm)
    begin
       null;
 --      PIG_engine *pe = pm->owner;
@@ -1418,8 +1412,7 @@ package body Engines is
    -- Pig_Map_Tiles --
    -------------------
 
-   procedure Pig_Map_Tiles (Map      : in out PIG_Map;
-                            Engine   : in out Game_Engine;
+   procedure Pig_Map_Tiles (Engine   : in out Game_Engine;
                             Filename :        String;
                             Width    :        Pixels;
                             Height   :        Pixels)
@@ -1428,12 +1421,12 @@ package body Engines is
 
       Surface : Surfaces.Surface;
    begin
-      Map.Tile_Width  := Width;
-      Map.Tile_Height := Height;
+      Engine.Map.Tile_Width  := Width;
+      Engine.Map.Tile_Height := Height;
 
       SDL.Images.IO.Create (Surface, Filename);
 
-      Textures.Makers.Create (Tex      => Map.Tile,
+      Textures.Makers.Create (Tex      => Engine.Map.Tile,
                               Renderer => Engine.Renderer,
                               Surface  => Surface);
    end Pig_Map_Tiles;
@@ -1455,7 +1448,7 @@ package body Engines is
       end if;
 
       for I in First .. First + Count_2 - 1 loop
-         Map.Hitinfo (I) := Hit;
+         Map.Hit_Info (I) := Hit;
       end loop;
 
    end Pig_Map_Collisions;
@@ -1496,7 +1489,7 @@ package body Engines is
       for Y in 0 .. Map.Height - 1 loop
          for X in 0 .. Map.Width - 1 loop
             Map.Hit (X, Y) :=
-              Map.Hitinfo (Map.Map (X, Y));
+              Map.Hit_Info (Map.Map (X, Y));
          end loop;
       end loop;
 
