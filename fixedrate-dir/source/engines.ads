@@ -301,10 +301,10 @@ is
    procedure After_Objects  (Engine : in out Game_Engine) is null;
    --  Logic frame global handlers
 
-   procedure Setup (Engine : in out Game_Engine;
-                    Self   :        Engine_Access;
-                    Win    : in out Window;
-                    Pages  :        Positive);
+   procedure Setup_Game (Engine : in out Game_Engine;
+                         Self   :        Engine_Access;
+                         Win    : in out Window;
+                         Pages  :        Positive);
 
    procedure Set_Viewport (Engine : in out Game_Engine'Class;
                            X, Y   :        Pixels;

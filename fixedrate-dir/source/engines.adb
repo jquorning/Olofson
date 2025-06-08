@@ -216,14 +216,14 @@ package body Engines is
       --   end Pig_Close;
    end Finalize;
 
-   -----------
-   -- Setup --
-   -----------
+   ----------------
+   -- Setup_Game --
+   ----------------
 
-   procedure Setup (Engine : in out Game_Engine;
-                    Self   :        Engine_Access;
-                    Win    : in out Window;
-                    Pages  :        Positive)
+   procedure Setup_Game (Engine : in out Game_Engine;
+                         Self   :        Engine_Access;
+                         Win    : in out Window;
+                         Pages  :        Positive)
    is
       use SDL.Video;
       use type Renderers.Renderer_Flags;
@@ -254,7 +254,7 @@ package body Engines is
       Textures.Makers.Create (Tex      => Engine.Buffer,
                               Renderer => Engine.Renderer,
                               Surface  => Win.Get_Surface);
-   end Setup;
+   end Setup_Game;
 
    ------------------
    -- Set_Viewport --
@@ -348,8 +348,10 @@ package body Engines is
       Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0));
 
       declare
-         Surface_Width  : constant Pixels := Pixels (Surface_Load.Size.Width);
-         Surface_Height : constant Pixels := Pixels (Surface_Load.Size.Height);
+         Surface_Size   : constant SDL.Sizes := Surface_Load.Size;
+
+         Surface_Width  : constant Pixels := Pixels (Surface_Size.Width);
+         Surface_Height : constant Pixels := Pixels (Surface_Size.Height);
          Sprite_Width   : constant Pixels := (if Width  /= 0 then Width
                                                              else Surface_Width);
          Sprite_Height  : constant Pixels := (if Height /= 0 then Height

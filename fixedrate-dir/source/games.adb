@@ -103,11 +103,11 @@ package body Games is
       Engines.Finalize (Game_Engine (Game));
    end Finalize;
 
-   ------------
-   -- Create --
-   ------------
+   -----------------
+   -- Create_Game --
+   -----------------
 
-   procedure Create (Game : in out Game_State) is
+   procedure Create_Game (Game : in out Game_State) is
    begin
       Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
 
@@ -191,7 +191,7 @@ package body Games is
 
          Game.Load_Level (Map => 0);
       end;
-   end Create;
+   end Create_Game;
 
    --------------
    -- Add_Life --
@@ -1444,21 +1444,20 @@ package body Games is
       Dashframe  : Integer;
       Logic_FPS  : constant Float := 20.0;
 
-      Sdl_Flags : constant := (SDL.Enable_Screen
---                                 + SDL.Enable_Audio -- Workaround, clean cleanup
-                                 + SDL.Enable_Events);
-      procedure Sdl_Initialise;
+      SDL_Flags : constant := (SDL.Enable_Screen
+                             + SDL.Enable_Events);
+      procedure SDL_Initialise;
 
-      procedure Sdl_Initialise is
+      procedure SDL_Initialise is
       begin
-         if not SDL.Initialise (Sdl_Flags) then
+         if not SDL.Initialise (SDL_Flags) then
             raise Program_Error with "Could not initialise SDL library.";
          end if;
-      end Sdl_Initialise;
+      end SDL_Initialise;
 
    begin
 
-      Sdl_Initialise;
+      SDL_Initialise;
 
       Windows.Makers.Create
         (Window,
@@ -1468,10 +1467,10 @@ package body Games is
                       Height => C_int (SCREEN_H)),
          Flags    => SDL.Video.Windows.Windowed);
 
-      Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
-                  Win    => Window,
-                  Pages  => 1);
-      Create (Game);
+      Game.Setup_Game (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
+                       Win    => Window,
+                       Pages  => 1);
+      Create_Game (Game);
 
       Game.Logic_Frames    := 0;
       Game.Rendered_Frames := 0;
