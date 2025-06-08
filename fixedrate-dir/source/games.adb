@@ -1424,6 +1424,8 @@ package body Games is
    -- Play_Game --
    ---------------
 
+   Game : aliased Game_State;
+
    procedure Play_Game (Double_Buffer : Boolean;
                         Full_Screen   : Boolean;
                         BPP           : Positive)
@@ -1437,18 +1439,17 @@ package body Games is
 
       Window     : SDL.Video.Windows.Window;
 
-      Game       : aliased Game_State;
-
       Last_Tick  : Ada.Real_Time.Time;
       Start_Time : Ada.Real_Time.Time;
       Dashframe  : Integer;
       Logic_FPS  : constant Float := 20.0;
 
-      SDL_Flags : constant := (SDL.Enable_Screen
-                             + SDL.Enable_Events);
       procedure SDL_Initialise;
 
-      procedure SDL_Initialise is
+      procedure SDL_Initialise
+      is
+         SDL_Flags : constant := (SDL.Enable_Screen
+                                + SDL.Enable_Events);
       begin
          if not SDL.Initialise (SDL_Flags) then
             raise Program_Error with "Could not initialise SDL library.";
@@ -1467,7 +1468,7 @@ package body Games is
                       Height => C_int (SCREEN_H)),
          Flags    => SDL.Video.Windows.Windowed);
 
-      Game.Setup_Game (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
+      Game.Setup_Game (Self   => Engines.Game_Engine (Game)'Access,
                        Win    => Window,
                        Pages  => 1);
       Create_Game (Game);
