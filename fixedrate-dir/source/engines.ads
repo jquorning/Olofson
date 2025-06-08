@@ -229,7 +229,7 @@ is
       Width, Height : Pixels;      --  Size of sprite (pixels)
       Hot_X, Hot_Y  : Pixels;      --  Hot-spot offset (pixels)
       Radius        : Pixels;      --  Collision zone radius (pixels)
-      Surfac        : Texture;     --  Access
+      Textur        : Texture;     --  Graphics
    end record;
    type PIG_Sprite_Access is access all PIG_Sprite;
 

@@ -323,7 +323,7 @@ package body Engines is
                                     Hot_X  => Sprite_Width  / 2,
                                     Hot_Y  => Sprite_Height / 2,
                                     Radius => (Sprite_Width + Sprite_Height) / 5,
-                                    Surfac => Textures.Null_Texture);
+                                    Textur => Textures.Null_Texture);
                begin
 --                      if(pe->nsprites >= PIG_MAX_SPRITES)
 --                      {
@@ -357,7 +357,7 @@ package body Engines is
                   Surface_Sprite.Set_Blend_Mode  (None);
 
                   Textures.Makers.Create
-                    (Tex      => Sprite.Surfac,
+                    (Tex      => Sprite.Textur,
                      Renderer => Engine.Renderer,
                      Surface  => Surface_Sprite);
 
@@ -1108,7 +1108,7 @@ package body Engines is
             begin
                Renderers.Copy
                  (Self      => Engine.Renderer,
-                  Copy_From => Engine.Sprites (Object.Interpol.Gimage).Surfac,
+                  Copy_From => Engine.Sprites (Object.Interpol.Gimage).Textur,
                   From      => Source_Area,
                   To        => Target_Area);
 
@@ -1351,7 +1351,7 @@ package body Engines is
       DR.Y := int (Y - Engine.Sprites (Frame).Hot_Y + Pixels (Engine.View.Y));
 
       Renderers.Copy (Self      => Engine.Renderer,
-                      Copy_From => Engine.Sprites (Frame).Surfac,
+                      Copy_From => Engine.Sprites (Frame).Textur,
                       From      => From,
                       To        => DR);
    end Pig_Draw_Sprite;
