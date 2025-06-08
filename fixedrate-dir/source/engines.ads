@@ -298,7 +298,6 @@ is
    --  Logic frame global handlers
 
    procedure Setup_Game (Engine : in out Game_Engine;
-                         Self   :        Engine_Access;
                          Win    : in out Window;
                          Pages  :        Positive);
 

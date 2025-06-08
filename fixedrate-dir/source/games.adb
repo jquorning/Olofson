@@ -1474,8 +1474,7 @@ package body Games is
                       Height => C_int (SCREEN_H)),
          Flags    => SDL.Video.Windows.Windowed);
 
-      Game.Setup_Game (Self   => Engines.Game_Engine (Game)'Access,
-                       Win    => Window,
+      Game.Setup_Game (Win    => Window,
                        Pages  => 1);
       Create_Game (Game);
 
