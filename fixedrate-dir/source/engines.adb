@@ -283,7 +283,60 @@ package body Engines is
                              Handle        :    out Sprite_Index)
    is
       use SDL.Video;
-      None : constant SDL.Video.Blend_Modes := SDL.Video.None;
+
+      procedure Build_Sprite (Sprite        : in out Pig_Sprite;
+                              X, Y          :        Pixels;
+                              Width, Height :        Pixels;
+                              Surface       :        Surfaces.Surface);
+
+      procedure Build_Sprite (Sprite        : in out Pig_Sprite;
+                              X, Y          :        Pixels;
+                              Width, Height :        Pixels;
+                              Surface       :        Surfaces.Surface)
+      is
+         subtype C_int is SDL.C.int;
+
+         Source_Area    : Rectangle;
+         Target_Area    : Rectangle := (0, 0, 0, 0);
+         Surface_Sprite : Surfaces.Surface;
+      begin
+         Sprite.Width  := Width;
+         Sprite.Height := Height;
+         Sprite.Hot_X  := Width  / 2;
+         Sprite.Hot_Y  := Height / 2;
+         Sprite.Radius := (Width + Height) / 5;
+
+         Surfaces.Makers.Create
+           (Surface_Sprite,
+            Size       => (C_int (Width),
+                           C_int (Height)),
+            BPP        => 32,
+            Red_Mask   => 16#FF000000#,
+            Green_Mask => 16#00FF0000#,
+            Blue_Mask  => 16#0000FF00#,
+            Alpha_Mask => 16#000000FF#);
+
+         Surfaces.Set_Alpha_Blend (Surface_Sprite, 0);
+         Surfaces.Set_Blend_Mode  (Surface_Sprite, None);
+
+         Source_Area := (X      => C_int (Width  * (X - 1)),
+                         Y      => C_int (Height * (Y - 1)),
+                         Width  => C_int (Width),
+                         Height => C_int (Height));
+
+         Surfaces.Blit (Source      => Surface,
+                        Source_Area => Source_Area,
+                        Self        => Surface_Sprite,
+                        Self_Area   => Target_Area);
+
+         Surfaces.Set_Alpha_Blend (Surface_Sprite, 0);
+         Surfaces.Set_Blend_Mode  (Surface_Sprite, None);
+
+         Textures.Makers.Create
+           (Tex      => Sprite.Textur,
+            Renderer => Engine.Renderer,
+            Surface  => Surface_Sprite);
+      end Build_Sprite;
 
       Surface_Load : Surfaces.Surface;
    begin
@@ -309,51 +362,13 @@ package body Engines is
          for Y in 1 .. Last_Y loop
             for X in 1 .. Last_X loop
                Engine.Sprite_Last := Engine.Sprite_Last + 1;
-               declare
-                  subtype C_int is SDL.C.int;
 
-                  Source_Area    : Rectangle;
-                  Target_Area    : Rectangle := (0, 0, 0, 0);
-                  Surface_Sprite : Surfaces.Surface;
-
-                  Sprite : Pig_Sprite renames Engine.Sprites (Engine.Sprite_Last);
-               begin
-                  Sprite.Width  := Sprite_Width;
-                  Sprite.Height := Sprite_Height;
-                  Sprite.Hot_X  := Sprite_Width  / 2;
-                  Sprite.Hot_Y  := Sprite_Height / 2;
-                  Sprite.Radius := (Sprite_Width + Sprite_Height) / 5;
-
-                  Surfaces.Makers.Create
-                    (Surface_Sprite,
-                     Size       => (C_int (Sprite_Width),
-                                    C_int (Sprite_Height)),
-                     BPP        => 32,
-                     Red_Mask   => 16#FF000000#,
-                     Green_Mask => 16#00FF0000#,
-                     Blue_Mask  => 16#0000FF00#,
-                     Alpha_Mask => 16#000000FF#);
-                  Surface_Sprite.Set_Alpha_Blend (0);
-                  Surface_Sprite.Set_Blend_Mode  (None);
-
-                  Source_Area := (X      => C_int (Sprite_Width  * (X - 1)),
-                                  Y      => C_int (Sprite_Height * (Y - 1)),
-                                  Width  => C_int (Sprite_Width),
-                                  Height => C_int (Sprite_Height));
-
-                  Surfaces.Blit (Source      => Surface_Load,
-                                 Source_Area => Source_Area,
-                                 Self        => Surface_Sprite,
-                                 Self_Area   => Target_Area);
-
-                  Surface_Sprite.Set_Alpha_Blend (0);
-                  Surface_Sprite.Set_Blend_Mode  (None);
-
-                  Textures.Makers.Create
-                    (Tex      => Sprite.Textur,
-                     Renderer => Engine.Renderer,
-                     Surface  => Surface_Sprite);
-               end;
+               Build_Sprite (Sprite  => Engine.Sprites (Engine.Sprite_Last),
+                             X       => X,
+                             Y       => Y,
+                             Width   => Sprite_Width,
+                             Height  => Sprite_Height,
+                             Surface => Surface_Load);
             end loop;
          end loop;
       end;
