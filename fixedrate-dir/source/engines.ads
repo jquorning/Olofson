@@ -224,13 +224,13 @@ is
    end record;
 
    --  Sprite frame
-   type PIG_Sprite is record
+   type Pig_Sprite is record
       Width, Height : Pixels;      --  Size of sprite (pixels)
       Hot_X, Hot_Y  : Pixels;      --  Hot-spot offset (pixels)
       Radius        : Pixels;      --  Collision zone radius (pixels)
       Textur        : Texture;     --  Graphics
    end record;
-   type PIG_Sprite_Access is access all PIG_Sprite;
+   type Pig_Sprite_Access is access all Pig_Sprite;
 
    --
    --  Engine
@@ -238,7 +238,7 @@ is
    package Object_Lists is
       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Object_Access);
 
-   type Sprite_Array is array (Sprite_Index range <>) of PIG_Sprite_Access;
+   type Sprite_Array is array (Sprite_Index range <>) of Pig_Sprite_Access;
    type Sprite_Array_Access is access Sprite_Array;
 
    type Page_Index is (Zero, One, Work);

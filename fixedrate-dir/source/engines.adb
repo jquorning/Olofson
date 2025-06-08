@@ -43,7 +43,7 @@ package body Engines is
 
    procedure Test_Offscreen (Engine : in out Game_Engine;
                              Object : in out Game_Object;
-                             Sprite :        PIG_Sprite_Access);
+                             Sprite :        Pig_Sprite_Access);
 
    function Sqrt (F : Float) return Float
      renames Ada.Numerics.Elementary_Functions.Sqrt;
@@ -56,7 +56,7 @@ package body Engines is
 
    procedure Test_Sprite_Sprite (Engine : in out Game_Engine;
                                  Object :        not null Object_Access;
-                                 Sprite :        PIG_Sprite_Access);
+                                 Sprite :        Pig_Sprite_Access);
    --  Check Object against all subsequent objects in the list.
    --  The testing is step size limited so that neither object
    --  moves more than 25% of the collision distance between tests.
@@ -70,7 +70,7 @@ package body Engines is
 
    procedure Test_Sprite_Map (Engine : in out Game_Engine;
                               Object : in out Game_Object;
-                              Sprite :        PIG_Sprite_Access);
+                              Sprite :        Pig_Sprite_Access);
 
    procedure Run_Logic (Engine : in out Game_Engine'Class);
 
@@ -319,8 +319,8 @@ package body Engines is
                   Target_Area    : Rectangle := (0, 0, 0, 0);
                   Surface_Sprite : Surfaces.Surface;
 
-                  Sprite : constant not null PIG_Sprite_Access :=
-                    new PIG_Sprite'(Width  => Sprite_Width,
+                  Sprite : constant not null Pig_Sprite_Access :=
+                    new Pig_Sprite'(Width  => Sprite_Width,
                                     Height => Sprite_Height,
                                     Hot_X  => Sprite_Width  / 2,
                                     Hot_Y  => Sprite_Height / 2,
@@ -387,7 +387,7 @@ package body Engines is
       end if;
 
       declare
-         Sprite : not null PIG_Sprite_Access renames Engine.Sprites (Frame);
+         Sprite : not null Pig_Sprite_Access renames Engine.Sprites (Frame);
       begin
          case Hot_X is
             when Unchanged =>  null;
@@ -475,7 +475,7 @@ package body Engines is
 
    procedure Test_Offscreen (Engine : in out Game_Engine;
                              Object : in out Game_Object;
-                             Sprite :        PIG_Sprite_Access)
+                             Sprite :        Pig_Sprite_Access)
    is
       Hot_X   : constant Pixels := (if Sprite /= null then Sprite.Hot_X  else 0);
       Hot_Y   : constant Pixels := (if Sprite /= null then Sprite.Hot_Y  else 0);
@@ -626,7 +626,7 @@ package body Engines is
 
    procedure Test_Sprite_Sprite (Engine : in out   Game_Engine;
                                  Object : not null Object_Access;
-                                 Sprite :          PIG_Sprite_Access)
+                                 Sprite :          Pig_Sprite_Access)
    is
       Object_2 : Object_Access;
       Next_2   : constant Object_Access := null; --  NOT CORRECT !!! ???
@@ -794,7 +794,7 @@ package body Engines is
 
    procedure Test_Sprite_Map (Engine : in out Game_Engine;
                               Object : in out Game_Object;
-                              Sprite :        PIG_Sprite_Access)
+                              Sprite :        Pig_Sprite_Access)
    is
       pragma Unreferenced (Sprite);
       Collision : aliased Collision_Info;
@@ -852,7 +852,7 @@ package body Engines is
       while Object_Cursor /= No_Element loop
          declare
             Object : constant Object_Access := Element (Object_Cursor);
-            Sprite : PIG_Sprite_Access;
+            Sprite : Pig_Sprite_Access;
          begin
             --  next = po->next;
             Image := Sprite_Counts (Object.I_Base + Object.Image);
@@ -1031,7 +1031,7 @@ package body Engines is
       for Object of Engine.Objects loop
          if Object.Interpol.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
             declare
-               Sprite : constant not null PIG_Sprite_Access :=
+               Sprite : constant not null Pig_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
 
                Area   : Rectangle :=
@@ -1098,7 +1098,7 @@ package body Engines is
             declare
                subtype int is SDL.C.int;
 
-               Sprite      : constant not null PIG_Sprite_Access :=
+               Sprite      : constant not null Pig_Sprite_Access :=
                  Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
 
                Source_Area : constant Rectangle := (0, 0, 0, 0);
