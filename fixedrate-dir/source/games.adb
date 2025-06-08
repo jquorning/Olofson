@@ -12,8 +12,9 @@ with Ada.Text_IO;
 with Ada.Numerics.Elementary_Functions;
 with Ada.Characters.Handling;
 
-with SDL.Video.Rectangles;
 with SDL.Video.Palettes;
+with SDL.Video.Rectangles;
+with SDL.Video.Renderers;
 with SDL.Video.Windows.Makers;
 
 with SDL.Events.Mice;
@@ -24,7 +25,6 @@ with Signals;
 package body Games is
 
    subtype Sprite_Counts  is Engines.Sprite_Counts;
---   subtype Pig_Map_Access is Engines.Pig_Map_Access;
    subtype Pig_Events     is Engines.Pig_Events;
    subtype Sides          is Engines.Sides;
 
@@ -1236,9 +1236,12 @@ package body Games is
 
    procedure Dashboard (Game : in out Game_State)
    is
-      subtype int is SDL.C.int;
+      use SDL.Video;
       use Ada.Numerics.Elementary_Functions;
       use Ada.Real_Time;
+
+      subtype int is SDL.C.int;
+
       Pi   : constant       := Ada.Numerics.Pi;
       Now  : constant Time  := Clock;
       T    : constant Float := Float (To_Duration (Now - Game.Start_Time));
@@ -1249,15 +1252,14 @@ package body Games is
          Width  => int (SCREEN_W),
          Height => 56);
    begin
---      Game.Surfac.Set_Clip_Rectangle (Clip);
-      Game.Renderer.Set_Clip (Clip);
+      Renderers.Set_Clip (Game.Renderer, Clip);
 
       --  Render "plasma bar"
       for I in 0 .. 56 - 1 loop
          declare
             use SDL.Video.Palettes;
 
-            Line : constant SDL.Video.Rectangles.Rectangle :=
+            Line : constant Rectangles.Rectangle :=
               (X      => 0,
                Width  => int (SCREEN_W),
                Y      => SDL.C.int (I) + int (SCREEN_H) - 56,
@@ -1281,8 +1283,8 @@ package body Games is
                Green  => (Colour_Component ((64.0  * F1 * F2 + 64.0) * M)),
                Blue   => (Colour_Component ((128.0 * F2      + 32.0) * M)));
          begin
-            Game.Renderer.Set_Draw_Colour (Colour);
-            Game.Renderer.Fill (Line);
+            Renderers.Set_Draw_Colour (Game.Renderer, Colour);
+            Renderers.Fill            (Game.Renderer, Line);
          end;
       end loop;
 
@@ -1320,7 +1322,7 @@ package body Games is
          end loop;
       end;
 
-      Game.Pig_Dirty (Clip);
+      Pig_Dirty (Game, Clip);
    end Dashboard;
 
    ----------------------------------------------------------
