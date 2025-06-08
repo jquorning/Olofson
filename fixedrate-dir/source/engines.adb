@@ -910,8 +910,10 @@ package body Engines is
                           Frames :        Float)
    is
       --  Advance logic time
-      I : constant Integer := Integer (Long_Float'Floor (Engine.Time + Long_Float (Frames))
-                                         - Long_Float'Floor (Engine.Time));
+      Long_Frames : constant Long_Float := Long_Float (Frames);
+      Long_Time   : constant Long_Float := Long_Float'Floor (Engine.Time);
+      I : constant Integer := Integer (Long_Float'Floor (Engine.Time + Long_Frames)
+                                         - Long_Time);
    begin
       for Count in reverse 0 .. I loop
          Run_Logic (Engine);
@@ -927,14 +929,13 @@ package body Engines is
    procedure Pig_Dirty (Engine : in out Game_Engine;
                         Area   :        Rectangle)
    is
-      function "=" (Left, Right : Rectangle) return Boolean
-      renames Rectangles."=";
+      use type Rectangles.Rectangle;
 
       Size : SDL.Sizes;
       R    : Rectangle;
    begin
       SDL.Video.Renderers.Get_Logical_Size (Engine.Renderer, Size);
-      -- This ^ call will not work
+      --  This ^ call will not work
 
       R.X      := 0;
       R.Y      := 0;
@@ -1110,11 +1111,6 @@ package body Engines is
                   Copy_From => Engine.Sprites (Object.Interpol.Gimage).Surfac,
                   From      => Source_Area,
                   To        => Target_Area);
-               --  Surfaces.Blit
-               --   (Source      => Engine.Sprites (Object.Interpol.Gimage).Surfac,
-               --    Source_Area => Source_Area,
-               --    Self        => Engine.Surfac,
-               --    Self_Area   => Target_Area);
 
                --
                --  We use the clipped rect for the dirtyrect!
@@ -1278,7 +1274,6 @@ package body Engines is
 
       Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
---      Engine.Surface.Set_Clip_Rectangle (Null_Rectangle);
       Engine.Renderer.Set_Clip (Null_Rectangle);
 
       if Engine.Show_Dirtyrects then
@@ -1307,8 +1302,6 @@ package body Engines is
                                Copy_From => Engine.Buffer,
                                From      => Table.Rects (I),
                                To        => Rect_Copy);
---               Surfaces.Blit (Engine.Screen, Table.Rects (I),
---                              Engine.Buffer, Rect_Copy);
             end;
          end loop;
       end if;
@@ -1320,7 +1313,12 @@ package body Engines is
             Engine.Page := (if Engine.Page = One then Zero else One);
          end if;
       else
---          Win.Update_Surface_Rectangles (Table.Rects.all);
+         Renderers.Copy (Engine.Renderer, Copy_From => Engine.Map.Tile);
+         --  Experiment by jq
+
+         Renderers.Present (Engine.Renderer);
+         Renderers.Clear (Engine.Renderer);
+
          Engine.Renderer.Draw (Table.Rects.all);
       end if;
 
@@ -1332,11 +1330,6 @@ package body Engines is
 --         Engine.Surfac := Engine.Buffer;
          Renderers.Copy (Engine.Renderer, Copy_From => Engine.Buffer);
 --      end if;
-
-      Renderers.Copy (Engine.Renderer, Copy_From => Engine.Map.Tile);
-
-      Renderers.Present (Engine.Renderer);
-      Renderers.Clear (Engine.Renderer);
 
    end Pig_Present;
 
