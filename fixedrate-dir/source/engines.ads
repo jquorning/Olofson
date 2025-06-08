@@ -153,8 +153,6 @@ is
    type Timer_Id    is range 1 .. 3;
    type Timer_Array is array (Timer_Id) of Natural;
 
-   type Engine_Class_Access is access all Game_Engine'Class;
-
    type Handler_Access is not null access
      procedure (Game   : in out Game_Engine'Class;
                 Object : in out Game_Object;
@@ -247,8 +245,6 @@ is
    type Game_Engine is
      new Ada.Finalization.Limited_Controlled
       with record
-         Self    : Engine_Class_Access;
-
          --  Video stuff
          Renderer : SDL.Video.Renderers.Renderer;
 

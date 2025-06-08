@@ -111,10 +111,9 @@ package body Engines is
    procedure Initialize (Engine : in out Game_Engine)
    is
    begin
-      Engine.Self := Engine'Unchecked_Access;
-
       --  Video stuff
---      Engine.Buffer  := SDL.Video.Textures.Null_Texture;    --  For h/w surface displays
+--      Engine.Buffer  := SDL.Video.Textures.Null_Texture;
+--      For h/w surface displays
 --      Engine.Surfac  := Null_Surface;    --  Where to render to
       Engine.Pages   := 1;               --  # of display VRAM buffers
       Engine.View    := Null_Rectangle;  --  Viewport pos & size (pixels)
@@ -1566,10 +1565,8 @@ package body Engines is
                          Last   :        Boolean)
                         return not null Object_Access
    is
-      Base   : constant Engine_Access := Engine_Access (Engine.Self);
-      Object : constant not null Object_Access := Get_Object (Base.all);
+      Object : constant not null Object_Access := Get_Object (Engine);
    begin
---      Object.Owner     := Engine.Self;
       Object.Tile_Mask := All_Sides;
       Object.Hit_Mask  := 0;
       Object.Hit_Group := 0;

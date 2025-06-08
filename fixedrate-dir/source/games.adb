@@ -259,7 +259,7 @@ package body Games is
                           Object :    out not null Object_Access)
    is
    begin
-      Object := Open_Object (Game_Engine (Game.Self.all), X, Y, Last => True);
+      Object := Open_Object (Game, X, Y, Last => True);
 
       Game.Enemy_Count := Game.Enemy_Count + 1;
       Object.Score     := Power_Ups'Pos (Kind);
