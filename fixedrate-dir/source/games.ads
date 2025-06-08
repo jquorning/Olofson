@@ -10,6 +10,8 @@
 
 with Ada.Real_Time;
 
+with SDL.Video.Windows;
+
 with SDL.Events.Events;
 
 with Engines;
@@ -57,6 +59,8 @@ is
      new Game_Engine
      with record
 
+        Window     : SDL.Video.Windows.Window;
+
         --  I/O
         Keys           : Key_Array;
         Nice           : Boolean;
@@ -98,6 +102,7 @@ is
 
         Start_Time        : Ada.Real_Time.Time;
    end record;
+
    type Game_Access is access all Game_State;
    type Game_Class  is access all Game_State'Class;
 

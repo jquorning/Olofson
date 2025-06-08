@@ -1443,8 +1443,6 @@ package body Games is
       use type SDL.Init_Flags;
       subtype C_int is SDL.C.int;
 
-      Window     : SDL.Video.Windows.Window;
-
       Last_Tick  : Ada.Real_Time.Time;
       Start_Time : Ada.Real_Time.Time;
       Dashframe  : Integer;
@@ -1467,14 +1465,14 @@ package body Games is
       SDL_Initialise;
 
       Windows.Makers.Create
-        (Window,
+        (Game.Window,
          Title    => "Fixed Rate Pig Game",
          Position => (X => 10, Y => 10),
          Size     => (Width  => C_int (SCREEN_W),
                       Height => C_int (SCREEN_H)),
-         Flags    => SDL.Video.Windows.Windowed);
+         Flags    => Windows.Windowed);
 
-      Game.Setup_Game (Win    => Window,
+      Game.Setup_Game (Win    => Game.Window,
                        Pages  => 1);
       Create_Game (Game);
 
@@ -1542,17 +1540,17 @@ package body Games is
                Game.Pig_Refresh;
             end if;
 
+            Clean_Object_List (Game);
             --  Clean object list
-            Game.Clean_Object_List;
 
+            Pig_Present (Game, Game.Window);
             --  Make the new frame visible
-            Game.Pig_Present (Window);
 
-            --  Update statistics, timers and stuff
             Game.Rendered_Frames   := Game.Rendered_Frames + 1;
             Game.Lives_Wobble_Time := Game.Lives_Wobble_Time + Dt;
             Game.Score_Wobble_Time := Game.Score_Wobble_Time + Dt;
             Game.Dashboard_Time    := Game.Dashboard_Time + Dt;
+            --  Update statistics, timers and stuff
 
             Last_Tick := Tick2;
             if Game.Nice then
