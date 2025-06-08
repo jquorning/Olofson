@@ -246,8 +246,9 @@ package body Engines is
                                                     Alpha => 0));
       Size := Windows.Get_Size (Win);
 
-      Engine.Renderer.Fill
-         (Rectangle => (0, 0,
+      Renderers.Fill
+         (Self      => Engine.Renderer,
+          Rectangle => (0, 0,
                         Width  => Size.Width,
                         Height => Size.Height));
 
@@ -929,12 +930,13 @@ package body Engines is
    procedure Pig_Dirty (Engine : in out Game_Engine;
                         Area   :        Rectangle)
    is
+      use SDL.Video;
       use type Rectangles.Rectangle;
 
       Size : SDL.Sizes;
       R    : Rectangle;
    begin
-      SDL.Video.Renderers.Get_Logical_Size (Engine.Renderer, Size);
+      Renderers.Get_Logical_Size (Engine.Renderer, Size);
       --  This ^ call will not work
 
       R.X      := 0;
@@ -976,10 +978,11 @@ package body Engines is
                                                 / Tile_Width);
 
    begin
-      Engine.Renderer.Set_Clip ((X      => Area.X + Engine.View.X,
-                                 Y      => Area.Y + Engine.View.Y,
-                                 Width  => Area.Width,
-                                 Height => Area.Height));
+      Renderers.Set_Clip (Engine.Renderer,
+                          (X      => Area.X + Engine.View.X,
+                           Y      => Area.Y + Engine.View.Y,
+                           Width  => Area.Width,
+                           Height => Area.Height));
 
       for Y in Start_Y .. Max_Y loop
          for X in Start_X .. Max_X loop
@@ -1063,7 +1066,7 @@ package body Engines is
       Fframe    : constant Float := Float (Engine.Time
                                           - Long_Float'Floor (Engine.Time));
    begin
-      Engine.Renderer.Set_Clip (Engine.View);
+      Renderers.Set_Clip (Engine.Renderer, Engine.View);
 
       --  Swap the work and display/back page dirtytables
       Engine.Work := Engine.Page;
@@ -1319,7 +1322,7 @@ package body Engines is
          Renderers.Present (Engine.Renderer);
          Renderers.Clear (Engine.Renderer);
 
-         Engine.Renderer.Draw (Table.Rects.all);
+         Renderers.Draw (Engine.Renderer, Table.Rects.all);
       end if;
 
 --      if Engine.Direct then
