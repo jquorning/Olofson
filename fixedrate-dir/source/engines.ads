@@ -173,8 +173,6 @@ is
    subtype Score_Type is Natural;
 
    type Game_Object is record
---      Owner     : Engine_Class_Access;
-
       Id        : Object_Id;      -- Unique ID. 0 means "free".
 
       I_Base    : Sprite_Counts;  -- Sprite frame base index
@@ -215,8 +213,6 @@ is
    type Hit_Array_Access is access Hit_Array;
 
    type Pig_Map is record
-      Owner       : Engine_Class_Access;
-
       Width       : Tiles;             --  Size of map (tiles)
       Height      : Tiles;
       Map         : Map_Array_Access;  --  2D aray of tile indices
