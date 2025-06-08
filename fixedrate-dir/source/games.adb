@@ -109,66 +109,63 @@ package body Games is
 
    procedure Create (Game : in out Game_State) is
    begin
---      return Game : Game_State
---      do
-         Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
+      Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
 
-         Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
-         Game.Create_Sprites (Asset_Dir & "font.png",      44, 56, Game.Scorefont);
-         Game.Create_Sprites (Asset_Dir & "glassfont.png", 60, 60, Game.Glassfont);
-         Game.Create_Sprites (Asset_Dir & "icons.png",     48, 48, Game.Icons);
-         Game.Create_Sprites (Asset_Dir & "stars.png",     32, 32, Game.Stars);
-         Game.Create_Sprites (Asset_Dir & "pigframes.png", 64, 48, Game.Pigframes);
-         Game.Create_Sprites (Asset_Dir & "evil.png",      48, 48, Game.Evil);
-         Game.Create_Sprites (Asset_Dir & "slime.png",     48, 48, Game.Slime);
+      Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0, Game.Lifepig);
+      Game.Create_Sprites (Asset_Dir & "font.png",      44, 56, Game.Scorefont);
+      Game.Create_Sprites (Asset_Dir & "glassfont.png", 60, 60, Game.Glassfont);
+      Game.Create_Sprites (Asset_Dir & "icons.png",     48, 48, Game.Icons);
+      Game.Create_Sprites (Asset_Dir & "stars.png",     32, 32, Game.Stars);
+      Game.Create_Sprites (Asset_Dir & "pigframes.png", 64, 48, Game.Pigframes);
+      Game.Create_Sprites (Asset_Dir & "evil.png",      48, 48, Game.Evil);
+      Game.Create_Sprites (Asset_Dir & "slime.png",     48, 48, Game.Slime);
 
-         declare
-            subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
-            subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
-            subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
-            subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
-         begin
-            for I in Icons_Range loop
-               Game.Set_Hotspot (Game.Icons + I, Center, 45);
-            end loop;
+      declare
+         subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
+         subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
+         subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
+         subtype Slime_Range is Sprite_Counts range 0 .. 16 - 1;
+      begin
+         for I in Icons_Range loop
+            Game.Set_Hotspot (Game.Icons + I, Center, 45);
+         end loop;
 
-            for I in Pig_Range loop
-               Game.Set_Hotspot (Game.Pigframes + I, Center, 43);
-            end loop;
+         for I in Pig_Range loop
+            Game.Set_Hotspot (Game.Pigframes + I, Center, 43);
+         end loop;
 
-            for I in Evil_Range loop
-               Game.Set_Hotspot (Game.Evil + I, Center, 46);
-            end loop;
+         for I in Evil_Range loop
+            Game.Set_Hotspot (Game.Evil + I, Center, 46);
+         end loop;
 
-            for I in Slime_Range loop
-               Game.Set_Hotspot (Game.Slime + I, Center, 46);
-            end loop;
-         end;
+         for I in Slime_Range loop
+            Game.Set_Hotspot (Game.Slime + I, Center, 46);
+         end loop;
+      end;
 
-         declare
-            use Engines;
-            Map_Tiles_Result : Integer;
-            Map : constant Pig_Map_Access :=
-              Pig_Map_Open (Game.Self, MAP_W, MAP_H);
-         begin
-            Pig_Map_Tiles (Map.all, Game, Asset_Dir & "tiles.png",
-                           TILE_W, TILE_H, Map_Tiles_Result);
-            if Map_Tiles_Result < 0 then
-               Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-                                     "Could not load background graphics!");
-               --  Game.Pig_Close; -- (Game.Engine.all);
-               --  Free (gs);
-               raise Storage_Error with "Could not load background graphics.";
-            end if;
+      declare
+         use Engines;
 
-            --  Mark tiles for collision detection
-            Pig_Map_Collisions (Map.all,  0, 12, All_Sides);   --  Red, green, yellov
-            Pig_Map_Collisions (Map.all, 12, 17, No_Side);     --  Sky
-            Pig_Map_Collisions (Map.all, 29,  3, All_Sides);   --  Single R, G, Y
+         Map : constant Pig_Map_Access :=
+           Pig_Map_Open (Engine => Game.Self,
+                         Width  => MAP_W,
+                         Height => MAP_H);
+      begin
+         Pig_Map_Tiles (Map      => Map.all,
+                        Engine   => Game,
+                        Filename => Asset_Dir & "tiles.png",
+                        Width    => TILE_W,
+                        Height   => TILE_H);
 
-            Game.Load_Level (0);
-         end;
---      end return;
+         --  Mark tiles for collision detection
+         Pig_Map_Collisions (Map.all,  0, 12, All_Sides);   --  Red, green, yellov
+         Pig_Map_Collisions (Map.all, 12, 17, No_Side);     --  Sky
+         Pig_Map_Collisions (Map.all, 29,  3, All_Sides);   --  Single R, G, Y
+
+         Game.Map := Map;
+
+         Game.Load_Level (0);
+      end;
    end Create;
 
    --------------
@@ -1405,17 +1402,23 @@ package body Games is
                         BPP           : Positive)
    is
       pragma Unreferenced (Double_Buffer, Full_Screen, BPP);
+
       use Ada.Real_Time;
+      use SDL.Video;
       use type SDL.Init_Flags;
+      subtype C_int is SDL.C.int;
 
       Window     : SDL.Video.Windows.Window;
+
+      Game       : aliased Game_State;
+
       Last_Tick  : Ada.Real_Time.Time;
       Start_Time : Ada.Real_Time.Time;
       Dashframe  : Integer;
       Logic_FPS  : constant Float := 20.0;
 
       Sdl_Flags : constant := (SDL.Enable_Screen
-                                 + SDL.Enable_Audio -- Workaround, clean cleanup
+--                                 + SDL.Enable_Audio -- Workaround, clean cleanup
                                  + SDL.Enable_Events);
       procedure Sdl_Initialise;
 
@@ -1430,143 +1433,125 @@ package body Games is
 
       Sdl_Initialise;
 
-      declare
-         subtype int is SDL.C.int;
-         use SDL.Video;
-      begin
-         Windows.Makers.Create
-           (Window,
-            Title    => "Fixed Rate Pig Game",
-            Position => (10, 10),
-            Size     => (int (SCREEN_W), int (SCREEN_H)),
-            Flags    => SDL.Video.Windows.Windowed);
-      end;
+      Windows.Makers.Create
+        (Window,
+         Title    => "Fixed Rate Pig Game",
+         Position => (X => 10, Y => 10),
+         Size     => (Width  => C_int (SCREEN_W),
+                      Height => C_int (SCREEN_H)),
+         Flags    => SDL.Video.Windows.Windowed);
 
-      declare
-         Game : aliased Game_State; --  := Create;
-      begin
-         Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
-                     Win    => Window,
-                     Pages  => 1);
-         Create (Game);
---         Game.Create;
---         Init_All (Game, Screen);
-         --     exception
-         --        when others => --  if not Gs then
-         --           Ada.Text_IO.Put_Line (Ada.Text_IO.Standard_Error,
-         --                                 "Init_All failed");
-         --           raise;
-         --           return; -- 1;
---      end; --  if;
+      Game.Setup (Self   => Engines.Game_Engine (Game)'Unchecked_Access,
+                  Win    => Window,
+                  Pages  => 1);
+      Create (Game);
 
-      --   Game.Keys := SDL_GetKeyState (I);
+      Game.Logic_Frames    := 0;
+      Game.Rendered_Frames := 0;
 
-         Game.Logic_Frames    := 0;
-         Game.Rendered_Frames := 0;
+      Game.Pig_Start (Frame => 0);
+      Game.Refresh_Screen := Game.Pages;
 
-         Game.Pig_Start (0);
-         Game.Refresh_Screen := Game.Pages;
-         Start_Time := Ada.Real_Time.Clock;
-         Last_Tick  := Start_Time;
+      Start_Time := Ada.Real_Time.Clock;
+      Last_Tick  := Start_Time;
 
-         while Game.Running loop
-            declare
-               Tick2   : Ada.Real_Time.Time;
-               Frames  : Float;
-               Dt      : Duration;
-               Event   : SDL.Events.Events.Events;
-            begin
-               --  Handle input
-               while SDL.Events.Events.Poll (Event) loop
-                  Handle_Input (Game, Event);
-               end loop;
-
-               Handle_Keys (Game);
-
-               if not Signals.Process_Control.Is_Running then
-                  Game.Running := False;
-               end if;
-
-               --  Calculate time since last update
-               Tick2   := Ada.Real_Time.Clock;
-               --  Dt     := Float (tick - last_tick) * 0.001;
-               Dt     := Ada.Real_Time.To_Duration (Tick2 - Last_Tick);
-               Frames := Float (Dt) * Logic_FPS;
-
-               --  Run the game logic
-               Game.Pig_Animate (Frames);
-
-               --  Limit the dashboard frame rate to 15 fps
-               --  when there's no wobbling going on.
-               --
-               --  The 'dashframe' deal is about keeping the
-               --  pages in sync on a double buffered display.
-               pragma Warnings (Off, "* not a multiple of Small");
-               if
-                 Game.Lives_Wobble /= 0.0 or
-                 Game.Score_Wobble /= 0.0 or
-                 Game.Dashboard_Time > Duration (1.0 / 15.0)
-               then
-                  Dashframe := Game.Pages;
-                  Game.Dashboard_Time := 0.0;
-               end if;
-               pragma Warnings (On, "* not a multiple of Small");
-
-               if Dashframe /= 0 then
-                  Dashframe := Dashframe - 1;
-                  Dashboard (Game);
-               end if;
-
-               --  Update sprites
-               if Game.Refresh_Screen /= 0 then
-                  Game.Refresh_Screen := Game.Refresh_Screen - 1;
-                  Game.Pig_Refresh_All;
-               else
-                  Game.Pig_Refresh;
-               end if;
-
-               --  Clean object list
-               Game.Clean_Object_List;
-
-               --  Make the new frame visible
-               Game.Pig_Present (Window);
-
-               --  Update statistics, timers and stuff
-               Game.Rendered_Frames   := Game.Rendered_Frames + 1;
-               Game.Lives_Wobble_Time := Game.Lives_Wobble_Time + Dt;
-               Game.Score_Wobble_Time := Game.Score_Wobble_Time + Dt;
-               Game.Dashboard_Time    := Game.Dashboard_Time + Dt;
-
-               Last_Tick := Tick2;
-               if Game.Nice then
-                  delay 0.050;
-               end if;
-            end;
-         end loop;
-
-         SDL.Finalise;
-
-         --  Print some statistics
-         Print_Some_Statistics :
+      while Game.Running loop
          declare
-            package Float_IO is new Ada.Text_IO.Float_IO (Float);
-            use Ada.Text_IO, Float_IO;
-            End_Time      : constant Time      := Ada.Real_Time.Clock;
-            Game_Span     : constant Time_Span := End_Time - Start_Time;
-            Game_Duration : constant Duration  := To_Duration (Game_Span);
-            Duration_MS   : constant Float     := 1000.0 * Float (Game_Duration);
-            Duration_S    : constant Float     := 0.001  * Float'Max (1.0, Duration_MS);
-            Rendered_FPS  : constant Float     := Float (Game.Rendered_Frames) / Duration_S;
-            Logical_FPS   : constant Float     := Float (Game.Logic_Frames)    / Duration_S;
+            Tick2   : Ada.Real_Time.Time;
+            Frames  : Float;
+            Dt      : Duration;
+            Event   : SDL.Events.Events.Events;
          begin
-            Default_Exp := 0;
-            Default_Aft := 0;
-            Put ("          Total time running: "); Put (Duration_MS);  Put_Line (" ms");
-            Default_Aft := 2;
-            Put ("Average rendering frame rate: "); Put (Rendered_FPS); Put_Line (" fps");
-            Put ("    Average logic frame rate: "); Put (Logical_FPS);  Put_Line (" fps");
-         end Print_Some_Statistics;
-      end;
+            --  Handle input
+            while SDL.Events.Events.Poll (Event) loop
+               Handle_Input (Game, Event);
+            end loop;
+
+            Handle_Keys (Game);
+
+            if not Signals.Process_Control.Is_Running then
+               Game.Running := False;
+            end if;
+
+            --  Calculate time since last update
+            Tick2  := Ada.Real_Time.Clock;
+            Dt     := Ada.Real_Time.To_Duration (Tick2 - Last_Tick);
+            Frames := Float (Dt) * Logic_FPS;
+
+            --  Run the game logic
+            Game.Pig_Animate (Frames);
+
+            --  Limit the dashboard frame rate to 15 fps
+            --  when there's no wobbling going on.
+            --
+            --  The 'dashframe' deal is about keeping the
+            --  pages in sync on a double buffered display.
+            pragma Warnings (Off, "* not a multiple of Small");
+            if
+              Game.Lives_Wobble /= 0.0 or
+              Game.Score_Wobble /= 0.0 or
+              Game.Dashboard_Time > Duration (1.0 / 15.0)
+            then
+               Dashframe := Game.Pages;
+               Game.Dashboard_Time := 0.0;
+            end if;
+            pragma Warnings (On, "* not a multiple of Small");
+
+            if Dashframe /= 0 then
+               Dashframe := Dashframe - 1;
+               Dashboard (Game);
+            end if;
+
+            --  Update sprites
+            if Game.Refresh_Screen /= 0 then
+               Game.Refresh_Screen := Game.Refresh_Screen - 1;
+               Game.Pig_Refresh_All;
+            else
+               Game.Pig_Refresh;
+            end if;
+
+            --  Clean object list
+            Game.Clean_Object_List;
+
+            --  Make the new frame visible
+            Game.Pig_Present (Window);
+
+            --  Update statistics, timers and stuff
+            Game.Rendered_Frames   := Game.Rendered_Frames + 1;
+            Game.Lives_Wobble_Time := Game.Lives_Wobble_Time + Dt;
+            Game.Score_Wobble_Time := Game.Score_Wobble_Time + Dt;
+            Game.Dashboard_Time    := Game.Dashboard_Time + Dt;
+
+            Last_Tick := Tick2;
+            if Game.Nice then
+               delay 0.050;
+            end if;
+         end;
+      end loop;
+
+      SDL.Finalise;
+
+      --  Print some statistics
+      Print_Some_Statistics :
+      declare
+         package Float_IO is new Ada.Text_IO.Float_IO (Float);
+         use Ada.Text_IO, Float_IO;
+         End_Time      : constant Time      := Ada.Real_Time.Clock;
+         Game_Span     : constant Time_Span := End_Time - Start_Time;
+         Game_Duration : constant Duration  := To_Duration (Game_Span);
+         Duration_MS   : constant Float     := 1000.0 * Float (Game_Duration);
+         Duration_S    : constant Float     := 0.001  * Float'Max (1.0, Duration_MS);
+         Rendered_FPS  : constant Float     := Float (Game.Rendered_Frames) / Duration_S;
+         Logical_FPS   : constant Float     := Float (Game.Logic_Frames)    / Duration_S;
+      begin
+         Default_Exp := 0;
+         Default_Aft := 0;
+         Put ("          Total time running: "); Put (Duration_MS);  Put_Line (" ms");
+         Default_Aft := 2;
+         Put ("Average rendering frame rate: "); Put (Rendered_FPS); Put_Line (" fps");
+         Put ("    Average logic frame rate: "); Put (Logical_FPS);  Put_Line (" fps");
+      end Print_Some_Statistics;
+
    end Play_Game;
 
 end Games;

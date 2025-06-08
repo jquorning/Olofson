@@ -231,13 +231,20 @@ package body Engines is
                     Pages  :        Positive)
    is
       use SDL.Video;
+      use type Renderers.Renderer_Flags;
 
       Size : SDL.Sizes;
    begin
-      Renderers.Makers.Create (Engine.Renderer, Win);
+      Renderers.Makers.Create (Rend   => Engine.Renderer,
+                               Window => Win,
+                               Flags  => Renderers.Accelerated or
+                                         Renderers.Target_Texture);
 
-      Renderers.Set_Draw_Colour  (Engine.Renderer, (0, 0, 0, 0));
-      Renderers.Get_Logical_Size (Engine.Renderer, Size);
+      Renderers.Set_Draw_Colour  (Engine.Renderer, (Red   => 0,
+                                                    Green => 0,
+                                                    Blue  => 0,
+                                                    Alpha => 0));
+      Size := Windows.Get_Size (Win);
 
       Engine.Renderer.Fill
          (Rectangle => (0, 0,
@@ -927,10 +934,12 @@ package body Engines is
       R    : Rectangle;
    begin
       SDL.Video.Renderers.Get_Logical_Size (Engine.Renderer, Size);
+      -- This ^ call will not work
+
       R.X      := 0;
       R.Y      := 0;
-      R.Width  := Size.Width;
-      R.Height := Size.Height;
+      R.Width  := 800; --  Size.Width;  ???
+      R.Height := 600; --  Size.Height; ???
       if Area /= Null_Rectangle then
          Dirty.Intersect (Area, R);
       end if;
@@ -1324,8 +1333,10 @@ package body Engines is
          Renderers.Copy (Engine.Renderer, Copy_From => Engine.Buffer);
 --      end if;
 
-      SDL.Video.Renderers.Present (Engine.Renderer);
---      SDL.Video.Renderers.Clear   (Engine.Renderer);
+      Renderers.Copy (Engine.Renderer, Copy_From => Engine.Map.Tile);
+
+      Renderers.Present (Engine.Renderer);
+      Renderers.Clear (Engine.Renderer);
 
    end Pig_Present;
 
@@ -1412,25 +1423,23 @@ package body Engines is
    -------------------
 
    procedure Pig_Map_Tiles (Map      : in out PIG_Map;
-                            Engine   :        Game_Engine;
+                            Engine   : in out Game_Engine;
                             Filename :        String;
                             Width    :        Pixels;
-                            Height   :        Pixels;
-                            Result   :    out Integer)
+                            Height   :        Pixels)
    is
-      pragma Unreferenced (Result);
       use SDL.Video;
 
-      Surfac : Surfaces.Surface;
+      Surface : Surfaces.Surface;
    begin
       Map.Tile_Width  := Width;
       Map.Tile_Height := Height;
 
-      SDL.Images.IO.Create (Surfac, Filename);
+      SDL.Images.IO.Create (Surface, Filename);
 
       Textures.Makers.Create (Tex      => Map.Tile,
                               Renderer => Engine.Renderer,
-                              Surface  => Surfac);
+                              Surface  => Surface);
    end Pig_Map_Tiles;
 
    -----------------------

@@ -409,11 +409,10 @@ is
    procedure Pig_Map_Close (Map : in out PIG_Map);
 
    procedure Pig_Map_Tiles (Map      : in out PIG_Map;
-                            Engine   :        Game_Engine;
+                            Engine   : in out Game_Engine;
                             Filename :        String;
                             Width    :        Pixels;
-                            Height   :        Pixels;
-                            Result   :    out Integer);
+                            Height   :        Pixels);
    --  Load a tile palette image
 
    procedure Pig_Map_Collisions (Map   : in out PIG_Map;
