@@ -108,36 +108,35 @@ package body Games is
    -----------------
 
    procedure Create_Game (Game : in out Game_State) is
+      use Engines;
    begin
-      Game.Set_Viewport (0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
+      Set_Viewport (Game, 0, 0, SCREEN_W, Pixels (MAP_H) * TILE_H);
 
-      Game.Create_Sprites (Asset_Dir & "lifepig.png",    0,  0,
-                           Sprite_Last => Game.Lifepig);
+      Create_Sprites (Game, Asset_Dir & "lifepig.png",    0,  0,
+                      Sprite_Last => Game.Lifepig);
 
-      Game.Create_Sprites (Asset_Dir & "font.png",      44, 56,
-                           Sprite_Last => Game.Scorefont);
+      Create_Sprites (Game, Asset_Dir & "font.png",      44, 56,
+                      Sprite_Last => Game.Scorefont);
 
-      Game.Create_Sprites (Asset_Dir & "glassfont.png", 60, 60,
-                           Sprite_Last => Game.Glassfont);
+      Create_Sprites (Game, Asset_Dir & "glassfont.png", 60, 60,
+                      Sprite_Last => Game.Glassfont);
 
-      Game.Create_Sprites (Asset_Dir & "icons.png",     48, 48,
-                           Sprite_Last => Game.Icons);
+      Create_Sprites (Game, Asset_Dir & "icons.png",     48, 48,
+                      Sprite_Last => Game.Icons);
 
-      Game.Create_Sprites (Asset_Dir & "stars.png",     32, 32,
-                           Sprite_Last => Game.Stars);
+      Create_Sprites (Game, Asset_Dir & "stars.png",     32, 32,
+                      Sprite_Last => Game.Stars);
 
-      Game.Create_Sprites (Asset_Dir & "pigframes.png", 64, 48,
-                           Sprite_Last => Game.Pigframes);
+      Create_Sprites (Game, Asset_Dir & "pigframes.png", 64, 48,
+                      Sprite_Last => Game.Pigframes);
 
-      Game.Create_Sprites (Asset_Dir & "evil.png",      48, 48,
-                           Sprite_Last => Game.Evil);
+      Create_Sprites (Game, Asset_Dir & "evil.png",      48, 48,
+                      Sprite_Last => Game.Evil);
 
-      Game.Create_Sprites (Asset_Dir & "slime.png",     48, 48,
-                           Sprite_Last => Game.Slime);
+      Create_Sprites (Game, Asset_Dir & "slime.png",     48, 48,
+                      Sprite_Last => Game.Slime);
 
       declare
-         use Engines;
-
          subtype Icons_Range is Sprite_Counts range 0 .. 3 * 8 - 1;
          subtype Pig_Range   is Sprite_Counts range 0 .. 12 - 1;
          subtype Evil_Range  is Sprite_Counts range 0 .. 16 - 1;
@@ -168,25 +167,21 @@ package body Games is
          end loop;
       end;
 
-      declare
-         use Engines;
-      begin
-         Pig_Map_Open (Engine => Game,
-                       Width  => MAP_W,
-                       Height => MAP_H);
+      Pig_Map_Open (Engine => Game,
+                    Width  => MAP_W,
+                    Height => MAP_H);
 
-         Pig_Map_Tiles (Engine   => Game,
-                        Filename => Asset_Dir & "tiles.png",
-                        Width    => TILE_W,
-                        Height   => TILE_H);
+      Pig_Map_Tiles (Engine   => Game,
+                     Filename => Asset_Dir & "tiles.png",
+                     Width    => TILE_W,
+                     Height   => TILE_H);
 
-         --  Mark tiles for collision detection
-         Pig_Map_Collisions (Game.Map,  0, 12, All_Sides);   --  Red, green, yellov
-         Pig_Map_Collisions (Game.Map, 12, 17, No_Side);     --  Sky
-         Pig_Map_Collisions (Game.Map, 29,  3, All_Sides);   --  Single R, G, Y
+      --  Mark tiles for collision detection
+      Pig_Map_Collisions (Game.Map,  0, 12, All_Sides);   --  Red, green, yellov
+      Pig_Map_Collisions (Game.Map, 12, 17, No_Side);     --  Sky
+      Pig_Map_Collisions (Game.Map, 29,  3, All_Sides);   --  Single R, G, Y
 
-         Game.Load_Level (Map => 0);
-      end;
+      Game.Load_Level (Map => 0);
    end Create_Game;
 
    --------------

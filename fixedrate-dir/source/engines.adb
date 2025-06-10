@@ -346,6 +346,8 @@ package body Engines is
       Surface_Load.Set_Blend_Mode  (None);
       Surface_Load.Set_Colour_Key  ((0, 0, 0, Alpha => 0));
 
+      Sprite_Last := Engine.Sprite_Last + 1;
+
       declare
          Surface_Size   : constant SDL.Sizes := Surface_Load.Size;
 
@@ -371,8 +373,6 @@ package body Engines is
             end loop;
          end loop;
       end;
-
-      Sprite_Last := Engine.Sprite_Last;
 
    end Create_Sprites;
 
