@@ -1265,12 +1265,12 @@ package body Games is
                Height => 1);
 
             F1 : constant Float :=
-              0.25 + 0.25 * Sin (T  * 1.7  + Float (I) / Float (SCREEN_H * 42))
-              + 0.25 + 0.25 * Sin (-T * 2.1  + Float (I) / Float (SCREEN_H * 66));
+              0.25 + 0.25 * Sin (T  * 1.7  + Float (I) / Float (SCREEN_H) * 42.0)
+              + 0.25 + 0.25 * Sin (-T * 2.1  + Float (I) / Float (SCREEN_H) * 66.0);
 
             F2 : constant Float :=
-              0.25 + 0.25 * Sin (T  * 3.31 + Float (I) / Float (SCREEN_H * 90))
-              + 0.25 + 0.25 * Sin (-T * 1.1  + Float (I) / Float (SCREEN_H * 154));
+              0.25 + 0.25 * Sin (T  * 3.31 + Float (I) / Float (SCREEN_H) * 90.0)
+              + 0.25 + 0.25 * Sin (-T * 1.1  + Float (I) / Float (SCREEN_H) * 154.0);
 
             M_1 : constant Float := Sin (Float (I) * Pi / 56.0);
             M_2 : constant Float := Sin (M_1 * Pi * 0.5);
