@@ -87,9 +87,9 @@ package body Engines is
 
    Clean_Object : constant Game_Object :=
      (Id => 0, I_Base => 0, Image => 0,
-      Interpol  => (Gimage  => 0,
-                    Ox | Gx => 0.0,
-                    Oy | Gy => 0.0),
+      Interpol  => (G_Image  => 0,
+                    Ox | Gx  => 0.0,
+                    Oy | Gy  => 0.0),
       Tile_Mask => No_Side,
       Hit_Mask  => 0, Hit_Group => 0,
       Timer     => (0, 0, 0),
@@ -430,7 +430,7 @@ package body Engines is
          Object.Interpol.Ox := Position_X (Object.X);
          Object.Interpol.Gy := Position_Y (Object.Y);
          Object.Interpol.Oy := Position_Y (Object.Y);
-         Object.Interpol.Gimage := Sprite_Counts (Object.I_Base + Object.Image);
+         Object.Interpol.G_Image := Sprite_Counts (Object.I_Base + Object.Image);
       end loop;
    end Pig_Start;
 
@@ -1021,10 +1021,10 @@ package body Engines is
    is
    begin
       for Object of Engine.Objects loop
-         if Object.Interpol.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
+         if Object.Interpol.G_Image in Sprite_Index'First .. Engine.Sprite_Last then
             declare
                Sprite : Pig_Sprite renames
-                 Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
+                 Engine.Sprites (Sprite_Index (Object.Interpol.G_Image));
 
                Area   : Rectangle :=
                  (X      => C_int (Object.Interpol.Gx) - C_int (Sprite.Hot_X),
@@ -1081,13 +1081,13 @@ package body Engines is
             Object.Interpol.Gx := Position_X (Object.X);
             Object.Interpol.Gy := Position_Y (Object.Y);
          end if;
-         Object.Interpol.Gimage := Sprite_Counts (Object.I_Base + Object.Image);
+         Object.Interpol.G_Image := Sprite_Counts (Object.I_Base + Object.Image);
 
          --  Render the sprite!
-         if Object.Interpol.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
+         if Object.Interpol.G_Image in Sprite_Index'First .. Engine.Sprite_Last then
             declare
                Sprite      : Pig_Sprite renames
-                 Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
+                 Engine.Sprites (Sprite_Index (Object.Interpol.G_Image));
 
                Source_Area : constant Rectangle := (0, 0, 0, 0);
 
@@ -1100,7 +1100,7 @@ package body Engines is
             begin
                Renderers.Copy
                  (Self      => Engine.Renderer,
-                  Copy_From => Engine.Sprites (Object.Interpol.Gimage).Textur,
+                  Copy_From => Engine.Sprites (Object.Interpol.G_Image).Textur,
                   From      => Source_Area,
                   To        => Target_Area);
 

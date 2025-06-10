@@ -65,7 +65,7 @@ is
       Oy : Position_Y;
 
       --  From the last/current rendered frame:
-      Gimage : Sprite_Counts;  --  Sprite frame index
+      G_Image : Sprite_Counts;  --  Sprite frame index
 
       Gx : Position_X;
       Gy : Position_Y;         --  Interpolated position

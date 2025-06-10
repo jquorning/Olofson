@@ -1245,7 +1245,7 @@ package body Games is
       Now  : constant Time  := Clock;
       T    : constant Float := Float (To_Duration (Now - Game.Start_Time));
 
-      Clip : constant SDL.Video.Rectangles.Rectangle :=
+      Clip : constant Rectangles.Rectangle :=
         (X      => 0,
          Y      => int (SCREEN_H - 56),
          Width  => int (SCREEN_W),
