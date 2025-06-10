@@ -22,13 +22,10 @@ with SDL.Images.IO;
 
 package body Engines is
 
-   package Rectangles renames SDL.Video.Rectangles;
-   package Surfaces   renames SDL.Video.Surfaces;
+   use SDL.Video;
 
    subtype int is SDL.C.int;
    use type int;
-
-   Null_Rectangle : constant Rectangle := Rectangles.Null_Rectangle;
 
    procedure Close_Object (Object : in out Game_Object);
    --  Actually remove an objects. Used internally,
@@ -116,7 +113,7 @@ package body Engines is
 --      For h/w surface displays
 --      Engine.Surfac  := Null_Surface;    --  Where to render to
       Engine.Pages   := 1;               --  # of display VRAM buffers
-      Engine.View    := Null_Rectangle;  --  Viewport pos & size (pixels)
+      Engine.View    := Rectangles.Null_Rectangle;  --  Viewport pos & size (pixels)
 
       --  Dirty
       Dirty.Create (Engine.Dirty (Zero), Size => 128);
@@ -224,7 +221,6 @@ package body Engines is
                          Win    : in out Window;
                          Pages  :        Positive)
    is
-      use SDL.Video;
       use type Renderers.Renderer_Flags;
 
       Size : SDL.Sizes;
@@ -281,8 +277,6 @@ package body Engines is
                              Width, Height :        Pixels;
                              Sprite_Last   :    out Sprite_Index)
    is
-      use SDL.Video;
-
       procedure Build_Sprite (Sprite        : in out Pig_Sprite;
                               X, Y          :        Pixels;
                               Width, Height :        Pixels;
@@ -936,7 +930,6 @@ package body Engines is
    procedure Pig_Dirty (Engine : in out Game_Engine;
                         Area   :        Rectangle)
    is
-      use SDL.Video;
       use type Rectangles.Rectangle;
 
       Size : SDL.Sizes;
@@ -949,7 +942,7 @@ package body Engines is
       R.Y      := 0;
       R.Width  := 800; --  Size.Width;  ???
       R.Height := 600; --  Size.Height; ???
-      if Area /= Null_Rectangle then
+      if Area /= Rectangles.Null_Rectangle then
          Dirty.Intersect (Area, R);
       end if;
 
@@ -966,8 +959,6 @@ package body Engines is
    procedure Tile_Area (Engine : in out Game_Engine;
                         Area   :        Rectangle)
    is
-      use SDL.Video;
-
       Tile_Width  : Pixels renames Engine.Map.Tile_Width;
       Tile_Height : Pixels renames Engine.Map.Tile_Height;
       Area_Right  : constant Pixels := Pixels (Area.X + Area.Width);
@@ -1066,8 +1057,6 @@ package body Engines is
 
    procedure Draw_Sprites (Engine : in out Game_Engine)
    is
-      use SDL.Video;
-
       Old_Dirty : constant Page_Index := Work;
       Fframe    : constant Float := Float (Engine.Time
                                           - Long_Float'Floor (Engine.Time));
@@ -1153,7 +1142,7 @@ package body Engines is
    procedure Pig_Refresh_All (Engine : in out Game_Engine) is
    begin
       Tile_Area (Engine, Engine.View);
-      Pig_Dirty (Engine, Null_Rectangle);
+      Pig_Dirty (Engine, Rectangles.Null_Rectangle);
       Draw_Sprites (Engine);
    end Pig_Refresh_All;
 
@@ -1180,8 +1169,6 @@ package body Engines is
    procedure Show_Rects (Engine : in out Game_Engine;
                          Table  :        Dirty_Table)
    is
-      use SDL.Video;
-
       Colour : constant Palettes.Colour
              := (Red   => 255,
                  Green => 0,
@@ -1279,11 +1266,9 @@ package body Engines is
    procedure Pig_Present (Engine : in out Game_Engine;
                           Win    : in out Window)
    is
-      use SDL.Video;
-
       Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
-      Renderers.Set_Clip (Engine.Renderer, Null_Rectangle);
+      Renderers.Set_Clip (Engine.Renderer, Rectangles.Null_Rectangle);
       Renderers.Set_Clip (Engine.Renderer, (0, 0, 800, 600 - 56));
 
       if Engine.Show_Dirtyrects then
@@ -1360,7 +1345,6 @@ package body Engines is
                               Frame  :        Sprite_Index;
                               X, Y   :        Pixels)
    is
-      use SDL.Video;
       subtype C_int is SDL.C.int;
 
       Sprite : Pig_Sprite renames Engine.Sprites (Frame);
@@ -1440,8 +1424,6 @@ package body Engines is
                             Width    :        Pixels;
                             Height   :        Pixels)
    is
-      use SDL.Video;
-
       Surface : Surfaces.Surface;
    begin
       Engine.Map.Tile_Width  := Width;
