@@ -209,7 +209,7 @@ is
                                  Object : in out Game_Object;
                                  Event  :        Pig_Event);
 
-   procedure Dashboard (Game : in out Game_State);
+   procedure Draw_Dashboard (Game : in out Game_State);
    --  Render the dashboard
 
    procedure Start_Game (Game : in out Game_State);

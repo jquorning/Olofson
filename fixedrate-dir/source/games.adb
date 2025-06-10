@@ -1234,11 +1234,11 @@ package body Games is
       end if;
    end Before_Objects;
 
-   ---------------
-   -- Dashboard --
-   ---------------
+   --------------------
+   -- Draw_Dashboard --
+   --------------------
 
-   procedure Dashboard (Game : in out Game_State)
+   procedure Draw_Dashboard (Game : in out Game_State)
    is
       use SDL.Video;
       use Ada.Numerics.Elementary_Functions;
@@ -1327,7 +1327,7 @@ package body Games is
       end;
 
       Pig_Dirty (Game, Clip);
-   end Dashboard;
+   end Draw_Dashboard;
 
    ----------------------------------------------------------
    --        Game logic event handlers
@@ -1529,7 +1529,7 @@ package body Games is
 
             if Dashframe /= 0 then
                Dashframe := Dashframe - 1;
-               Dashboard (Game);
+               Draw_Dashboard (Game);
             end if;
 
             --  Update sprites
