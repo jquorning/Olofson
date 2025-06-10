@@ -1284,6 +1284,7 @@ package body Engines is
       Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
       Renderers.Set_Clip (Engine.Renderer, Null_Rectangle);
+      Renderers.Set_Clip (Engine.Renderer, (0, 0, 800, 600 - 56));
 
       if Engine.Show_Dirtyrects then
          Show_Rects (Engine, Table);
@@ -1323,10 +1324,19 @@ package body Engines is
          end if;
       else
          Renderers.Copy (Engine.Renderer, Copy_From => Engine.Map.Tile);
+--         Renderers.Copy (Engine.Renderer,
+--                         Copy_From => Text,
+--                         From      => (0, 0, 50, 50),
+--                         To        => (100, 100, 150, 150));
          --  Experiment by jq
 
          Renderers.Present (Engine.Renderer);
-         Renderers.Clear (Engine.Renderer);
+--         Renderers.Clear (Engine.Renderer);
+--         Renderers.Copy (Engine.Renderer,
+--                         Copy_From => Text,
+--                         From      => (0, 0, 50, 50),
+--                         To        => (100, 100, 150, 150));
+         --  Experiment by jq
 
          Renderers.Draw (Engine.Renderer, Table.Rects.all);
       end if;
