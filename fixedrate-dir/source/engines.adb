@@ -24,8 +24,8 @@ package body Engines is
 
    use SDL.Video;
 
-   subtype int is SDL.C.int;
-   use type int;
+   subtype C_int is SDL.C.int;
+   use type C_int;
 
    procedure Close_Object (Object : in out Game_Object);
    --  Actually remove an objects. Used internally,
@@ -260,12 +260,11 @@ package body Engines is
                            Width  :        Pixels;
                            Height :        Pixels)
    is
-      subtype int is SDL.C.int;
    begin
-      Engine.View := (X      => int (X),
-                      Y      => int (Y),
-                      Width  => int (Width),
-                      Height => int (Height));
+      Engine.View := (X      => C_int (X),
+                      Y      => C_int (Y),
+                      Width  => C_int (Width),
+                      Height => C_int (Height));
    end Set_Viewport;
 
    --------------------
@@ -287,8 +286,6 @@ package body Engines is
                               Width, Height :        Pixels;
                               Surface       :        Surfaces.Surface)
       is
-         subtype C_int is SDL.C.int;
-
          Source_Area    : Rectangle;
          Target_Area    : Rectangle := (0, 0, 0, 0);
          Surface_Sprite : Surfaces.Surface;
@@ -984,18 +981,17 @@ package body Engines is
       for Y in Start_Y .. Max_Y loop
          for X in Start_X .. Max_X loop
             declare
-               subtype int is SDL.C.int;
                C2   : constant Tiles := Tiles (Engine.Map.Map (X, Y));
 
                From : constant Rectangle :=
-                 (X      => int (C2 mod Tiles_Per_Row) * int (Tile_Width),
-                  Y      => int (C2 / Tiles_Per_Row)   * int (Tile_Height),
-                  Width  => int (Tile_Width),
-                  Height => int (Tile_Height));
+                 (X      => C_int (C2 mod Tiles_Per_Row) * C_int (Tile_Width),
+                  Y      => C_int (C2 / Tiles_Per_Row)   * C_int (Tile_Height),
+                  Width  => C_int (Tile_Width),
+                  Height => C_int (Tile_Height));
 
                To   : constant Rectangle :=
-                 (X      => int (Engine.View.X) + int (Pixels (X) * Tile_Width),
-                  Y      => int (Engine.View.Y) + int (Pixels (Y) * Tile_Height),
+                 (X      => C_int (Engine.View.X) + C_int (Pixels (X) * Tile_Width),
+                  Y      => C_int (Engine.View.Y) + C_int (Pixels (Y) * Tile_Height),
                   others => 0);
             begin
                Renderers.Copy (Self      => Engine.Renderer,
@@ -1022,7 +1018,6 @@ package body Engines is
      --  to avoid rendering the same tiles multiple times
      --  in the overlapping areas.
    is
-      subtype int is SDL.C.int;
    begin
       for Object of Engine.Objects loop
          if Object.Interpol.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
@@ -1031,10 +1026,10 @@ package body Engines is
                  Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
 
                Area   : Rectangle :=
-                 (X      => int (Object.Interpol.Gx) - int (Sprite.Hot_X),
-                  Y      => int (Object.Interpol.Gy) - int (Sprite.Hot_Y),
-                  Width  => int (Sprite.Width),
-                  Height => int (Sprite.Height));
+                 (X      => C_int (Object.Interpol.Gx) - C_int (Sprite.Hot_X),
+                  Y      => C_int (Object.Interpol.Gy) - C_int (Sprite.Hot_Y),
+                  Width  => C_int (Sprite.Width),
+                  Height => C_int (Sprite.Height));
             begin
                Dirty.Intersect (Engine.View, Area);
                if Area.Width /= 0 and Area.Height /= 0 then
@@ -1090,17 +1085,15 @@ package body Engines is
          --  Render the sprite!
          if Object.Interpol.Gimage in Sprite_Index'First .. Engine.Sprite_Last then
             declare
-               subtype int is SDL.C.int;
-
                Sprite      : Pig_Sprite renames
                  Engine.Sprites (Sprite_Index (Object.Interpol.Gimage));
 
                Source_Area : constant Rectangle := (0, 0, 0, 0);
 
                Target_Area : constant Rectangle :=
-                 (X => int (Float (Object.Interpol.Gx) - Float (Sprite.Hot_X)
+                 (X => C_int (Float (Object.Interpol.Gx) - Float (Sprite.Hot_X)
                               + Float (Engine.View.X)),
-                  Y => int (Float (Object.Interpol.Gy) - Float (Sprite.Hot_Y)
+                  Y => C_int (Float (Object.Interpol.Gy) - Float (Sprite.Hot_Y)
                               + Float (Engine.View.Y)),
                   others => 0);
             begin
@@ -1345,8 +1338,6 @@ package body Engines is
                               Frame  :        Sprite_Index;
                               X, Y   :        Pixels)
    is
-      subtype C_int is SDL.C.int;
-
       Sprite : Pig_Sprite renames Engine.Sprites (Frame);
 
       Draw_Rect : constant Rectangle :=
