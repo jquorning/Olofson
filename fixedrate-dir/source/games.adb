@@ -1239,7 +1239,7 @@ package body Games is
       use Ada.Numerics.Elementary_Functions;
       use Ada.Real_Time;
 
-      subtype int is SDL.C.int;
+      subtype C_int is SDL.C.int;
 
       Pi   : constant       := Ada.Numerics.Pi;
       Now  : constant Time  := Clock;
@@ -1247,8 +1247,8 @@ package body Games is
 
       Clip : constant Rectangles.Rectangle :=
         (X      => 0,
-         Y      => int (SCREEN_H - 56),
-         Width  => int (SCREEN_W),
+         Y      => C_int (SCREEN_H - 56),
+         Width  => C_int (SCREEN_W),
          Height => 56);
    begin
       Renderers.Set_Clip (Game.Renderer, Clip);
@@ -1256,31 +1256,33 @@ package body Games is
       --  Render "plasma bar"
       for I in 0 .. 56 - 1 loop
          declare
-            use SDL.Video.Palettes;
+            subtype Component is Palettes.Colour_Component;
 
             Line : constant Rectangles.Rectangle :=
               (X      => 0,
-               Width  => int (SCREEN_W),
-               Y      => SDL.C.int (I) + int (SCREEN_H) - 56,
+               Width  => C_int (SCREEN_W),
+               Y      => C_int (I) + C_int (SCREEN_H) - 56,
                Height => 1);
 
+            Frac_I : constant Float := Float (I) / Float (SCREEN_H);
+
             F1 : constant Float :=
-              0.25 + 0.25 * Sin (T  * 1.7  + Float (I) / Float (SCREEN_H) * 42.0)
-              + 0.25 + 0.25 * Sin (-T * 2.1  + Float (I) / Float (SCREEN_H) * 66.0);
+              0.25 + 0.25 * Sin (T  * 1.7  + Frac_I * 42.0)
+              + 0.25 + 0.25 * Sin (-T * 2.1  + Frac_I * 66.0);
 
             F2 : constant Float :=
-              0.25 + 0.25 * Sin (T  * 3.31 + Float (I) / Float (SCREEN_H) * 90.0)
-              + 0.25 + 0.25 * Sin (-T * 1.1  + Float (I) / Float (SCREEN_H) * 154.0);
+              0.25 + 0.25 * Sin (T  * 3.31 + Frac_I * 90.0)
+              + 0.25 + 0.25 * Sin (-T * 1.1  + Frac_I * 154.0);
 
             M_1 : constant Float := Sin (Float (I) * Pi / 56.0);
             M_2 : constant Float := Sin (M_1 * Pi * 0.5);
             M   : constant Float := Sin (M_2 * Pi * 0.5);
 
-            Colour : constant SDL.Video.Palettes.Colour :=
+            Colour : constant Palettes.Colour :=
               (Alpha  => 128,
-               Red    => (Colour_Component ((128.0 * F1      + 64.0) * M)),
-               Green  => (Colour_Component ((64.0  * F1 * F2 + 64.0) * M)),
-               Blue   => (Colour_Component ((128.0 * F2      + 32.0) * M)));
+               Red    => (Component ((128.0 * F1      + 64.0) * M)),
+               Green  => (Component ((64.0  * F1 * F2 + 64.0) * M)),
+               Blue   => (Component ((128.0 * F2      + 32.0) * M)));
          begin
             Renderers.Set_Draw_Colour (Game.Renderer, Colour);
             Renderers.Fill            (Game.Renderer, Line);
