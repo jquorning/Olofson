@@ -992,7 +992,8 @@ package body Engines is
                To   : constant Rectangle :=
                  (X      => C_int (Engine.View.X) + C_int (Pixels (X) * Tile_Width),
                   Y      => C_int (Engine.View.Y) + C_int (Pixels (Y) * Tile_Height),
-                  others => 0);
+                  Width  => C_int (Tile_Width),
+                  Height => C_int (Tile_Height));
             begin
                Renderers.Copy (Self      => Engine.Renderer,
                                Copy_From => Engine.Map.Tile,
@@ -1262,7 +1263,6 @@ package body Engines is
       Table : Dirty_Table renames Engine.Dirty (Engine.Work);
    begin
       Renderers.Set_Clip (Engine.Renderer, Rectangles.Null_Rectangle);
-      Renderers.Set_Clip (Engine.Renderer, (0, 0, 800, 600 - 56));
 
       if Engine.Show_Dirtyrects then
          Show_Rects (Engine, Table);
