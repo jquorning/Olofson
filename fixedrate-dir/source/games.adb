@@ -1299,8 +1299,8 @@ package body Games is
          for I in 0 .. Game.Lives - 1 loop
             X := X + 48.0 + Game.Lives_Wobble *
               Sin (Float (Game.Lives_Wobble_Time) * 12.0) * 0.2;
-            Game.Pig_Draw_Sprite
-              (Game.Lifepig,
+            Pig_Draw_Sprite
+              (Game, Game.Lifepig,
                Pixels (X) + Pixels (Game.Lives_Wobble *
                                       Sin (Float (Game.Lives_Wobble_Time) * 20.0
                                              + Float (I) * 1.7)),
@@ -1318,7 +1318,7 @@ package body Games is
             N := Engines.Sprite_Counts (V mod 10);
             X := X - 39.0 - Game.Score_Wobble *
               Sin (Float (Game.Score_Wobble_Time) * 15.0 + Float (I) * 0.5);
-            Game.Pig_Draw_Sprite (Game.Scorefont + N,
+            Pig_Draw_Sprite (Game, Game.Scorefont + N,
                                   Pixels (X),
                                   SCREEN_H - 56 / 2);
             V := V / 10;

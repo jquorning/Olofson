@@ -1361,18 +1361,19 @@ package body Engines is
                               X, Y   :        Pixels)
    is
       use SDL.Video;
+      subtype C_int is SDL.C.int;
 
-      subtype int is SDL.C.int;
-      DR   : Rectangle;
-      From : constant Rectangle := (0, 0, 0, 0);
+      Sprite : Pig_Sprite renames Engine.Sprites (Frame);
+
+      Draw_Rect : constant Rectangle :=
+        (X      => C_int (X - Sprite.Hot_X + Pixels (Engine.View.X)),
+         Y      => C_int (Y - Sprite.Hot_Y + Pixels (Engine.View.Y)),
+         Width  => C_int (Sprite.Width),
+         Height => C_int (Sprite.Height));
    begin
-      DR.X := int (X - Engine.Sprites (Frame).Hot_X + Pixels (Engine.View.X));
-      DR.Y := int (Y - Engine.Sprites (Frame).Hot_Y + Pixels (Engine.View.Y));
-
       Renderers.Copy (Self      => Engine.Renderer,
                       Copy_From => Engine.Sprites (Frame).Textur,
-                      From      => From,
-                      To        => DR);
+                      To        => Draw_Rect);
    end Pig_Draw_Sprite;
 
    ------------------------------------------------------------
